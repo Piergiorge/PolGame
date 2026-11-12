@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fita Molde — platformer de replicação do DNA</title>
+<style>
+  :root { --bg:#140b22; --panel:#1f1433; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; gap:12px; }
+  .wrap { width:100%; max-width:800px; }
+  h1 { font-size:20px; margin:0; font-weight:700; letter-spacing:.01em; }
+  h1 small { font-weight:400; color:var(--muted); font-size:14px; margin-left:6px; }
+  .stage { position:relative; }
+  canvas { width:100%; aspect-ratio:800/448; display:block; border-radius:10px; background:#2a1440; outline:none; touch-action:none; }
+  .overlay { position:absolute; inset:0; background:rgba(18,9,32,.9); border-radius:10px; display:flex; align-items:center; justify-content:center; padding:18px; overflow:auto; }
+  .overlay[hidden] { display:none; }
+  .card { max-width:600px; width:100%; }
+  .card h2 { margin:0 0 6px; font-size:22px; color:#ffd54f; }
+  .card p { margin:6px 0; }
+  .card .muted { color:var(--muted); font-size:13px; }
+  .seq { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:15px; background:#2a1d42; border-radius:8px; padding:8px 10px; margin:8px 0; line-height:1.7; overflow-x:auto; white-space:nowrap; }
+  .b { font-weight:700; }
+  .bA { color:var(--A); } .bT { color:var(--T); } .bC { color:var(--C); } .bG { color:var(--G); }
+  .bad { background:#ff5252; color:#fff !important; border-radius:3px; padding:0 2px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0; }
+  th, td { text-align:left; padding:4px 8px; border-bottom:1px solid #35274f; }
+  th { color:var(--muted); font-weight:600; }
+  td.mono { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .eff-ok { color:#81c784; } .eff-sil { color:#90caf9; } .eff-mis { color:#ffb74d; } .eff-non { color:#ff5252; } .eff-na { color:#7d7096; }
+  .stats { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:13px; color:var(--muted); margin:8px 0 12px; }
+  .stats b { color:var(--text); }
+  button.big { background:#ffca28; color:#1d1230; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; }
+  button.big:hover { filter:brightness(1.08); }
+  .hint { color:var(--muted); font-size:13px; }
+  kbd { background:#2f2347; border-radius:4px; padding:1px 6px; font-family:inherit; font-size:12px; color:var(--text); }
+  .legend { background:var(--panel); border-radius:10px; padding:12px 14px; display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px 18px; font-size:13px; }
+  .legend div { display:flex; gap:10px; align-items:flex-start; }
+  .legend .ico { flex:0 0 22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#1d1230; }
+  .legend b { color:var(--text); }
+  .legend span { color:var(--muted); }
+  .touch { display:none; justify-content:space-between; gap:10px; user-select:none; -webkit-user-select:none; }
+  .touch .pad { display:flex; gap:10px; }
+  .touch button { width:64px; height:56px; border-radius:12px; border:0; background:#2f2347; color:var(--text); font:inherit; font-size:18px; font-weight:700; touch-action:none; }
+  .touch button:active { background:#4a3870; }
+  .touch button.small { font-size:12px; }
+  @media (pointer: coarse) { .touch { display:flex; } }
+</style>
+</head>
+<body>
+<div class="wrap"><h1>Fita Molde <small>um platformer de replicação do DNA</small></h1></div>
+
+<div class="wrap stage">
+  <canvas id="game" width="800" height="448" tabindex="0"></canvas>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <h2>Você é a DNA polimerase</h2>
+      <p>Copie a fita molde mostrada no topo da tela. Colete os nucleotídeos <b>complementares</b> na ordem certa: <b class="bA">A</b> pareia com <b class="bT">T</b> e <b class="bC">C</b> pareia com <b class="bG">G</b>.</p>
+      <p>Pegou a base errada? Ela é incorporada como <b>mutação</b>. Use a <b>revisão 3'→5'</b> (<kbd>E</kbd> ou <kbd>↓</kbd>) para remover o último nucleotídeo.</p>
+      <p>Pule em cima dos <b>bacteriófagos</b> para eliminá-los. Já nas <b>espécies reativas de oxigênio</b> não dá para pisar: desvie delas. Pegue a <b>helicase</b> para ganhar o pulo duplo. Complete a fita e chegue ao <b>telômero</b>.</p>
+      <p class="muted"><kbd>←</kbd><kbd>→</kbd> ou <kbd>A</kbd><kbd>D</kbd> mover · <kbd>Espaço</kbd>/<kbd>W</kbd>/<kbd>↑</kbd> pular (segure para ir mais alto) · <kbd>E</kbd>/<kbd>↓</kbd> revisar · <kbd>R</kbd> reiniciar</p>
+      <p style="margin-top:12px"><button class="big" id="startBtn">Começar (Enter)</button></p>
+    </div>
+  </div>
+
+  <div class="overlay" id="results" hidden>
+    <div class="card" id="resultsCard"></div>
+  </div>
+</div>
+
+<div class="wrap touch" id="touch">
+  <div class="pad"><button data-k="ArrowLeft" aria-label="Esquerda">◀</button><button data-k="ArrowRight" aria-label="Direita">▶</button></div>
+  <div class="pad"><button data-k="KeyE" class="small">Revisar</button><button data-k="Space" aria-label="Pular">▲</button></div>
+</div>
+
+<div class="wrap hint"><kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espaço</kbd> pular · <kbd>E</kbd>/<kbd>↓</kbd> revisão 3'→5' · <kbd>R</kbd> reiniciar · <kbd>H</kbd> mostrar hitboxes</div>
+
+<div class="wrap legend">
+  <div><div class="ico" style="background:#26c6da">P</div><p style="margin:0"><b>DNA polimerase</b> <span>(você): sintetiza a nova fita de 5'→3' lendo o molde de 3'→5'. Os nucleotídeos coletados formam uma cauda atrás dela.</span></p></div>
+  <div><div class="ico" style="background:linear-gradient(90deg,var(--A) 50%,var(--T) 50%)"></div><p style="margin:0"><b>Pareamento</b> <span>A–T tem 2 pontes de hidrogênio e C–G tem 3. O painel do topo desenha as pontes de cada par correto.</span></p></div>
+  <div><div class="ico" style="background:#b0bec5">φ</div><p style="margin:0"><b>Bacteriófago</b> <span>patrulha plataformas e dá meia-volta em paredes e bordas. Pise em cima para eliminá-lo.</span></p></div>
+  <div><div class="ico" style="background:#ff7043">•</div><p style="margin:0"><b>ERO</b> <span>(espécie reativa de oxigênio): flutua em ondas e danifica o DNA ao toque. Não dá para pisar nela.</span></p></div>
+  <div><div class="ico" style="background:#80deea">⬡</div><p style="margin:0"><b>Helicase</b> <span>abre a dupla hélice e, aqui, libera o pulo duplo.</span></p></div>
+  <div><div class="ico" style="background:#9ccc65">✓</div><p style="margin:0"><b>Checkpoints G1/S e G2/M</b> <span>salvam seu progresso no ciclo celular.</span></p></div>
+</div>
+
+<script>
+(() => {
+  // ================= Constantes =================
+  const T = 32, ROWS = 14, COLS = 110, W = 800, H = 448, STEP = 1 / 120;
+  const P = {
+    gravity: 2000, maxFall: 900, runSpeed: 230, groundAccel: 2200, airAccel: 1400,
+    jumpVelocity: 680, jumpCut: 0.45, coyoteTime: 0.10, jumpBuffer: 0.12,
+    stompBounce: 420, phageSpeed: 70, rosSpeed: 90, baseRespawn: 5,
+  };
+
+  const BASE_COLOR = { A: '#4caf50', T: '#ef5350', C: '#42a5f5', G: '#ffca28' };
+  const PAIR = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const HBONDS = { A: 2, T: 2, C: 3, G: 3 };
+  const TEMPLATE = 'TACCGGACCATT';                                  // fita molde, 3'→5'
+  const TARGET = [...TEMPLATE].map(b => PAIR[b]).join('');          // ATGGCCTGGTAA, 5'→3'
+
+  // Código genético (ordem TCAG)
+  const ORDER = 'TCAG', AA = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+  const AA3 = { A:'Ala', R:'Arg', N:'Asn', D:'Asp', C:'Cys', Q:'Gln', E:'Glu', G:'Gly', H:'His', I:'Ile', L:'Leu', K:'Lys', M:'Met', F:'Phe', P:'Pro', S:'Ser', T:'Thr', W:'Trp', Y:'Tyr', V:'Val', '*':'Stop' };
+  const codonAA = c => AA[16 * ORDER.indexOf(c[0]) + 4 * ORDER.indexOf(c[1]) + ORDER.indexOf(c[2])];
+
+  // ================= Fase =================
+  const grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+  const fill = (x0, x1, y0, y1, v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) grid[y][x] = v; };
+  fill(0, COLS - 1, 12, 13);
+  for (const [a, b] of [[16, 18], [30, 33], [52, 54], [66, 69], [88, 90]]) fill(a, b, 12, 13, 0);
+  fill(0, 0, 0, 11); fill(COLS - 1, COLS - 1, 0, 11);
+  for (const [x0, x1, y0, y1] of [
+    [8, 12, 9, 9], [20, 24, 9, 9], [25, 28, 6, 6], [35, 39, 9, 9], [44, 44, 10, 11], [46, 50, 8, 8],
+    [56, 60, 9, 9], [61, 63, 6, 6], [72, 76, 9, 9], [78, 80, 6, 6], [82, 85, 3, 3], [93, 97, 9, 9],
+    [100, 101, 10, 11], [102, 103, 9, 11],
+  ]) fill(x0, x1, y0, y1);
+
+  const PHAGE_SPAWNS = [[10, 8], [24, 11], [38, 11], [48, 7], [60, 11], [74, 8], [84, 11], [96, 11]];
+  const ROS_SPAWNS = [{ x0: 18, x1: 24, r: 6 }, { x0: 55, x1: 61, r: 5 }, { x0: 77, x1: 83, r: 8 }, { x0: 92, x1: 99, r: 6 }];
+  const NUC_SPAWNS = [
+    [4, 10, 'A'], [6, 10, 'T'], [10, 7, 'G'], [12, 7, 'C'],
+    [20, 10, 'G'], [22, 7, 'A'], [26, 4, 'G'], [27, 4, 'C'],
+    [35, 7, 'C'], [37, 7, 'T'], [39, 7, 'C'], [42, 10, 'G'],
+    [47, 6, 'T'], [49, 6, 'G'], [53, 9, 'A'], [57, 7, 'C'], [59, 7, 'G'],
+    [62, 4, 'T'], [64, 10, 'A'], [72, 7, 'G'], [74, 7, 'T'], [76, 7, 'A'],
+    [79, 4, 'A'], [80, 4, 'C'], [84, 2, 'G'], [86, 10, 'T'], [89, 9, 'A'],
+    [93, 7, 'T'], [95, 7, 'A'], [97, 7, 'G'], [99, 10, 'C'],
+  ];
+  const HELICASE_POS = { x: 28 * T + 16, y: 5 * T + 16 };
+  const CHECKPOINTS_DEF = [{ c: 41, label: 'G1/S' }, { c: 71, label: 'G2/M' }];
+  const START = { x: 2 * T + 4, y: 12 * T - 30 };
+  const GOAL = { x: 105 * T, y: 8 * T, w: 2 * T, h: 4 * T };
+
+  const solidAt = (tx, ty) => {
+    if (tx < 0 || tx >= COLS) return true;
+    if (ty < 0 || ty >= ROWS) return false;
+    return grid[ty][tx] === 1;
+  };
+
+  // ================= Estado =================
+  let player, phages, ros, nucs, helicase, checkpoints, spawn, trail, texts;
+  let strand, mutations, corrected, hits, elapsed, hasHelicase, state = 'intro';
+  let camX = 0, shake = 0, jumpBufferTimer = 0, goalMsgTimer = 0, showDebug = false;
+
+  function makePhage([c, r]) {
+    const w = 24, h = 26;
+    return { x: c * T + (T - w) / 2, y: (r + 1) * T - h, w, h, vx: 0, vy: 0, dir: 1, onGround: false, dead: false, deadTimer: 0 };
+  }
+
+  function respawnPlayer() {
+    player = { x: spawn.x, y: spawn.y, w: 22, h: 30, vx: 0, vy: 0, onGround: false, coyote: 0, jumping: false,
+               facing: 1, invuln: 1.0, prevBottom: 0, squash: 0, airJumps: 0 };
+    trail = [];
+  }
+
+  function reset() {
+    spawn = { ...START };
+    respawnPlayer(); player.invuln = 0;
+    phages = PHAGE_SPAWNS.map(makePhage);
+    ros = ROS_SPAWNS.map((d, i) => ({ x0: d.x0 * T, x1: d.x1 * T, cy: d.r * T + 16, x: d.x0 * T + (i * 37) % ((d.x1 - d.x0) * T), y: d.r * T + 16, dir: 1, t: i }));
+    nucs = NUC_SPAWNS.map(([c, r, b]) => ({ x: c * T + 16, y: r * T + 16, base: b, active: true, timer: 0, phase: c * 0.7 }));
+    helicase = { ...HELICASE_POS, taken: false };
+    checkpoints = CHECKPOINTS_DEF.map(d => ({ x: d.c * T + 8, y: 10 * T, w: 16, h: 2 * T, label: d.label, active: false }));
+    strand = []; mutations = 0; corrected = 0; hits = 0; elapsed = 0; hasHelicase = false;
+    texts = []; camX = 0; shake = 0; jumpBufferTimer = 0; goalMsgTimer = 0;
+  }
+
+  // ================= Entrada =================
+  const keys = {};
+  const JUMP = ['Space', 'KeyW', 'ArrowUp'], PROOF = ['KeyE', 'ArrowDown', 'KeyS'];
+  const GAME_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyR', 'KeyH', 'Enter'];
+  const introEl = document.getElementById('intro');
+  const resultsEl = document.getElementById('results');
+
+  function start() { reset(); state = 'play'; introEl.hidden = true; resultsEl.hidden = true; for (const k in keys) keys[k] = false; canvas.focus(); }
+
+  function press(code) {
+    if (state === 'intro') { if (code === 'Enter' || code === 'Space') start(); return; }
+    if (state === 'won') { if (code === 'Enter' || code === 'KeyR') start(); return; }
+    if (keys[code]) return;
+    keys[code] = true;
+    if (JUMP.includes(code)) jumpBufferTimer = P.jumpBuffer;
+    if (PROOF.includes(code)) proofread();
+    if (code === 'KeyR') start();
+    if (code === 'KeyH') showDebug = !showDebug;
+  }
+  const release = code => { keys[code] = false; };
+
+  addEventListener('keydown', e => {
+    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+    press(e.code);
+  });
+  addEventListener('keyup', e => release(e.code));
+  addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+  document.getElementById('startBtn').addEventListener('click', start);
+  for (const btn of document.querySelectorAll('#touch button')) {
+    const k = btn.dataset.k;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'intro') { start(); return; } press(k); });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) btn.addEventListener(ev, () => release(k));
+  }
+  const held = codes => codes.some(c => keys[c]);
+  const jumpHeld = () => held(JUMP);
+
+  // ================= Física =================
+  const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
+  const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  const boxAt = (cx, cy, r) => ({ x: cx - r, y: cy - r, w: r * 2, h: r * 2 });
+
+  function moveBody(b, dt) {
+    let hitX = false;
+    b.x += b.vx * dt;
+    const top = Math.floor(b.y / T), bottom = Math.floor((b.y + b.h - 0.001) / T);
+    if (b.vx > 0) {
+      const tx = Math.floor((b.x + b.w - 0.001) / T);
+      for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = tx * T - b.w; b.vx = 0; hitX = true; break; }
+    } else if (b.vx < 0) {
+      const tx = Math.floor(b.x / T);
+      for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = (tx + 1) * T; b.vx = 0; hitX = true; break; }
+    }
+    b.y += b.vy * dt;
+    const wasGround = b.onGround;
+    b.onGround = false;
+    const left = Math.floor(b.x / T), right = Math.floor((b.x + b.w - 0.001) / T);
+    if (b.vy > 0) {
+      const ty = Math.floor((b.y + b.h - 0.001) / T);
+      for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) {
+        if (!wasGround && b.vy > 300) b.squash = 0.12;
+        b.y = ty * T - b.h; b.vy = 0; b.onGround = true; break;
+      }
+    } else if (b.vy < 0) {
+      const ty = Math.floor(b.y / T);
+      for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) { b.y = (ty + 1) * T; b.vy = 0; break; }
+    }
+    return hitX;
+  }
+
+  // ================= Mecânicas de genética =================
+  function popText(text, color, x = player.x + player.w / 2, y = player.y - 8) {
+    texts.push({ text, color, x, y, t: 0 });
+  }
+
+  function collect(n) {
+    if (strand.length >= TARGET.length) return; // fita já completa: a base fica onde está
+    n.active = false; n.timer = P.baseRespawn;
+    const i = strand.length;
+    strand.push(n.base);
+    if (n.base === TARGET[i]) popText(`+${n.base} ✓`, BASE_COLOR[n.base]);
+    else { mutations++; shake = 0.25; popText(`Mutação! ${n.base} não pareia com ${TEMPLATE[i]}`, '#ff5252'); }
+    if (strand.length === TARGET.length) popText('Fita completa! Siga até o telômero →', '#ffffff', player.x + player.w / 2, player.y - 28);
+  }
+
+  function proofread() {
+    if (state !== 'play' || !strand.length) return;
+    const i = strand.length - 1, b = strand.pop();
+    if (b !== TARGET[i]) { corrected++; popText(`Revisão 3'→5': ${b} removido`, '#80deea'); }
+    else popText(`${b} removido (estava correto)`, '#b0a6c4');
+  }
+
+  // ================= Atualização =================
+  function updatePlayer(dt) {
+    const p = player;
+    const dir = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
+    if (dir !== 0) { p.vx = approach(p.vx, dir * P.runSpeed, (p.onGround ? P.groundAccel : P.airAccel) * dt); p.facing = dir; }
+    else p.vx = approach(p.vx, 0, (p.onGround ? P.groundAccel * 1.2 : P.airAccel * 0.3) * dt);
+
+    p.coyote = p.onGround ? P.coyoteTime : p.coyote - dt;
+    if (p.onGround) p.airJumps = hasHelicase ? 1 : 0;
+    jumpBufferTimer -= dt;
+    if (jumpBufferTimer > 0) {
+      if (p.coyote > 0) { doJump(1); p.coyote = 0; }
+      else if (p.airJumps > 0) { doJump(0.9); p.airJumps--; }
+    }
+    if (p.jumping && !jumpHeld() && p.vy < 0) { p.vy *= P.jumpCut; p.jumping = false; }
+    if (p.vy >= 0) p.jumping = false;
+
+    p.vy = Math.min(p.vy + P.gravity * dt, P.maxFall);
+    p.prevBottom = p.y + p.h;
+    moveBody(p, dt);
+    p.invuln = Math.max(0, p.invuln - dt);
+    p.squash = Math.max(0, p.squash - dt);
+
+    const tip = { x: p.x + p.w / 2 - p.facing * 8, y: p.y + p.h * 0.6 };
+    const last = trail[trail.length - 1];
+    if (!last || Math.hypot(tip.x - last.x, tip.y - last.y) > 3) { trail.push(tip); if (trail.length > 80) trail.shift(); }
+
+    if (p.y > ROWS * T + 64) hurt('Queda no citoplasma!');
+  }
+
+  function doJump(mult) {
+    const p = player;
+    p.vy = -P.jumpVelocity * mult; jumpBufferTimer = 0; p.onGround = false; p.jumping = true;
+  }
+
+  function updatePhage(e, dt) {
+    if (e.dead) { e.deadTimer -= dt; return; }
+    e.vx = e.dir * P.phageSpeed;
+    e.vy = Math.min(e.vy + P.gravity * dt, P.maxFall);
+    if (moveBody(e, dt)) e.dir *= -1;
+    else if (e.onGround && !groundAhead(e)) e.dir *= -1;
+    if (e.y > ROWS * T + 64) e.remove = true;
+  }
+  const edgeProbe = e => ({ x: e.dir > 0 ? e.x + e.w + 1 : e.x - 1, y: e.y + e.h + 1 });
+  const groundAhead = e => { const p = edgeProbe(e); return solidAt(Math.floor(p.x / T), Math.floor(p.y / T)); };
+
+  function updateROS(r, dt) {
+    r.t += dt;
+    r.x += r.dir * P.rosSpeed * dt;
+    if (r.x < r.x0) { r.x = r.x0; r.dir = 1; }
+    if (r.x > r.x1) { r.x = r.x1; r.dir = -1; }
+    r.y = r.cy + Math.sin(r.t * 2.5) * 16;
+  }
+
+  function hurt(msg) {
+    hits++;
+    respawnPlayer();
+    popText(msg, '#ff8a80');
+  }
+
+  function interactions() {
+    const p = player;
+    for (const e of phages) {
+      if (e.dead || p.invuln > 0 || !overlap(p, e)) continue;
+      if (p.vy > 0 && p.prevBottom <= e.y + 6) {
+        e.dead = true; e.deadTimer = 0.5;
+        p.y = e.y - p.h;
+        p.vy = jumpHeld() ? -Math.max(P.stompBounce, P.jumpVelocity * 0.85) : -P.stompBounce;
+        p.jumping = true;
+        popText('Fago eliminado!', '#cfd8dc', e.x + e.w / 2, e.y - 6);
+      } else { hurt('Infectada por um fago!'); return; }
+    }
+    if (p.invuln <= 0) for (const r of ros) if (overlap(p, boxAt(r.x, r.y, 10))) { hurt('Dano oxidativo!'); return; }
+
+    for (const n of nucs) if (n.active && overlap(p, boxAt(n.x, n.y, 11))) collect(n);
+
+    if (!helicase.taken && overlap(p, boxAt(helicase.x, helicase.y, 13))) {
+      helicase.taken = true; hasHelicase = true; p.airJumps = 1;
+      popText('Helicase! Pulo duplo liberado', '#80deea');
+    }
+    for (const c of checkpoints) if (!c.active && overlap(p, c)) {
+      c.active = true; spawn = { x: c.x - 4, y: 12 * T - 30 };
+      popText(`Checkpoint ${c.label}`, '#9ccc65');
+    }
+    if (overlap(p, GOAL)) {
+      if (strand.length === TARGET.length) win();
+      else if (goalMsgTimer <= 0) { popText(`Fita incompleta: faltam ${TARGET.length - strand.length} nucleotídeos`, '#ffd54f'); goalMsgTimer = 1.5; }
+    }
+  }
+
+  function update(dt) {
+    if (state !== 'play') return;
+    elapsed += dt;
+    goalMsgTimer -= dt;
+    shake = Math.max(0, shake - dt);
+    updatePlayer(dt);
+    for (const e of phages) updatePhage(e, dt);
+    for (const r of ros) updateROS(r, dt);
+    for (const n of nucs) if (!n.active && (n.timer -= dt) <= 0) n.active = true;
+    interactions();
+    phages = phages.filter(e => !e.remove && !(e.dead && e.deadTimer <= 0));
+    for (const t of texts) { t.t += dt; t.y -= 28 * dt; }
+    texts = texts.filter(t => t.t < 1.6);
+    const target = Math.max(0, Math.min(player.x + player.w / 2 - W / 2, COLS * T - W));
+    camX += (target - camX) * Math.min(1, dt * 8);
+  }
+
+  // ================= Resultado =================
+  function win() {
+    state = 'won';
+    const got = strand.join('');
+    const span = (s, ref) => [...s].map((b, i) => `<span class="b b${b}${ref && b !== ref[i] ? ' bad' : ''}">${b}</span>`).join('');
+    const codons = s => s.match(/.{3}/g);
+    const expC = codons(TARGET), gotC = codons(got);
+    let stopped = false;
+    const protein = [];
+    const rows = expC.map((ec, i) => {
+      const gc = gotC[i], ea = codonAA(ec), ga = codonAA(gc);
+      let eff, cls;
+      if (stopped) { eff = 'Não traduzido (após o stop)'; cls = 'eff-na'; }
+      else if (gc === ec) { eff = 'Correto'; cls = 'eff-ok'; }
+      else if (ga === ea) { eff = 'Silenciosa'; cls = 'eff-sil'; }
+      else if (ga === '*') { eff = 'Sem sentido (stop prematuro)'; cls = 'eff-non'; }
+      else if (ea === '*') { eff = 'Perda do códon de parada'; cls = 'eff-non'; }
+      else { eff = 'Troca de sentido (missense)'; cls = 'eff-mis'; }
+      if (!stopped) { if (ga === '*') stopped = true; else protein.push(AA3[ga]); }
+      return `<tr><td class="mono">${span(ec)} <span class="muted">${AA3[ea]}</span></td><td class="mono">${span(gc, ec)} <span class="muted">${AA3[ga]}</span></td><td class="${cls}">${eff}</td></tr>`;
+    }).join('');
+    const wrong = [...got].filter((b, i) => b !== TARGET[i]).length;
+    const fidelity = Math.round(100 * (TARGET.length - wrong) / TARGET.length);
+    const mm = Math.floor(elapsed / 60), ss = Math.floor(elapsed % 60).toString().padStart(2, '0');
+    const title = wrong === 0 ? 'Replicação perfeita!' : wrong === 1 ? 'Replicação com 1 mutação' : `Replicação com ${wrong} mutações`;
+    document.getElementById('resultsCard').innerHTML = `
+      <h2>Telômero alcançado: ${title}</h2>
+      <div class="seq">Molde&nbsp;3'-${span(TEMPLATE)}-5'<br>Nova&nbsp;&nbsp;5'-${span(got, TARGET)}-3'</div>
+      <p class="muted">A fita nova tem a mesma sequência do mRNA deste gene (com U no lugar de T). Erros não corrigidos viram mutações permanentes na próxima replicação. Veja o efeito de cada códon:</p>
+      <table><thead><tr><th>Esperado</th><th>Obtido</th><th>Efeito</th></tr></thead><tbody>${rows}</tbody></table>
+      <p>Proteína resultante: <b>${protein.length ? protein.join('–') : '(nenhum aminoácido)'}</b>${stopped ? ' (parada)' : ' <span class="muted">(sem códon de parada!)</span>'}</p>
+      <div class="stats">
+        <span>Fidelidade <b>${fidelity}%</b></span>
+        <span>Erros incorporados <b>${mutations}</b></span>
+        <span>Corrigidos pela revisão <b>${corrected}</b></span>
+        <span>Danos sofridos <b>${hits}</b></span>
+        <span>Tempo <b>${mm}:${ss}</b></span>
+      </div>
+      <button class="big" id="againBtn">Jogar de novo (Enter)</button>`;
+    document.getElementById('againBtn').addEventListener('click', start);
+    resultsEl.hidden = false;
+  }
+
+  // ================= Desenho =================
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  // Organelas de fundo (geradas de forma determinística)
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const ORGANELLES = Array.from({ length: 26 }, () => ({ type: rnd() < 0.4 ? 'mito' : rnd() < 0.6 ? 'ves' : 'ribo', x: rnd() * 1800, y: 40 + rnd() * 300, s: 0.7 + rnd() * 0.7, a: rnd() * Math.PI }));
+
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#2a1440'); g.addColorStop(1, '#4a2050');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for (const o of ORGANELLES) {
+      const x = ((o.x - camX * 0.3) % 1800 + 1800) % 1800 - 200;
+      ctx.save(); ctx.translate(x, o.y); ctx.rotate(o.a); ctx.scale(o.s, o.s);
+      if (o.type === 'mito') {
+        ctx.fillStyle = 'rgba(230,120,80,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 46, 20, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,170,120,.3)'; ctx.lineWidth = 2; ctx.beginPath();
+        for (let i = -36; i <= 36; i += 2) ctx.lineTo(i, Math.sin(i * 0.35) * 10);
+        ctx.stroke();
+      } else if (o.type === 'ves') {
+        ctx.strokeStyle = 'rgba(180,150,255,.25)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,.12)';
+        for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(i * 12, Math.sin(i) * 6, 3, 0, Math.PI * 2); ctx.fill(); }
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawTiles(cx) {
+    const c0 = Math.max(0, Math.floor(cx / T)), c1 = Math.min(COLS - 1, Math.ceil((cx + W) / T));
+    for (let y = 0; y < ROWS; y++) for (let x = c0; x <= c1; x++) {
+      if (!grid[y][x]) continue;
+      const px = x * T, py = y * T;
+      const top = !solidAt(x, y - 1), bot = y < ROWS - 1 && !solidAt(x, y + 1);
+      ctx.fillStyle = '#e9c46a'; ctx.fillRect(px, py, T, T);
+      ctx.strokeStyle = '#c99d45'; ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let k = 0; k < 4; k++) { const lx = px + 4 + k * 8; ctx.moveTo(lx - 1, py + 6); ctx.lineTo(lx + 1, py + T / 2); ctx.lineTo(lx - 1, py + T - 6); }
+      ctx.stroke();
+      ctx.fillStyle = '#8e5bd6';
+      for (let k = 0; k < 4; k++) {
+        if (top) { ctx.beginPath(); ctx.arc(px + 4 + k * 8, py + 4, 4, 0, Math.PI * 2); ctx.fill(); }
+        if (bot) { ctx.beginPath(); ctx.arc(px + 4 + k * 8, py + T - 4, 4, 0, Math.PI * 2); ctx.fill(); }
+      }
+    }
+  }
+
+  function drawNucleotide(n, now) {
+    const bob = Math.sin(now / 300 + n.phase) * 3;
+    const x = n.x, y = n.y + bob;
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BASE_COLOR[n.base]; ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1d1230'; ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(n.base, x, y + 1);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawPhage(e, now) {
+    const cx = e.x + e.w / 2;
+    if (e.dead) {
+      ctx.globalAlpha = Math.max(0, e.deadTimer / 0.5);
+      ctx.fillStyle = '#90a4ae'; rr(e.x - 2, e.y + e.h - 7, e.w + 4, 7, 3); ctx.fill();
+      ctx.globalAlpha = 1; return;
+    }
+    const hy = e.y + 9, hr = 9;
+    ctx.fillStyle = '#b0bec5'; ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * hr, hy + Math.sin(a) * hr); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#607d8b'; ctx.fillRect(cx - 2, hy + hr - 1, 4, 7);
+    ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = 2;
+    const wig = Math.sin(now / 80 + e.x) * 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx - 9 + wig, e.y + e.h);
+    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx + 9 - wig, e.y + e.h);
+    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx - 4 - wig, e.y + e.h);
+    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx + 4 + wig, e.y + e.h);
+    ctx.stroke();
+    const ex = cx + e.dir * 3;
+    ctx.fillStyle = '#fff'; ctx.fillRect(ex - 5, hy - 3, 4, 5); ctx.fillRect(ex + 1, hy - 3, 4, 5);
+    ctx.fillStyle = '#263238'; ctx.fillRect(ex - 4 + (e.dir > 0 ? 1 : 0), hy - 1, 2, 3); ctx.fillRect(ex + 2 + (e.dir > 0 ? 1 : 0), hy - 1, 2, 3);
+  }
+
+  function drawROS(r, now) {
+    const spikes = 9, R = 12, rI = 6, rot = now / 400;
+    ctx.fillStyle = 'rgba(255,112,67,.25)'; ctx.beginPath(); ctx.arc(r.x, r.y, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ff7043'; ctx.beginPath();
+    for (let i = 0; i < spikes * 2; i++) { const a = rot + i * Math.PI / spikes, rad = i % 2 ? rI : R; ctx.lineTo(r.x + Math.cos(a) * rad, r.y + Math.sin(a) * rad); }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '700 8px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('•OH', r.x, r.y + 0.5);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawHelicase(now) {
+    if (helicase.taken) return;
+    const { x } = helicase, y = helicase.y + Math.sin(now / 250) * 3, rot = now / 600;
+    ctx.fillStyle = 'rgba(128,222,234,.25)'; ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+    for (let i = 0; i < 6; i++) {
+      const a = rot + i * Math.PI / 3;
+      ctx.fillStyle = i % 2 ? '#4dd0e1' : '#80deea';
+      ctx.beginPath(); ctx.arc(x + Math.cos(a) * 8, y + Math.sin(a) * 8, 5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#e0f7fa'; ctx.font = '600 10px system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('helicase', x, y - 20); ctx.textAlign = 'left';
+  }
+
+  function drawCheckpoint(c) {
+    ctx.fillStyle = '#d7ccc8'; ctx.fillRect(c.x + 6, c.y, 3, c.h);
+    ctx.fillStyle = c.active ? '#9ccc65' : '#7e7491';
+    ctx.beginPath(); ctx.moveTo(c.x + 9, c.y + 2); ctx.lineTo(c.x + 44, c.y + 10); ctx.lineTo(c.x + 9, c.y + 20); ctx.fill();
+    ctx.fillStyle = '#1d1230'; ctx.font = '700 9px system-ui, sans-serif'; ctx.fillText(c.label, c.x + 12, c.y + 14);
+  }
+
+  function drawGoal(now) {
+    const g = GOAL, ready = strand.length === TARGET.length;
+    ctx.globalAlpha = ready ? 1 : 0.55;
+    ctx.fillStyle = '#ab47bc'; rr(g.x + 10, g.y, g.w - 20, g.h, 20); ctx.fill();
+    ctx.fillStyle = '#ce93d8';
+    for (let i = 0; i < 5; i++) ctx.fillRect(g.x + 10, g.y + 18 + i * 22, g.w - 20, 6);
+    ctx.fillStyle = '#f3e5f5'; ctx.font = '600 8px ui-monospace, monospace'; ctx.textAlign = 'center';
+    for (let i = 0; i < 6; i++) ctx.fillText('TTAGGG', g.x + g.w / 2, g.y + 30 + i * 18);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = ready ? '#ffd54f' : '#cbb8e0'; ctx.font = '700 11px system-ui, sans-serif';
+    ctx.fillText(ready ? 'Telômero ✓' : 'Telômero', g.x + g.w / 2, g.y - 8 + Math.sin(now / 300) * 2);
+    ctx.textAlign = 'left';
+  }
+
+  function drawStrandTail() {
+    if (!strand.length || trail.length < 2) return;
+    const pts = [];
+    for (let k = 0; k < strand.length; k++) {
+      const idx = trail.length - 1 - (k + 1) * 4;
+      if (idx < 0) break;
+      pts.push({ ...trail[idx], b: strand[strand.length - 1 - k], ok: strand[strand.length - 1 - k] === TARGET[strand.length - 1 - k] });
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(player.x + player.w / 2, player.y + player.h * 0.6);
+    for (const p of pts) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    for (const p of pts) {
+      ctx.fillStyle = BASE_COLOR[p.b]; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+      if (!p.ok) { ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2; ctx.stroke(); }
+    }
+  }
+
+  function drawPlayer() {
+    const p = player;
+    if (p.invuln > 0 && Math.floor(p.invuln * 12) % 2 === 0) return;
+    let sx = 1, sy = 1;
+    if (p.squash > 0) { sx = 1.25; sy = 0.78; } else if (!p.onGround && p.vy < -200) { sx = 0.88; sy = 1.12; }
+    const dw = p.w * sx, dh = p.h * sy, dx = p.x + (p.w - dw) / 2, dy = p.y + p.h - dh;
+    ctx.fillStyle = '#26c6da'; rr(dx, dy, dw, dh, 8); ctx.fill();
+    // "polegar" da polimerase (a mão que segura o DNA)
+    ctx.fillStyle = '#00838f';
+    const fx = p.facing > 0 ? dx + dw - 6 : dx - 2;
+    rr(fx, dy + dh * 0.45, 8, dh * 0.35, 3); ctx.fill();
+    ctx.fillStyle = '#fff';
+    const eyeX = p.facing > 0 ? dx + dw - 11 : dx + 4;
+    ctx.fillRect(eyeX, dy + 6, 7, 7);
+    ctx.fillStyle = '#102027'; ctx.fillRect(eyeX + (p.facing > 0 ? 4 : 1), dy + 8, 2, 4);
+    if (hasHelicase) { ctx.fillStyle = '#80deea'; ctx.beginPath(); ctx.arc(dx + dw / 2, dy - 4, 3, 0, Math.PI * 2); ctx.fill(); }
+  }
+
+  function drawStrandHUD(now) {
+    const cw = 24, n = TEMPLATE.length, labelW = 58, gap = 5;
+    const totalW = labelW * 2 + cw * n + gap * 3, x0 = (W - totalW) / 2, y0 = 8;
+    ctx.fillStyle = 'rgba(20,10,35,.8)'; rr(x0 - 8, y0, totalW + 16, 64, 10); ctx.fill();
+    ctx.font = '600 11px system-ui, sans-serif'; ctx.fillStyle = '#cbb8e0'; ctx.textAlign = 'right';
+    ctx.fillText("Molde 3'", x0 + labelW - 6, y0 + 22); ctx.fillText("Nova 5'", x0 + labelW - 6, y0 + 52);
+    ctx.textAlign = 'left';
+    const endX = x0 + labelW + cw * n + gap * 3 + 4;
+    ctx.fillText("5'", endX, y0 + 22); ctx.fillText("3'", endX, y0 + 52);
+    const pulse = 0.5 + 0.5 * Math.sin(now / 160);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+      const cx = x0 + labelW + i * cw + Math.floor(i / 3) * gap;
+      const tb = TEMPLATE[i];
+      ctx.globalAlpha = 0.75; ctx.fillStyle = BASE_COLOR[tb]; rr(cx + 1, y0 + 8, cw - 2, 20, 4); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#1d1230'; ctx.font = '700 12px system-ui, sans-serif'; ctx.fillText(tb, cx + cw / 2, y0 + 19);
+      if (i < strand.length) {
+        const b = strand[i], ok = b === TARGET[i];
+        ctx.fillStyle = BASE_COLOR[b]; rr(cx + 1, y0 + 38, cw - 2, 20, 4); ctx.fill();
+        if (!ok) { ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2.5; ctx.stroke(); }
+        ctx.fillStyle = '#1d1230'; ctx.fillText(b, cx + cw / 2, y0 + 49);
+        if (ok) { // pontes de hidrogênio
+          ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.beginPath();
+          const k = HBONDS[b];
+          for (let j = 0; j < k; j++) { const lx = cx + cw / 2 + (j - (k - 1) / 2) * 5; ctx.moveTo(lx, y0 + 30); ctx.lineTo(lx, y0 + 36); }
+          ctx.stroke();
+        } else { ctx.fillStyle = '#ff5252'; ctx.font = '700 10px system-ui, sans-serif'; ctx.fillText('✕', cx + cw / 2, y0 + 33); }
+      } else {
+        ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        rr(cx + 1.5, y0 + 38.5, cw - 3, 19, 4); ctx.stroke(); ctx.setLineDash([]);
+        if (i === strand.length) {
+          ctx.strokeStyle = `rgba(255,213,79,${0.4 + 0.6 * pulse})`; ctx.lineWidth = 2;
+          rr(cx, y0 + 7, cw, 22, 5); ctx.stroke(); rr(cx, y0 + 37, cw, 22, 5); ctx.stroke();
+          ctx.fillStyle = '#ffd54f'; ctx.font = '700 12px system-ui, sans-serif'; ctx.fillText('?', cx + cw / 2, y0 + 49);
+        }
+      }
+    }
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawStats() {
+    const txt = `Erros: ${mutations}   Revisões: ${corrected}   Danos: ${hits}${hasHelicase ? '   Helicase ✓' : ''}`;
+    ctx.font = '600 12px system-ui, sans-serif';
+    const w = ctx.measureText(txt).width + 20;
+    ctx.fillStyle = 'rgba(20,10,35,.75)'; rr(10, H - 34, w, 24, 6); ctx.fill();
+    ctx.fillStyle = '#efe9f7'; ctx.fillText(txt, 20, H - 18);
+  }
+
+  function render() {
+    const now = performance.now();
+    drawBackground();
+    const sx = shake > 0 ? (Math.random() - 0.5) * 8 : 0, sy = shake > 0 ? (Math.random() - 0.5) * 6 : 0;
+    const cx = Math.round(camX);
+    ctx.save(); ctx.translate(-cx + sx, sy);
+    drawTiles(cx);
+    for (const c of checkpoints) drawCheckpoint(c);
+    drawGoal(now);
+    for (const n of nucs) if (n.active) drawNucleotide(n, now);
+    drawHelicase(now);
+    for (const e of phages) drawPhage(e, now);
+    for (const r of ros) drawROS(r, now);
+    drawStrandTail();
+    drawPlayer();
+    for (const t of texts) {
+      ctx.globalAlpha = Math.max(0, 1 - t.t / 1.6);
+      ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(20,10,35,.7)'; const tw = ctx.measureText(t.text).width;
+      rr(t.x - tw / 2 - 6, t.y - 14, tw + 12, 20, 6); ctx.fill();
+      ctx.fillStyle = t.color; ctx.fillText(t.text, t.x, t.y);
+      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+    }
+    if (showDebug) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#00e5ff'; ctx.strokeRect(player.x + 0.5, player.y + 0.5, player.w, player.h);
+      for (const e of phages) {
+        if (e.dead) continue;
+        ctx.strokeStyle = '#ff2fd6'; ctx.strokeRect(e.x + 0.5, e.y + 0.5, e.w, e.h);
+        const pr = edgeProbe(e); ctx.fillStyle = groundAhead(e) ? '#00ff6a' : '#ff3b3b'; ctx.fillRect(pr.x - 2, pr.y - 2, 4, 4);
+      }
+      ctx.strokeStyle = '#ff9800'; for (const r of ros) { const b = boxAt(r.x, r.y, 10); ctx.strokeRect(b.x, b.y, b.w, b.h); }
+    }
+    ctx.restore();
+    drawStrandHUD(now);
+    drawStats();
+  }
+
+  // ================= Loop (passo fixo) =================
+  reset();
+  let last = performance.now(), acc = 0;
+  function frame(now) {
+    acc += Math.min(0.1, (now - last) / 1000); last = now;
+    while (acc >= STEP) { update(STEP); acc -= STEP; }
+    render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  canvas.addEventListener('pointerdown', () => canvas.focus());
+})();
+</script>
+</body>
+</html>
