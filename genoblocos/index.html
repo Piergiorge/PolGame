@@ -1,1 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GenoBlocos — quebra-cabeça de blocos genético</title>
+<style>
+  :root { --bg:#120a1f; --panel:#1f1433; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; gap:12px; }
+  .wrap { width:100%; max-width:560px; }
+  h1 { font-size:20px; margin:0; font-weight:700; }
+  h1 small { font-weight:400; color:var(--muted); font-size:14px; margin-left:6px; }
+  .stage { position:relative; }
+  canvas { width:100%; aspect-ratio:560/620; display:block; border-radius:12px; background:#1a0f2c; outline:none; touch-action:none; }
+  .overlay { position:absolute; inset:0; background:rgba(18,9,32,.92); border-radius:12px; display:flex; align-items:center; justify-content:center; padding:18px; overflow:auto; }
+  .overlay[hidden] { display:none; }
+  .card { max-width:470px; width:100%; }
+  .card h2 { margin:0 0 8px; font-size:22px; color:#ffd54f; }
+  .card p, .card li { margin:5px 0; }
+  .card ul { padding-left:18px; margin:6px 0; }
+  .muted { color:var(--muted); font-size:13px; }
+  .bA { color:var(--A); } .bT { color:var(--T); } .bC { color:var(--C); } .bG { color:var(--G); }
+  kbd { background:#2f2347; border-radius:4px; padding:1px 6px; font-family:inherit; font-size:12px; color:var(--text); }
+  button.big { background:#ffca28; color:#1d1230; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; margin-top:10px; }
+  button.big:hover { filter:brightness(1.08); }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; margin:10px 0; font-size:14px; }
+  .stats span { color:var(--muted); } .stats b { color:var(--text); float:right; }
+  .hint { color:var(--muted); font-size:13px; }
+  .legend { background:var(--panel); border-radius:12px; padding:12px 14px; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 18px; font-size:13px; }
+  .legend div { display:flex; gap:10px; align-items:flex-start; }
+  .legend .ico { flex:0 0 26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .legend p { margin:0; } .legend b { color:var(--text); } .legend span { color:var(--muted); }
+  .touch { display:none; flex-wrap:wrap; justify-content:center; gap:8px; user-select:none; -webkit-user-select:none; }
+  .touch button { min-width:60px; height:54px; padding:0 10px; border-radius:12px; border:0; background:#2f2347; color:var(--text); font:inherit; font-size:18px; font-weight:700; touch-action:none; }
+  .touch button.small { font-size:12px; }
+  .touch button:active { background:#4a3870; }
+  @media (pointer: coarse) { .touch { display:flex; } }
+</style>
+</head>
+<body>
+<div class="wrap"><h1>GenoBlocos <small>quebra-cabeça de blocos genético</small></h1></div>
 
+<div class="wrap stage">
+  <canvas id="game" width="560" height="620" tabindex="0"></canvas>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <h2>Monte o genoma</h2>
+      <ul>
+        <li>Cada peça é um nucleotídeo: <b class="bA">A</b>, <b class="bT">T</b>, <b class="bC">C</b> ou <b class="bG">G</b>. Complete linhas para eliminá-las.</li>
+        <li>Encaixe <b>bases complementares</b> lado a lado. Ao eliminar a linha, cada par vira pontos extras: <b class="bA">A</b>–<b class="bT">T</b> vale 2 pontes de hidrogênio e <b class="bC">C</b>–<b class="bG">G</b> vale 3.</li>
+        <li>Quatro linhas de uma vez formam uma <b>Tétrade!</b></li>
+        <li>Blocos com ícone trazem <b>power-ups</b>: elimine a linha onde eles estão para guardá-los e use com <kbd>E</kbd>.</li>
+        <li>A partir do nível 2 surgem <b>ameaças</b>, sempre com 3 s de aviso: radiação UV, fumaça de cigarro, retrovírus (nível 3) e raio-X (nível 4). DNA danificado e blocos virais não formam pares.</li>
+        <li>Se os blocos chegarem ao topo, a célula entra em <b>apoptose</b>.</li>
+      </ul>
+      <p class="muted"><kbd>←</kbd><kbd>→</kbd> mover · <kbd>↑</kbd>/<kbd>X</kbd> girar · <kbd>Z</kbd> girar ao contrário · <kbd>↓</kbd> descer · <kbd>Espaço</kbd> queda rápida · <kbd>C</kbd> guardar peça · <kbd>E</kbd> usar power-up · <kbd>P</kbd> pausar</p>
+      <button class="big" id="startBtn">Começar (Enter)</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="over" hidden>
+    <div class="card" id="overCard"></div>
+  </div>
+</div>
+
+<div class="wrap touch" id="touch">
+  <button data-k="ArrowLeft" aria-label="Esquerda">◀</button>
+  <button data-k="ArrowRight" aria-label="Direita">▶</button>
+  <button data-k="KeyX" aria-label="Girar">⟳</button>
+  <button data-k="ArrowDown" aria-label="Descer">▼</button>
+  <button data-k="Space" aria-label="Queda rápida">⤓</button>
+  <button data-k="KeyC" class="small">Guardar</button>
+  <button data-k="KeyE" class="small">Power-up</button>
+</div>
+
+<div class="wrap hint"><kbd>←</kbd><kbd>→</kbd> mover · <kbd>↑</kbd>/<kbd>X</kbd> girar · <kbd>Z</kbd> girar ao contrário · <kbd>↓</kbd> descer · <kbd>Espaço</kbd> queda · <kbd>C</kbd> guardar · <kbd>E</kbd> power-up · <kbd>P</kbd> pausar</div>
+
+<div class="wrap legend">
+  <div><div class="ico" style="background:#80deea">⬡</div><p><b>Helicase</b> <span>abre a dupla hélice e remove as 2 linhas de baixo.</span></p></div>
+  <div><div class="ico" style="background:#f06292">✂️</div><p><b>CRISPR-Cas9</b> <span>corta todas as bases do mesmo tipo da peça atual e destrói todos os blocos virais (o CRISPR surgiu como imunidade antiviral das bactérias). Os blocos restantes caem.</span></p></div>
+  <div><div class="ico" style="background:#aed581">🔗</div><p><b>DNA ligase</b> <span>preenche as lacunas de linhas quase completas (até 2 buracos) com bases complementares.</span></p></div>
+  <div><div class="ico" style="background:#ffd54f">⏳</div><p><b>Telomerase</b> <span>estende o tempo: as peças caem na velocidade do nível 1 por 20 s.</span></p></div>
+  <div><div class="ico" style="background:#90caf9">✚</div><p><b>Reparo NER</b> <span>o reparo por excisão de nucleotídeos restaura os blocos danificados (cinza) e desfaz as mutações G→T do cigarro.</span></p></div>
+  <div><div class="ico" style="background:#ce93d8">☀️</div><p><b>Radiação UV</b> <span>forma dímeros de timina: empurra de baixo uma linha de DNA danificado (cinza), que não pareia.</span></p></div>
+  <div><div class="ico" style="background:#bcaaa4">🚬</div><p><b>Fumaça de cigarro</b> <span>o benzopireno forma adutos na guanina e causa transversões G→T, a assinatura mutacional do tabaco. Até 6 blocos G viram T (marcados com um ponto) e desfazem seus pares.</span></p></div>
+  <div><div class="ico" style="background:#f06292">🦠</div><p><b>Retrovírus</b> <span>integra o provírus no genoma: insere 2 blocos virais no meio de uma coluna e empurra o que está acima. O aviso mostra a coluna-alvo.</span></p></div>
+  <div><div class="ico" style="background:#b0bec5">⚡</div><p><b>Raio-X</b> <span>a quebra de dupla fita arranca 2 ou 3 blocos de uma linha soterrada e deixa buracos.</span></p></div>
+  <div><div class="ico" style="background:#9575cd">G1</div><p><b>Níveis</b> <span>seguem as fases do ciclo celular: G1 → S → G2 → M. A cada 10 linhas a velocidade aumenta.</span></p></div>
+</div>
+
+<script>
+(() => {
+  // ================= Constantes =================
+  const COLS = 10, ROWS = 22, HIDDEN = 2, CELL = 28, BX = 140, BY = 30, W = 560, H = 620;
+  const LOCK_DELAY = 0.5, MAX_LOCK_RESETS = 15, DAS = 0.16, ARR = 0.045;
+  const BASES = ['A', 'T', 'C', 'G'];
+  const BASE_COLOR = { A: '#4caf50', T: '#ef5350', C: '#42a5f5', G: '#ffca28' };
+  const PAIR = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const HBONDS = { A: 2, T: 2, C: 3, G: 3 };
+  const PHASES = ['G1', 'S', 'G2', 'M'];
+  const LINE_SCORES = [0, 100, 300, 500, 800];
+  const POWERS = {
+    helicase:   { name: 'Helicase',    color: '#80deea', weight: 3 },
+    crispr:     { name: 'CRISPR-Cas9', color: '#f06292', weight: 2 },
+    ligase:     { name: 'DNA ligase',  color: '#aed581', weight: 3 },
+    telomerase: { name: 'Telomerase',  color: '#ffd54f', weight: 2 },
+    reparo:     { name: 'Reparo NER',  color: '#90caf9', weight: 2 },
+  };
+  const THREATS = {
+    uv:      { name: 'Radiação UV',       detail: 'dímeros de timina',        color: '#ce93d8', minLevel: 2, weight: 3 },
+    cigarro: { name: 'Fumaça de cigarro', detail: 'benzopireno: G → T',       color: '#bcaaa4', minLevel: 2, weight: 3 },
+    virus:   { name: 'Retrovírus',        detail: 'integração do provírus',   color: '#f06292', minLevel: 3, weight: 2 },
+    raiox:   { name: 'Raio-X',            detail: 'quebra de dupla fita',     color: '#b0bec5', minLevel: 4, weight: 2 },
+  };
+  const canPair = c => c && !c.damaged && !c.viral;
+  const SHAPES = {
+    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    O: [[1,1],[1,1]],
+    T: [[0,1,0],[1,1,1],[0,0,0]],
+    S: [[0,1,1],[1,1,0],[0,0,0]],
+    Z: [[1,1,0],[0,1,1],[0,0,0]],
+    J: [[1,0,0],[1,1,1],[0,0,0]],
+    L: [[0,0,1],[1,1,1],[0,0,0]],
+  };
+  const KICKS = [[0,0],[-1,0],[1,0],[0,-1],[-2,0],[2,0],[-1,-1],[1,-1]];
+
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = arr => arr[rand(arr.length)];
+  const phaseOf = lvl => PHASES[(lvl - 1) % 4];
+
+  // ================= Estado =================
+  let board, piece, queue, bag, hold, canHold, inventory;
+  let score, lines, level, combo, totalBonds, tetrads, powersUsed, piecesSpawned, elapsed;
+  let fallAcc, lockTimer, lockResets, slowTimer, threatTimer, pendingThreat, threatsSuffered;
+  let popups = [], particles = [], trails = [], flash = 0, shake = 0, state = 'intro';
+  let leftHeld = false, rightHeld = false, dasDir = 0, dasTimer = 0, arrAcc = 0, softDrop = false;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('genoblocos-best') || '0', 10) || 0; } catch (e) { best = 0; }
+
+  const emptyRow = () => new Array(COLS).fill(null);
+
+  function nextEntry() {
+    if (!bag || !bag.length) bag = Object.keys(SHAPES).sort(() => Math.random() - 0.5);
+    const type = bag.pop();
+    let power = null;
+    if (piecesSpawned + queue.length >= 4 && Math.random() < 0.12) {
+      const total = Object.values(POWERS).reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      for (const [k, p] of Object.entries(POWERS)) { r -= p.weight; if (r <= 0) { power = k; break; } }
+    }
+    return { type, base: pick(BASES), power };
+  }
+
+  function makePiece(entry) {
+    const m = SHAPES[entry.type].map(r => r.slice());
+    if (entry.power) {
+      const cells = [];
+      m.forEach((row, r) => row.forEach((v, c) => { if (v) cells.push([r, c]); }));
+      const [r, c] = pick(cells); m[r][c] = 2;
+    }
+    const topRow = m.findIndex(row => row.some(Boolean));
+    // nasce já visível, encostada no topo do tabuleiro
+    return { entry, type: entry.type, base: entry.base, power: entry.power, m, x: Math.floor((COLS - m.length) / 2), y: HIDDEN - topRow };
+  }
+
+  function reset() {
+    board = Array.from({ length: ROWS }, emptyRow);
+    queue = []; bag = []; piecesSpawned = 0;
+    while (queue.length < 4) queue.push(nextEntry());
+    hold = null; canHold = true; inventory = [];
+    score = 0; lines = 0; level = 1; combo = 0; totalBonds = 0; tetrads = 0; powersUsed = 0; elapsed = 0;
+    fallAcc = 0; lockTimer = 0; lockResets = 0; slowTimer = 0; threatTimer = 25; pendingThreat = null; threatsSuffered = 0;
+    popups = []; particles = []; trails = []; flash = 0; shake = 0;
+    leftHeld = rightHeld = false; dasDir = 0; softDrop = false;
+    spawn(queue.shift());
+  }
+
+  // ================= Colisão e movimento =================
+  function collides(m, px, py) {
+    for (let r = 0; r < m.length; r++) for (let c = 0; c < m.length; c++) {
+      if (!m[r][c]) continue;
+      const x = px + c, y = py + r;
+      if (x < 0 || x >= COLS || y >= ROWS) return true;
+      if (y >= 0 && board[y][x]) return true;
+    }
+    return false;
+  }
+
+  function spawn(entry) {
+    piece = makePiece(entry);
+    piecesSpawned++;
+    while (queue.length < 4) queue.push(nextEntry());
+    lockTimer = 0; lockResets = 0; fallAcc = 0;
+    if (collides(piece.m, piece.x, piece.y)) gameOver();
+  }
+
+  const grounded = () => collides(piece.m, piece.x, piece.y + 1);
+  function onMoved() { if (grounded() && lockResets < MAX_LOCK_RESETS) { lockTimer = 0; lockResets++; } }
+
+  function tryMove(dx, dy) {
+    if (collides(piece.m, piece.x + dx, piece.y + dy)) return false;
+    piece.x += dx; piece.y += dy;
+    if (dx) onMoved();
+    return true;
+  }
+
+  function rotateMatrix(m, dir) {
+    const n = m.length;
+    return m.map((row, r) => row.map((_, c) => dir > 0 ? m[n - 1 - c][r] : m[c][n - 1 - r]));
+  }
+
+  function rotate(dir) {
+    if (piece.type === 'O') return;
+    const m2 = rotateMatrix(piece.m, dir);
+    for (const [kx, ky] of KICKS) {
+      if (!collides(m2, piece.x + kx, piece.y + ky)) { piece.m = m2; piece.x += kx; piece.y += ky; onMoved(); return; }
+    }
+  }
+
+  function dropDistance() { let d = 0; while (!collides(piece.m, piece.x, piece.y + d + 1)) d++; return d; }
+
+  function hardDrop() {
+    const d = dropDistance();
+    if (d > 0) {
+      piece.m.forEach((row, r) => row.forEach((v, c) => {
+        if (v) trails.push({ x: piece.x + c, y0: piece.y + r, y1: piece.y + r + d, color: BASE_COLOR[piece.base], t: 0 });
+      }));
+      shake = 0.12;
+    }
+    piece.y += d; score += 2 * d;
+    lockPiece();
+  }
+
+  function holdPiece() {
+    if (!canHold) return;
+    const cur = piece.entry;
+    if (hold) { const h = hold; hold = cur; spawn(h); }
+    else { hold = cur; spawn(queue.shift()); }
+    canHold = false;
+  }
+
+  // ================= Linhas, pareamento e pontuação =================
+  function rowBonds(row) {
+    let b = 0;
+    for (let x = 0; x < COLS - 1; x++) {
+      const a = row[x], c = row[x + 1];
+      if (canPair(a) && canPair(c) && PAIR[a.base] === c.base) b += HBONDS[a.base];
+    }
+    return b;
+  }
+
+  function clearFullRows() {
+    let count = 0, bonds = 0; const powers = [];
+    for (let y = ROWS - 1; y >= 0; y--) {
+      if (board[y].every(c => c)) {
+        bonds += rowBonds(board[y]);
+        board[y].forEach((c, x) => { if (c.power) powers.push(c.power); burst(x, y, c); });
+        board.splice(y, 1); board.unshift(emptyRow());
+        count++; y++;
+      }
+    }
+    powers.forEach(gainPower);
+    return { count, bonds };
+  }
+
+  function scoreClear({ count, bonds }, withCombo) {
+    if (!count) { if (withCombo) combo = 0; return; }
+    let pts = LINE_SCORES[Math.min(4, count)] * level + bonds * 10 * level;
+    if (withCombo) { combo++; if (combo > 1) pts += 50 * (combo - 1) * level; }
+    score += pts; lines += count; totalBonds += bonds;
+    flash = 0.15;
+    const midY = BY + 230;
+    if (count >= 4) { tetrads++; popup('TÉTRADE!', '#ffd54f', midY - 30, 30); }
+    popup(`+${pts}`, '#ffffff', midY + 6, 20);
+    if (bonds) popup(`${bonds} pontes de hidrogênio`, '#80deea', midY + 34, 15);
+    if (withCombo && combo > 1) popup(`Combo ×${combo}`, '#f48fb1', midY + 58, 15);
+    const newLevel = Math.floor(lines / 10) + 1;
+    if (newLevel > level) {
+      level = newLevel;
+      popup(`Nível ${level} · fase ${phaseOf(level)}`, '#b39ddb', midY - 70, 18);
+      const novas = Object.values(THREATS).filter(t => t.minLevel === level).map(t => t.name);
+      if (novas.length) popup(`Nova ameaça: ${novas.join(' e ')}`, '#ce93d8', midY - 46, 14);
+    }
+  }
+
+  function lockPiece() {
+    const { m, x, y } = piece;
+    for (let r = 0; r < m.length; r++) for (let c = 0; c < m.length; c++) {
+      if (!m[r][c]) continue;
+      if (y + r < 0) { gameOver(); return; }
+      board[y + r][x + c] = { base: piece.base, power: m[r][c] === 2 ? piece.power : null, damaged: false };
+    }
+    scoreClear(clearFullRows(), true);
+    if (board.slice(0, HIDDEN).some(row => row.some(Boolean))) { gameOver(); return; }
+    canHold = true;
+    spawn(queue.shift());
+  }
+
+  // ================= Power-ups =================
+  function gainPower(p) {
+    if (inventory.length < 3) { inventory.push(p); popup(`Power-up: ${POWERS[p].name}!`, POWERS[p].color, BY + 140, 16); }
+    else { score += 500; popup('+500 (inventário cheio)', POWERS[p].color, BY + 140, 15); }
+  }
+
+  function settleColumns() {
+    for (let x = 0; x < COLS; x++) {
+      const cells = [];
+      for (let y = ROWS - 1; y >= 0; y--) if (board[y][x]) cells.push(board[y][x]);
+      for (let y = ROWS - 1, i = 0; y >= 0; y--, i++) board[y][x] = cells[i] || null;
+    }
+  }
+
+  const APPLY = {
+    helicase() {
+      if (!board.some(row => row.some(Boolean))) return false;
+      const powers = [];
+      for (const y of [ROWS - 1, ROWS - 2]) board[y].forEach((c, x) => { if (c) { burst(x, y, c); if (c.power) powers.push(c.power); } });
+      board.splice(ROWS - 2, 2); board.unshift(emptyRow(), emptyRow());
+      score += 100 * level;
+      popup('Helicase: 2 linhas abertas!', POWERS.helicase.color, BY + 200, 17);
+      powers.forEach(gainPower);
+      return true;
+    },
+    crispr() {
+      const target = piece.base; let n = 0, nv = 0; const powers = [];
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+        const c = board[y][x];
+        if (!c) continue;
+        if (c.viral) { burst(x, y, c); board[y][x] = null; nv++; }
+        else if (c.base === target) { burst(x, y, c); if (c.power) powers.push(c.power); board[y][x] = null; n++; }
+      }
+      if (!n && !nv) { popup(`Nenhuma base ${target} para cortar`, '#b0a6c4', BY + 200, 15); return false; }
+      score += (n + nv * 2) * 10 * level;
+      popup(`CRISPR-Cas9: ${n} bases ${target} cortadas`, POWERS.crispr.color, BY + 200, 16);
+      if (nv) popup(`+ ${nv} blocos virais destruídos`, '#f48fb1', BY + 224, 14);
+      powers.forEach(gainPower);
+      settleColumns();
+      scoreClear(clearFullRows(), false);
+      return true;
+    },
+    ligase() {
+      let filled = 0;
+      for (let y = HIDDEN; y < ROWS; y++) {
+        const row = board[y], holes = row.filter(c => !c).length;
+        if (holes === 0 || holes > 2) continue;
+        for (let x = 0; x < COLS; x++) if (!row[x]) {
+          const nb = (canPair(row[x - 1]) && row[x - 1]) || (canPair(row[x + 1]) && row[x + 1]);
+          row[x] = { base: nb ? PAIR[nb.base] : pick(BASES), power: null, damaged: false, ligated: true };
+          filled++;
+        }
+      }
+      if (!filled) { popup('Nenhuma lacuna para ligar', '#b0a6c4', BY + 200, 15); return false; }
+      popup(`DNA ligase: ${filled} lacunas seladas`, POWERS.ligase.color, BY + 200, 16);
+      scoreClear(clearFullRows(), false);
+      return true;
+    },
+    telomerase() {
+      slowTimer = 20;
+      popup('Telomerase: tempo estendido!', POWERS.telomerase.color, BY + 200, 16);
+      return true;
+    },
+    reparo() {
+      let n = 0;
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+        const c = board[y][x];
+        if (!c || c.viral) continue;
+        if (c.damaged) { c.damaged = false; n++; }
+        if (c.mutated) { c.base = 'G'; c.mutated = false; n++; }
+      }
+      if (!n) { popup('Nada para reparar', '#b0a6c4', BY + 200, 15); return false; }
+      score += n * 15 * level;
+      popup(`Reparo por excisão: ${n} bases restauradas`, POWERS.reparo.color, BY + 200, 16);
+      return true;
+    },
+  };
+
+  function usePower() {
+    if (!inventory.length) return;
+    if (APPLY[inventory[0]]()) { inventory.shift(); powersUsed++; }
+    if (collides(piece.m, piece.x, piece.y)) { piece.y--; if (collides(piece.m, piece.x, piece.y)) gameOver(); }
+  }
+
+  // ================= Ameaças (agentes mutagênicos e vírus) =================
+  const threatInterval = () => Math.max(12, 30 - (level - 2) * 3) + Math.random() * 8;
+
+  function chooseThreat() {
+    const avail = Object.entries(THREATS).filter(([, t]) => level >= t.minLevel);
+    const total = avail.reduce((s, [, t]) => s + t.weight, 0);
+    let r = Math.random() * total, type = avail[0][0];
+    for (const [k, t] of avail) { r -= t.weight; if (r <= 0) { type = k; break; } }
+    return { type, col: rand(COLS) };
+  }
+
+  function pushPieceClear() {
+    for (let i = 0; i < 3 && collides(piece.m, piece.x, piece.y); i++) piece.y--;
+    if (collides(piece.m, piece.x, piece.y)) { gameOver(); return false; }
+    return true;
+  }
+
+  function threatPopup(type, text) { popup(text, THREATS[type].color, BY + 260, 16); flash = 0.2; shake = 0.25; }
+
+  const THREAT_APPLY = {
+    uv() {
+      const top = board.shift();
+      if (top.some(Boolean)) { board.unshift(top); gameOver(); return; }
+      const hole = rand(COLS);
+      board.push(Array.from({ length: COLS }, (_, x) => x === hole ? null : { base: pick(BASES), power: null, damaged: true }));
+      if (pushPieceClear()) threatPopup('uv', 'Radiação UV: dímeros de timina!');
+    },
+    cigarro() {
+      const gs = [];
+      board.forEach((row, y) => row.forEach((c, x) => { if (c && !c.viral && !c.damaged && c.base === 'G') gs.push([x, y]); }));
+      gs.sort(() => Math.random() - 0.5);
+      const hit = gs.slice(0, 6);
+      for (const [x, y] of hit) { board[y][x].base = 'T'; board[y][x].mutated = true; }
+      threatPopup('cigarro', hit.length ? `Benzopireno: ${hit.length} G viraram T!` : 'Fumaça de cigarro: nenhum G atingido');
+    },
+    virus(target) {
+      const x = target.col, ins = 2;
+      let top = 0; while (top < ROWS && !board[top][x]) top++;
+      // posição de integração: em algum ponto dentro da pilha da coluna (ou no fundo, se vazia)
+      const at = top >= ROWS ? ROWS : top + rand(ROWS - top + 1);
+      if (top - ins < HIDDEN && top < ROWS) { gameOver(); return; }
+      for (let y = 0; y < at - ins; y++) board[y][x] = board[y + ins][x];
+      for (let k = 1; k <= ins; k++) board[at - k][x] = { base: null, power: null, damaged: true, viral: true };
+      if (pushPieceClear()) threatPopup('virus', 'Retrovírus integrou o provírus!');
+    },
+    raiox() {
+      // escolhe uma linha com blocos e com algo empilhado acima: a quebra deixa lacunas presas
+      const rows = [];
+      for (let y = HIDDEN + 1; y < ROWS; y++) {
+        const filled = board[y].filter(Boolean).length;
+        if (filled >= 3 && board[y - 1].some(Boolean)) rows.push(y);
+      }
+      if (!rows.length) { threatPopup('raiox', 'Raio-X passou sem causar quebras'); return; }
+      const y = pick(rows);
+      const cells = board[y].map((c, x) => c ? x : -1).filter(x => x >= 0).sort(() => Math.random() - 0.5).slice(0, 2 + rand(2));
+      for (const x of cells) { burst(x, y, board[y][x]); board[y][x] = null; }
+      threatPopup('raiox', 'Raio-X: quebra de dupla fita!');
+    },
+  };
+
+  function applyThreat(t) {
+    threatsSuffered++;
+    THREAT_APPLY[t.type](t);
+  }
+
+  // ================= Fluxo do jogo =================
+  const introEl = document.getElementById('intro'), overEl = document.getElementById('over');
+
+  function startGame() {
+    reset(); state = 'play'; introEl.hidden = true; overEl.hidden = true; canvas.focus();
+  }
+
+  function gameOver() {
+    if (state === 'over') return;
+    state = 'over';
+    const record = score > best;
+    if (record) { best = score; try { localStorage.setItem('genoblocos-best', String(best)); } catch (e) {} }
+    const mm = Math.floor(elapsed / 60), ss = Math.floor(elapsed % 60).toString().padStart(2, '0');
+    document.getElementById('overCard').innerHTML = `
+      <h2>Apoptose!</h2>
+      <p class="muted">A célula acumulou dano demais e ativou a morte celular programada.</p>
+      <div class="stats">
+        <span>Pontos <b>${score.toLocaleString('pt-BR')}</b></span>
+        <span>Recorde <b>${best.toLocaleString('pt-BR')}${record ? ' 🎉' : ''}</b></span>
+        <span>Linhas <b>${lines}</b></span>
+        <span>Nível <b>${level} (${phaseOf(level)})</b></span>
+        <span>Pontes de hidrogênio <b>${totalBonds}</b></span>
+        <span>Tétrades <b>${tetrads}</b></span>
+        <span>Power-ups usados <b>${powersUsed}</b></span>
+        <span>Ameaças sofridas <b>${threatsSuffered}</b></span>
+        <span>Tempo <b>${mm}:${ss}</b></span>
+      </div>
+      ${record ? '<p style="color:#ffd54f;font-weight:700">Novo recorde!</p>' : ''}
+      <p class="muted">Dica: alinhe peças complementares lado a lado. Uma linha cheia de pares C–G rende muito mais que uma linha comum.</p>
+      <button class="big" id="againBtn">Jogar de novo (Enter)</button>`;
+    document.getElementById('againBtn').addEventListener('click', startGame);
+    overEl.hidden = false;
+  }
+
+  function togglePause() {
+    if (state === 'play') state = 'paused';
+    else if (state === 'paused') { state = 'play'; leftHeld = rightHeld = false; dasDir = 0; softDrop = false; }
+  }
+
+  // ================= Entrada =================
+  function pressDir(d) {
+    if (d < 0) leftHeld = true; else rightHeld = true;
+    tryMove(d, 0); dasDir = d; dasTimer = 0; arrAcc = 0;
+  }
+  function releaseDir(d) {
+    if (d < 0) leftHeld = false; else rightHeld = false;
+    if (dasDir === d) { dasDir = (d < 0 ? rightHeld : leftHeld) ? -d : 0; dasTimer = 0; arrAcc = 0; }
+  }
+
+  function keyDown(code) {
+    if (state === 'intro') { if (code === 'Enter' || code === 'Space') startGame(); return; }
+    if (state === 'over') { if (code === 'Enter') startGame(); return; }
+    if (code === 'KeyP' || code === 'Escape') { togglePause(); return; }
+    if (state !== 'play') return;
+    switch (code) {
+      case 'ArrowLeft': case 'KeyA': pressDir(-1); break;
+      case 'ArrowRight': case 'KeyD': pressDir(1); break;
+      case 'ArrowDown': case 'KeyS': softDrop = true; break;
+      case 'ArrowUp': case 'KeyX': case 'KeyW': rotate(1); break;
+      case 'KeyZ': rotate(-1); break;
+      case 'Space': hardDrop(); break;
+      case 'KeyC': case 'ShiftLeft': case 'ShiftRight': holdPiece(); break;
+      case 'KeyE': case 'KeyQ': usePower(); break;
+    }
+  }
+  function keyUp(code) {
+    switch (code) {
+      case 'ArrowLeft': case 'KeyA': releaseDir(-1); break;
+      case 'ArrowRight': case 'KeyD': releaseDir(1); break;
+      case 'ArrowDown': case 'KeyS': softDrop = false; break;
+    }
+  }
+
+  const GAME_KEYS = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyA','KeyD','KeyS','KeyW','KeyX','KeyZ','KeyC','KeyE','KeyQ','KeyP','ShiftLeft','ShiftRight','Enter','Escape'];
+  addEventListener('keydown', e => {
+    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+    if (e.repeat) return;
+    keyDown(e.code);
+  });
+  addEventListener('keyup', e => keyUp(e.code));
+  addEventListener('blur', () => { if (state === 'play') togglePause(); });
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  for (const btn of document.querySelectorAll('#touch button')) {
+    const k = btn.dataset.k;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'intro' || state === 'over') { startGame(); return; } keyDown(k); });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) btn.addEventListener(ev, () => keyUp(k));
+  }
+
+  // ================= Atualização =================
+  function gravityInterval() {
+    const L = slowTimer > 0 ? 1 : Math.min(level, 20);
+    return Math.max(0.02, Math.pow(0.8 - (L - 1) * 0.007, L - 1));
+  }
+
+  function update(dt) {
+    for (const p of popups) { p.t += dt; p.y -= 22 * dt; }
+    popups = popups.filter(p => p.t < 1.6);
+    for (const p of particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 900 * dt; }
+    particles = particles.filter(p => p.t < 0.8);
+    for (const t of trails) t.t += dt;
+    trails = trails.filter(t => t.t < 0.18);
+    flash = Math.max(0, flash - dt);
+    shake = Math.max(0, shake - dt);
+    if (state !== 'play') return;
+
+    elapsed += dt;
+    slowTimer = Math.max(0, slowTimer - dt);
+    if (level >= 2) {
+      threatTimer -= dt;
+      if (!pendingThreat && threatTimer <= 3) pendingThreat = chooseThreat();
+      if (threatTimer <= 0) {
+        applyThreat(pendingThreat); pendingThreat = null; threatTimer = threatInterval();
+        if (state !== 'play') return;
+      }
+    }
+
+    if (dasDir) {
+      dasTimer += dt;
+      if (dasTimer > DAS) {
+        arrAcc += dt;
+        while (arrAcc >= ARR) { arrAcc -= ARR; if (!tryMove(dasDir, 0)) { arrAcc = 0; break; } }
+      }
+    }
+
+    const gi = gravityInterval();
+    const interval = softDrop ? Math.min(gi, Math.max(0.025, gi / 20)) : gi;
+    fallAcc += dt;
+    while (fallAcc >= interval) {
+      fallAcc -= interval;
+      if (!grounded()) { piece.y++; if (softDrop) score += 1; }
+      else { fallAcc = 0; break; }
+    }
+    if (grounded()) { lockTimer += dt; if (lockTimer >= LOCK_DELAY) lockPiece(); }
+    else lockTimer = 0;
+  }
+
+  // ================= Efeitos =================
+  function popup(text, color, y, size = 16) { popups.push({ text, color, y, size, t: 0 }); }
+  function burst(x, y, cell) {
+    const px = BX + x * CELL + CELL / 2, py = BY + (y - HIDDEN) * CELL + CELL / 2;
+    const color = cell.viral ? '#ab47bc' : cell.damaged ? '#7e7491' : BASE_COLOR[cell.base];
+    for (let i = 0; i < 4; i++) particles.push({ x: px, y: py, vx: (Math.random() - 0.5) * 260, vy: -Math.random() * 280 - 60, color, t: 0 });
+  }
+
+  // ================= Desenho =================
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function drawIcon(type, cx, cy, s, color) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = Math.max(1.5, s * 0.12); ctx.lineCap = 'round';
+    if (type === 'helicase') {
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * s * 0.32, cy + Math.sin(a) * s * 0.32, s * 0.13, 0, Math.PI * 2); ctx.fill(); }
+    } else if (type === 'crispr') {
+      ctx.beginPath(); ctx.arc(cx - s * 0.2, cy + s * 0.25, s * 0.14, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + s * 0.2, cy + s * 0.25, s * 0.14, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx - s * 0.12, cy + s * 0.13); ctx.lineTo(cx + s * 0.25, cy - s * 0.42);
+      ctx.moveTo(cx + s * 0.12, cy + s * 0.13); ctx.lineTo(cx - s * 0.25, cy - s * 0.42); ctx.stroke();
+    } else if (type === 'ligase') {
+      ctx.translate(cx, cy); ctx.rotate(-Math.PI / 4);
+      rr(-s * 0.42, -s * 0.15, s * 0.5, s * 0.3, s * 0.15); ctx.stroke();
+      rr(-s * 0.08, -s * 0.15, s * 0.5, s * 0.3, s * 0.15); ctx.stroke();
+    } else if (type === 'telomerase') {
+      ctx.beginPath(); ctx.moveTo(cx - s * 0.3, cy - s * 0.4); ctx.lineTo(cx + s * 0.3, cy - s * 0.4); ctx.lineTo(cx, cy);
+      ctx.lineTo(cx + s * 0.3, cy + s * 0.4); ctx.lineTo(cx - s * 0.3, cy + s * 0.4); ctx.lineTo(cx, cy); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx - s * 0.15, cy + s * 0.32); ctx.lineTo(cx + s * 0.15, cy + s * 0.32); ctx.lineTo(cx, cy + s * 0.12); ctx.fill();
+    } else if (type === 'reparo') {
+      ctx.lineWidth = Math.max(2, s * 0.18);
+      ctx.beginPath(); ctx.moveTo(cx - s * 0.32, cy); ctx.lineTo(cx + s * 0.32, cy); ctx.moveTo(cx, cy - s * 0.32); ctx.lineTo(cx, cy + s * 0.32); ctx.stroke();
+    } else if (type === 'virus') {
+      ctx.beginPath(); ctx.arc(cx, cy, s * 0.24, 0, Math.PI * 2); ctx.fill();
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * s * 0.24, cy + Math.sin(a) * s * 0.24); ctx.lineTo(cx + Math.cos(a) * s * 0.4, cy + Math.sin(a) * s * 0.4); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx + Math.cos(a) * s * 0.43, cy + Math.sin(a) * s * 0.43, s * 0.06, 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (type === 'uv') {
+      ctx.beginPath(); ctx.arc(cx, cy, s * 0.2, 0, Math.PI * 2); ctx.fill();
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * s * 0.3, cy + Math.sin(a) * s * 0.3); ctx.lineTo(cx + Math.cos(a) * s * 0.44, cy + Math.sin(a) * s * 0.44); ctx.stroke();
+      }
+    } else if (type === 'cigarro') {
+      ctx.fillStyle = '#f5f5f5'; ctx.fillRect(cx - s * 0.45, cy + s * 0.1, s * 0.62, s * 0.18);
+      ctx.fillStyle = '#d7a86e'; ctx.fillRect(cx - s * 0.45, cy + s * 0.1, s * 0.18, s * 0.18);
+      ctx.fillStyle = '#ff7043'; ctx.fillRect(cx + s * 0.17, cy + s * 0.1, s * 0.1, s * 0.18);
+      ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(cx + s * 0.22, cy + s * 0.02);
+      ctx.bezierCurveTo(cx + s * 0.05, cy - s * 0.12, cx + s * 0.4, cy - s * 0.25, cx + s * 0.2, cy - s * 0.45); ctx.stroke();
+    } else if (type === 'raiox') {
+      ctx.beginPath(); ctx.moveTo(cx + s * 0.08, cy - s * 0.45); ctx.lineTo(cx - s * 0.2, cy + s * 0.04); ctx.lineTo(cx + s * 0.02, cy + s * 0.04);
+      ctx.lineTo(cx - s * 0.1, cy + s * 0.45); ctx.lineTo(cx + s * 0.22, cy - s * 0.08); ctx.lineTo(cx, cy - s * 0.08); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCell(px, py, size, cell, now, alpha = 1) {
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = cell.viral ? '#6a1b9a' : cell.damaged ? '#5d5470' : BASE_COLOR[cell.base];
+    rr(px + 1, py + 1, size - 2, size - 2, size * 0.18); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; rr(px + 3, py + 3, size - 6, (size - 6) * 0.35, 3); ctx.fill();
+    const cx = px + size / 2, cy = py + size / 2;
+    if (cell.viral) {
+      drawIcon('virus', cx, cy, size * 0.75, '#f48fb1');
+    } else if (cell.power) {
+      const pulse = 0.5 + 0.5 * Math.sin(now / 150);
+      ctx.fillStyle = 'rgba(20,10,35,.6)'; ctx.beginPath(); ctx.arc(cx, cy, size * 0.36, 0, Math.PI * 2); ctx.fill();
+      drawIcon(cell.power, cx, cy, size * 0.62, '#ffffff');
+      ctx.strokeStyle = `rgba(255,255,255,${0.4 + 0.6 * pulse})`; ctx.lineWidth = 2;
+      rr(px + 1.5, py + 1.5, size - 3, size - 3, size * 0.18); ctx.stroke();
+    } else {
+      ctx.fillStyle = cell.damaged ? '#b8aecb' : '#1d1230';
+      ctx.font = `700 ${Math.round(size * 0.46)}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(cell.base, cx, cy + 1);
+      if (cell.damaged) {
+        ctx.strokeStyle = 'rgba(206,147,216,.6)'; ctx.lineWidth = 1.2; ctx.beginPath();
+        ctx.moveTo(px + 5, py + 7); ctx.lineTo(px + 10, py + 12); ctx.lineTo(px + 7, py + 17); ctx.stroke();
+      }
+      if (cell.mutated) { // marca de mutação G→T
+        ctx.fillStyle = '#4e342e'; ctx.beginPath(); ctx.arc(px + size - 7, py + 7, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawMini(entry, cx, cy, size, now) {
+    if (!entry) return;
+    const m = SHAPES[entry.type];
+    let minR = 9, maxR = -1, minC = 9, maxC = -1;
+    m.forEach((row, r) => row.forEach((v, c) => { if (v) { minR = Math.min(minR, r); maxR = Math.max(maxR, r); minC = Math.min(minC, c); maxC = Math.max(maxC, c); } }));
+    const w = (maxC - minC + 1) * size, h = (maxR - minR + 1) * size;
+    let powerDrawn = false;
+    m.forEach((row, r) => row.forEach((v, c) => {
+      if (!v) return;
+      const isPow = entry.power && !powerDrawn; if (isPow) powerDrawn = true;
+      drawCell(cx - w / 2 + (c - minC) * size, cy - h / 2 + (r - minR) * size, size, { base: entry.base, power: isPow ? entry.power : null }, now);
+    }));
+  }
+
+  function label(text, x, y) { ctx.fillStyle = '#a99bc0'; ctx.font = '600 11px system-ui, sans-serif'; ctx.fillText(text.toUpperCase(), x, y); }
+  function panelBox(x, y, w, h) { ctx.fillStyle = 'rgba(255,255,255,.05)'; rr(x, y, w, h, 10); ctx.fill(); }
+
+  function render() {
+    const now = performance.now();
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#1d1033'); g.addColorStop(1, '#2b1240');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // Tabuleiro
+    const bw = COLS * CELL, bh = (ROWS - HIDDEN) * CELL;
+    ctx.fillStyle = '#140a24'; rr(BX - 4, BY - 4, bw + 8, bh + 8, 10); ctx.fill();
+    ctx.save();
+    if (shake > 0) ctx.translate((Math.random() - 0.5) * 6 * shake / 0.25, (Math.random() - 0.5) * 6 * shake / 0.25);
+    ctx.beginPath(); ctx.rect(BX, BY, bw, bh); ctx.clip();
+    // dupla hélice decorativa
+    ctx.lineWidth = 2;
+    for (let s = 0; s < 2; s++) {
+      ctx.strokeStyle = s ? 'rgba(66,165,245,.08)' : 'rgba(239,83,80,.08)'; ctx.beginPath();
+      for (let y = 0; y <= bh; y += 6) ctx.lineTo(BX + bw / 2 + Math.sin(y / 40 + now / 1500 + s * Math.PI) * 90, BY + y);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(BX + x * CELL + 0.5, BY); ctx.lineTo(BX + x * CELL + 0.5, BY + bh); ctx.stroke(); }
+    for (let y = 1; y < ROWS - HIDDEN; y++) { ctx.beginPath(); ctx.moveTo(BX, BY + y * CELL + 0.5); ctx.lineTo(BX + bw, BY + y * CELL + 0.5); ctx.stroke(); }
+
+    for (let y = HIDDEN; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = board[y][x]; if (c) drawCell(BX + x * CELL, BY + (y - HIDDEN) * CELL, CELL, c, now);
+    }
+    // pontes de hidrogênio visíveis entre vizinhos complementares
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5;
+    for (let y = HIDDEN; y < ROWS; y++) for (let x = 0; x < COLS - 1; x++) {
+      const a = board[y][x], b = board[y][x + 1];
+      if (canPair(a) && canPair(b) && PAIR[a.base] === b.base) {
+        const k = HBONDS[a.base], lx = BX + (x + 1) * CELL, cy = BY + (y - HIDDEN) * CELL + CELL / 2;
+        ctx.beginPath();
+        for (let j = 0; j < k; j++) { const yy = cy + (j - (k - 1) / 2) * 5; ctx.moveTo(lx - 4, yy); ctx.lineTo(lx + 4, yy); }
+        ctx.stroke();
+      }
+    }
+
+    if (state === 'play' || state === 'paused') {
+      const d = dropDistance();
+      piece.m.forEach((row, r) => row.forEach((v, c) => {
+        if (!v) return;
+        const gy = piece.y + r + d - HIDDEN;
+        if (gy >= 0) { ctx.strokeStyle = BASE_COLOR[piece.base]; ctx.globalAlpha = 0.45; ctx.lineWidth = 2; rr(BX + (piece.x + c) * CELL + 3, BY + gy * CELL + 3, CELL - 6, CELL - 6, 5); ctx.stroke(); ctx.globalAlpha = 1; }
+      }));
+      // rastro da queda rápida
+      for (const t of trails) {
+        const a = 0.35 * (1 - t.t / 0.18);
+        const gr = ctx.createLinearGradient(0, BY + (t.y0 - HIDDEN) * CELL, 0, BY + (t.y1 - HIDDEN + 1) * CELL);
+        gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, t.color);
+        ctx.globalAlpha = a; ctx.fillStyle = gr;
+        ctx.fillRect(BX + t.x * CELL + 4, BY + (t.y0 - HIDDEN) * CELL, CELL - 8, (t.y1 - t.y0 + 1) * CELL);
+        ctx.globalAlpha = 1;
+      }
+      // queda suave: desenha a peça entre uma linha e a próxima, conforme o tempo de gravidade
+      let off = 0;
+      if (state === 'play' && !grounded()) {
+        const gi = gravityInterval(), iv = softDrop ? Math.min(gi, Math.max(0.025, gi / 20)) : gi;
+        off = Math.min(1, fallAcc / iv) * CELL;
+      }
+      piece.m.forEach((row, r) => row.forEach((v, c) => {
+        if (!v) return;
+        const py = piece.y + r - HIDDEN;
+        if (py >= 0) drawCell(BX + (piece.x + c) * CELL, BY + py * CELL + off, CELL, { base: piece.base, power: v === 2 ? piece.power : null }, now);
+      }));
+    }
+    for (const p of particles) { ctx.globalAlpha = Math.max(0, 1 - p.t / 0.8); ctx.fillStyle = p.color; ctx.fillRect(p.x - 3, p.y - 3, 6, 6); }
+    ctx.globalAlpha = 1;
+
+    // Aviso de ameaça chegando
+    if (state === 'play' && pendingThreat) {
+      const th = THREATS[pendingThreat.type];
+      ctx.globalAlpha = 0.1 + 0.08 * Math.sin(now / 90); ctx.fillStyle = th.color; ctx.fillRect(BX, BY, bw, bh); ctx.globalAlpha = 1;
+      if (pendingThreat.type === 'virus') {
+        const vx = BX + pendingThreat.col * CELL + CELL / 2, vy = BY + 18 + Math.sin(now / 200) * 5;
+        ctx.strokeStyle = 'rgba(244,143,177,.5)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(vx, vy + 14); ctx.lineTo(vx, BY + bh); ctx.stroke(); ctx.setLineDash([]);
+        drawIcon('virus', vx, vy, 30, '#f48fb1');
+      } else {
+        ctx.globalAlpha = 0.85; drawIcon(pendingThreat.type, BX + bw / 2, BY + 40 + Math.sin(now / 200) * 4, 40, th.color); ctx.globalAlpha = 1;
+      }
+    }
+    if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash})`; ctx.fillRect(BX, BY, bw, bh); }
+    ctx.restore();
+
+    // Textos flutuantes
+    ctx.textAlign = 'center';
+    for (const p of popups) {
+      ctx.globalAlpha = Math.max(0, 1 - p.t / 1.6);
+      ctx.font = `800 ${p.size}px system-ui, sans-serif`;
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(20,10,35,.85)'; ctx.strokeText(p.text, BX + bw / 2, p.y);
+      ctx.fillStyle = p.color; ctx.fillText(p.text, BX + bw / 2, p.y);
+    }
+    ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+    // Painel esquerdo
+    const LX = 12, LW = 116;
+    label('Guardar (C)', LX, 46); panelBox(LX, 52, LW, 74);
+    if (hold) { ctx.globalAlpha = canHold ? 1 : 0.4; drawMini(hold, LX + LW / 2, 89, 18, now); ctx.globalAlpha = 1; }
+
+    label('Power-ups (E)', LX, 150);
+    for (let i = 0; i < 3; i++) {
+      const y = 156 + i * 46, p = inventory[i];
+      panelBox(LX, y, LW, 40);
+      if (p) {
+        ctx.fillStyle = POWERS[p].color; rr(LX + 6, y + 6, 28, 28, 7); ctx.fill();
+        drawIcon(p, LX + 20, y + 20, 22, '#1d1230');
+        ctx.fillStyle = '#efe9f7'; ctx.font = `${i === 0 ? 700 : 500} 12px system-ui, sans-serif`;
+        ctx.fillText(POWERS[p].name, LX + 40, y + 24);
+        if (i === 0) { ctx.strokeStyle = POWERS[p].color; ctx.lineWidth = 1.5; rr(LX + 0.75, y + 0.75, LW - 1.5, 38.5, 10); ctx.stroke(); }
+      } else { ctx.fillStyle = '#4e4266'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('vazio', LX + 40, y + 24); }
+    }
+
+    let sy = 318;
+    if (slowTimer > 0) {
+      label('Telomerase', LX, sy); panelBox(LX, sy + 6, LW, 14);
+      ctx.fillStyle = POWERS.telomerase.color; rr(LX + 2, sy + 8, (LW - 4) * slowTimer / 20, 10, 5); ctx.fill();
+      sy += 40;
+    }
+    if (state === 'play' || state === 'paused') {
+      label('Ameaças', LX, sy);
+      if (level < 2) {
+        ctx.fillStyle = '#7e7491'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('a partir do nível 2', LX, sy + 20);
+      } else if (pendingThreat) {
+        const th = THREATS[pendingThreat.type];
+        panelBox(LX, sy + 6, LW, 58);
+        ctx.strokeStyle = th.color; ctx.lineWidth = 1.5; rr(LX + 0.75, sy + 6.75, LW - 1.5, 56.5, 10); ctx.stroke();
+        drawIcon(pendingThreat.type, LX + 20, sy + 26, 26, th.color);
+        ctx.fillStyle = Math.floor(now / 200) % 2 ? th.color : '#ffffff'; ctx.font = '700 12px system-ui, sans-serif';
+        ctx.fillText('⚠ ' + Math.ceil(Math.max(0, threatTimer)) + ' s', LX + 40, sy + 30);
+        ctx.fillStyle = '#efe9f7'; ctx.font = '600 11px system-ui, sans-serif'; ctx.fillText(th.name, LX + 8, sy + 50);
+        ctx.fillStyle = '#a99bc0'; ctx.font = '10px system-ui, sans-serif'; ctx.fillText(th.detail, LX + 8, sy + 61);
+      } else {
+        ctx.fillStyle = '#efe9f7'; ctx.font = '600 13px system-ui, sans-serif';
+        ctx.fillText(`próxima em ${Math.ceil(threatTimer)} s`, LX, sy + 20);
+        const avail = Object.entries(THREATS).filter(([, t]) => level >= t.minLevel);
+        avail.forEach(([k, t], i) => drawIcon(k, LX + 12 + i * 26, sy + 40, 20, t.color));
+      }
+    }
+
+    // Painel direito
+    const RX = 432, RW = 116;
+    label('Próximas', RX, 46); panelBox(RX, 52, RW, 176);
+    for (let i = 0; i < 3; i++) drawMini(queue[i], RX + RW / 2, 84 + i * 56, i === 0 ? 18 : 15, now);
+
+    const stat = (name, val, y, big) => {
+      label(name, RX, y);
+      ctx.fillStyle = '#efe9f7'; ctx.font = `800 ${big ? 22 : 17}px system-ui, sans-serif`; ctx.fillText(val, RX, y + (big ? 25 : 21));
+    };
+    stat('Pontos', score.toLocaleString('pt-BR'), 256, true);
+    stat('Recorde', Math.max(best, score).toLocaleString('pt-BR'), 308);
+    stat('Linhas', String(lines), 352);
+    stat('Nível · fase', `${level} · ${phaseOf(level)}`, 396);
+    stat('Pontes H', String(totalBonds), 440);
+    if (combo > 1) stat('Combo', `×${combo}`, 484);
+
+    // Legenda de pareamento
+    ctx.font = '600 11px system-ui, sans-serif';
+    const ly = H - 22;
+    ctx.fillStyle = BASE_COLOR.A; ctx.fillText('A', BX, ly); ctx.fillStyle = '#a99bc0'; ctx.fillText('=', BX + 11, ly); ctx.fillStyle = BASE_COLOR.T; ctx.fillText('T', BX + 21, ly);
+    ctx.fillStyle = '#a99bc0'; ctx.fillText('(2 pontes)', BX + 32, ly);
+    ctx.fillStyle = BASE_COLOR.C; ctx.fillText('C', BX + 110, ly); ctx.fillStyle = '#a99bc0'; ctx.fillText('≡', BX + 121, ly); ctx.fillStyle = BASE_COLOR.G; ctx.fillText('G', BX + 132, ly);
+    ctx.fillStyle = '#a99bc0'; ctx.fillText('(3 pontes)', BX + 144, ly);
+
+    if (state === 'paused') {
+      ctx.fillStyle = 'rgba(18,9,32,.75)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#ffd54f'; ctx.font = '800 30px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Pausado', W / 2, H / 2 - 8);
+      ctx.fillStyle = '#efe9f7'; ctx.font = '15px system-ui, sans-serif'; ctx.fillText('Pressione P para continuar', W / 2, H / 2 + 22);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  // ================= Loop =================
+  reset();
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  canvas.addEventListener('pointerdown', () => { canvas.focus(); if (state === 'paused') togglePause(); });
+})();
+</script>
+</body>
+</html>
