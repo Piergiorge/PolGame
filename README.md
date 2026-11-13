@@ -1,6 +1,6 @@
 # PolGame — jogos de genética e imunologia
 
-Jogos educativos gratuitos que rodam direto no navegador, no computador ou no celular. Não precisa instalar nada.
+Jogos que rodam direto no navegador, no computador ou no celular. Não precisa instalar nada.
 
 ### ▶️ [Abrir o menu de jogos](https://piergiorge.github.io/PolGame/)
 
