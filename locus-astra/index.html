@@ -117,10 +117,16 @@
   .mono { font-family:ui-monospace, Menlo, Consolas, monospace; }
   .glowtxt { color:#ccff90; text-shadow:0 0 6px #b2ff59; }
   .kbd { background:#1d2750; border-radius:4px; padding:0 5px; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; }
+  .backlink:hover { color:var(--text); }
+  .backlink[hidden] { display:none; }
+  .soundbtn { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 10px; font-size:12px; }
+  .soundbtn:hover { color:var(--text); border-color:#3a4a85; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
   <header class="top">
     <div class="brand">
       <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
@@ -130,6 +136,7 @@
         <circle cx="33" cy="12" r="2.4" fill="#ffd54f"/>
       </svg>
       <div><h1>LOCUS <span>ASTRA</span></h1><small>estação de genética xenobiológica</small></div>
+      <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
     </div>
     <div class="res" id="res"></div>
   </header>
@@ -141,6 +148,89 @@
 
 <script>
 (() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('locusastra-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('locusastra-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
+
   // =====================================================================
   // GENÉTICA
   // =====================================================================
@@ -376,7 +466,7 @@
     if (S.dex[k]) return;
     S.dex[k] = true;
     if (!silent) {
-      S.research++;
+      S.research++; sfx.dex();
       const e = DEX.find(d => `${d[0]}:${d[1]}` === k);
       toast(`📘 Xenodex: <b>${e ? e[2] : k}</b> registrado! +1 pesquisa`, 'gold');
     }
@@ -616,6 +706,9 @@
       else { auto++; autoCr += sellValue(b); }
     }
     S.credits += autoCr; S.stats.bred += born.length;
+    sfx.hatch(born.length, dead.length);
+    if (born.some(b => b.mutant)) sfx.mutation();
+    if (msgs.length) sfx.deduce();
     const html = `<h3>Ovos eclodiram! 🥚</h3>
       <p>${esc(f.name)} ♀ × ${esc(m.name)} ♂ geraram ${n} ovo(s).</p>
       <div class="eggs">
@@ -850,14 +943,14 @@
   function act(A, D, move, L) {
     const pa = ph(A.c), pd = ph(D.c);
     if (A.stun) { A.stun = false; L.push(`${A.c.name} está paralisado e não age!`); return; }
-    if (move === 'flash') { A.flash = true; D.blind = 1; L.push(`✨ ${A.c.name} solta um Clarão bioluminescente! ${D.c.name} fica ofuscado.`); return; }
-    if (move === 'sp' && pa.elem === 'Gelo') { A.shield = 2; A.cd = SPECIAL.Gelo[2]; L.push(`🛡 ${A.c.name} se cobre de cristais de gelo.`); return; }
-    if (move === 'sp' && pa.elem === 'Neutro') { const h = Math.round(A.st.hp * 0.3); A.hp = Math.min(A.st.hp, A.hp + h); A.cd = SPECIAL.Neutro[2]; L.push(`💚 ${A.c.name} se regenera (+${h} PV).`); return; }
+    if (move === 'flash') { sfx.flash(); A.flash = true; D.blind = 1; L.push(`✨ ${A.c.name} solta um Clarão bioluminescente! ${D.c.name} fica ofuscado.`); return; }
+    if (move === 'sp' && pa.elem === 'Gelo') { sfx.special('Gelo'); A.shield = 2; A.cd = SPECIAL.Gelo[2]; L.push(`🛡 ${A.c.name} se cobre de cristais de gelo.`); return; }
+    if (move === 'sp' && pa.elem === 'Neutro') { sfx.special('Neutro'); const h = Math.round(A.st.hp * 0.3); A.hp = Math.min(A.st.hp, A.hp + h); A.cd = SPECIAL.Neutro[2]; L.push(`💚 ${A.c.name} se regenera (+${h} PV).`); return; }
     const miss = D.st.eva + (A.blind ? 0.6 : 0);
     if (A.blind) A.blind = 0;
     if (move === 'sp') A.cd = SPECIAL[pa.elem][2];
     const name = move === 'sp' ? SPECIAL[pa.elem][0] : 'ataque';
-    if (Math.random() < miss) { L.push(`${A.c.name} usa ${name}, mas erra!`); return; }
+    if (Math.random() < miss) { sfx.miss(); L.push(`${A.c.name} usa ${name}, mas erra!`); return; }
     const power = move === 'sp' ? (pa.elem === 'Plasma' ? 1.5 : 1.2) : 1;
     const crit = Math.random() < A.st.crit;
     const tm = typeMult(pa.elem, pd.elem);
@@ -865,6 +958,7 @@
     if (D.shield) dmg *= 0.5;
     dmg = Math.max(2, Math.round(dmg));
     D.hp -= dmg;
+    if (move === 'sp') sfx.special(pa.elem); else sfx.hit(crit);
     L.push(`${A.c.name} usa ${name}: <b>${dmg}</b> de dano${crit ? ' (crítico! 👁)' : ''}${tm > 1 ? ' (super eficaz!)' : tm < 1 ? ' (pouco eficaz)' : ''}.`);
     if (move === 'sp' && pa.elem === 'Tempestade' && Math.random() < 0.35) { D.stun = true; L.push(`⚡ ${D.c.name} ficou paralisado!`); }
   }
@@ -878,7 +972,8 @@
     const Y = B.you, F = B.foe, L = [];
     const fm = foeMove(F);
     const order = Y.st.spd > F.st.spd || (Y.st.spd === F.st.spd && Math.random() < 0.5) ? [[Y, F, move], [F, Y, fm]] : [[F, Y, fm], [Y, F, move]];
-    for (const [A, D, mv] of order) { if (A.hp <= 0 || D.hp <= 0) continue; act(A, D, mv, L); }
+    order.forEach(([A, D, mv], i) => { if (A.hp <= 0 || D.hp <= 0) return; sfxDelay = i * 0.4; act(A, D, mv, L); });
+    sfxDelay = 0;
     for (const X of [Y, F]) { if (X.cd) X.cd--; if (X.shield) X.shield--; }
     B.log.push(...L);
     if (F.hp <= 0 || Y.hp <= 0) {
@@ -889,8 +984,8 @@
         if (S.arena === rank && S.arena < RIVALS.length) S.arena++;
         S.rival = null;
         B.log.push(`<b style="color:var(--good)">Vitória! +${prize} 💰 +1 🔬</b>`);
-        toast(`⚔️ Vitória contra ${RIVALS[rank]}!`, 'gold');
-      } else B.log.push(`<b style="color:var(--bad)">${Y.c.name} perdeu a simulação.</b> Tente outro astrídeo ou cruze um mais forte.`);
+        toast(`⚔️ Vitória contra ${RIVALS[rank]}!`, 'gold'); sfx.win();
+      } else { sfx.lose(); B.log.push(`<b style="color:var(--bad)">${Y.c.name} perdeu a simulação.</b> Tente outro astrídeo ou cruze um mais forte.`); }
     }
     render();
     const bl = $('#blog'); if (bl) bl.scrollTop = bl.scrollHeight;
@@ -924,13 +1019,62 @@
   }
 
   // =====================================================================
+  // MÚSICA E EFEITOS
+  // =====================================================================
+  // Música: acordes lentos de "estação espacial"; na arena fica mais rápida, com baixo pulsante
+  const SONG = { bpm: () => S && S.battle && !S.battle.over ? 124 : 66, play(step, t, d) {
+    const fight = S && S.battle && !S.battle.over;
+    const CH = fight ? [[45, 52, 57, 60], [43, 50, 55, 58], [41, 48, 53, 57], [40, 47, 52, 56]] : [[50, 57, 62, 66], [47, 54, 59, 62], [43, 50, 55, 59], [45, 52, 57, 61]];
+    const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
+    if (fight) {
+      Sound.note(midi(ch[0] - 12), t, d * 0.8, 'sawtooth', 0.22);
+      if (s % 2 === 0) Sound.note(midi(ch[1 + (s / 2) % 3] + 12), t, d * 1.2, 'square', 0.1);
+    } else {
+      if (s === 0) for (const n of ch) Sound.note(midi(n), t, d * 7.5, 'sine', 0.16);
+      if (s % 2 === 1) Sound.note(midi(ch[(step >> 1) % 4] + 24), t, d * 1.6, 'triangle', 0.07);
+    }
+  } };
+  let musicOn = false;
+  function wakeAudio() { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONG); } }
+  let sfxDelay = 0;
+  const sfx = {
+    tick: () => Sound.tone(620, 0.04, { type: 'sine', vol: 0.05 }),
+    seq: () => { for (let i = 0; i < 8; i++) Sound.tone(midi(72 + (i * 5) % 17), 0.05, { type: 'sine', vol: 0.08, delay: i * 0.05 }); Sound.arp([84, 91], 0.08, { type: 'triangle', vol: 0.15, delay: 0.45 }); },
+    hatch: (n, dead) => {
+      for (let i = 0; i < n; i++) { Sound.noise(0.06, { freq: 2500, vol: 0.2, delay: i * 0.22 }); Sound.tone(midi(76 + i * 3), 0.15, { type: 'triangle', vol: 0.15, delay: i * 0.22 + 0.04 }); }
+      for (let i = 0; i < dead; i++) Sound.tone(90, 0.3, { type: 'sine', vol: 0.25, slide: 0.6, delay: (n + i) * 0.22 });
+    },
+    mutation: () => Sound.tone(500, 0.6, { type: 'sine', vol: 0.12, slide: 1.8, delay: 0.9 }),
+    deduce: () => Sound.arp([79, 86], 0.1, { type: 'sine', vol: 0.15, delay: 1.1 }),
+    rocket: () => { Sound.noise(1.0, { freq: 200, sweep: 1500, vol: 0.25 }); Sound.tone(80, 1.0, { type: 'sawtooth', vol: 0.08, slide: 2 }); },
+    capture: () => Sound.arp([67, 72, 76, 79], 0.08, { type: 'square', vol: 0.12 }),
+    unlock: () => Sound.arp([72, 79, 84, 88, 91], 0.07, { type: 'triangle', vol: 0.18 }),
+    coins: () => Sound.arp([84, 88, 91, 96], 0.06, { type: 'square', vol: 0.1 }),
+    coin: () => Sound.arp([88, 93], 0.06, { type: 'square', vol: 0.09 }),
+    drop: () => Sound.tone(220, 0.15, { type: 'triangle', vol: 0.12, slide: 0.6 }),
+    dex: () => Sound.arp([88, 91, 96], 0.07, { type: 'sine', vol: 0.15, delay: 0.3 }),
+    hit: crit => { Sound.noise(0.08, { freq: 1100, vol: 0.22, delay: sfxDelay }); Sound.tone(crit ? 330 : 200, 0.12, { vol: 0.1, slide: 0.5, delay: sfxDelay }); if (crit) Sound.tone(1000, 0.12, { vol: 0.08, slide: 1.5, delay: sfxDelay + 0.05 }); },
+    miss: () => Sound.noise(0.2, { freq: 600, sweep: 2500, vol: 0.12, delay: sfxDelay }),
+    special: e => ({
+      Plasma: () => Sound.noise(0.35, { freq: 3000, sweep: 400, vol: 0.25, delay: sfxDelay }),
+      Gelo: () => Sound.arp([84, 91, 96], 0.05, { type: 'sine', vol: 0.15, delay: sfxDelay }),
+      Tempestade: () => { Sound.tone(1400, 0.25, { type: 'sawtooth', vol: 0.1, slide: 0.15, delay: sfxDelay }); Sound.noise(0.2, { freq: 4000, vol: 0.2, delay: sfxDelay }); },
+      Neutro: () => Sound.arp([72, 76, 79, 84], 0.06, { type: 'triangle', vol: 0.15, delay: sfxDelay }),
+    }[e])(),
+    flash: () => Sound.tone(500, 0.4, { type: 'sine', vol: 0.18, slide: 4, delay: sfxDelay }),
+    win: () => Sound.arp([72, 76, 79, 84, 79, 84, 88], 0.1, { type: 'square', vol: 0.13, dur: 0.2, delay: 0.6 }),
+    lose: () => Sound.arp([69, 65, 62, 57], 0.2, { type: 'triangle', vol: 0.2, dur: 0.4, delay: 0.6 }),
+  };
+
+  // =====================================================================
   // AÇÕES
   // =====================================================================
   document.addEventListener('click', e => {
+    wakeAudio();
     const el = e.target.closest('[data-act]'); if (!el) return;
     const a = el.dataset.act, id = el.dataset.id ? +el.dataset.id : null;
     switch (a) {
-      case 'tab': S.tab = el.dataset.v; render(); window.scrollTo({ top: 0 }); break;
+      case 'tab': sfx.tick(); S.tab = el.dataset.v; render(); window.scrollTo({ top: 0 }); break;
       case 'close': closeModal(); render(); break;
       case 'guide': guide(); break;
       case 'reset':
@@ -939,7 +1083,7 @@
       case 'start': S.intro = true; closeModal(); render(); break;
       case 'seq': {
         const c = byId(id); if (!c || c.seq || S.research < 1) break;
-        S.research--; c.seq = true; toast(`🧬 Genoma de <b>${esc(c.name)}</b> sequenciado.`); render(); break;
+        S.research--; c.seq = true; sfx.seq(); toast(`🧬 Genoma de <b>${esc(c.name)}</b> sequenciado.`); render(); break;
       }
       case 'sell': {
         const c = byId(id); if (!c) break;
@@ -947,7 +1091,7 @@
       }
       case 'sell2': {
         const c = byId(id); if (!c) break;
-        S.credits += sellValue(c); S.creatures = S.creatures.filter(x => x !== c);
+        S.credits += sellValue(c); sfx.coin(); S.creatures = S.creatures.filter(x => x !== c);
         if (S.breed.f === c.id) S.breed.f = null; if (S.breed.m === c.id) S.breed.m = null;
         closeModal(); render(); break;
       }
@@ -956,15 +1100,15 @@
       case 'breed': doBreed(); break;
       case 'unlock': {
         const pl = PLANETS.find(p => p.id === el.dataset.v); if (!pl || S.credits < pl.cost) break;
-        S.credits -= pl.cost; S.planets[pl.id] = true; toast(`🚀 Rota para <b>${pl.nome}</b> liberada!`, 'gold'); render(); break;
+        S.credits -= pl.cost; S.planets[pl.id] = true; sfx.unlock(); toast(`🚀 Rota para <b>${pl.nome}</b> liberada!`, 'gold'); render(); break;
       }
       case 'trip': {
         const pl = PLANETS.find(p => p.id === el.dataset.v); if (!pl || S.credits < pl.trip) break;
-        S.credits -= pl.trip; S.day++; S.exp = { planet: pl.id, wild: [wild(pl), wild(pl), wild(pl)] }; render(); break;
+        S.credits -= pl.trip; S.day++; sfx.rocket(); S.exp = { planet: pl.id, wild: [wild(pl), wild(pl), wild(pl)] }; render(); break;
       }
       case 'capture': {
         const w = S.exp && S.exp.wild[+el.dataset.i]; if (!w || S.creatures.length >= CAP) break;
-        w.id = S.nextId++; S.creatures.push(w); S.stats.caught++; S.exp = null;
+        w.id = S.nextId++; sfx.capture(); S.creatures.push(w); S.stats.caught++; S.exp = null;
         toast(`🛸 <b>${esc(w.name)}</b> chegou ao viveiro!`); discover(w); render(); break;
       }
       case 'leave': S.exp = null; render(); break;
@@ -974,13 +1118,13 @@
       }
       case 'deliver2': {
         const ct = S.contracts.find(x => x.id === +el.dataset.c), c = byId(id); if (!ct || !c || !ct.reqs.every(r => meets(c, r))) { closeModal(); break; }
-        S.credits += ct.reward.cr; S.research += ct.reward.rp; S.contractsDone++;
+        S.credits += ct.reward.cr; S.research += ct.reward.rp; S.contractsDone++; sfx.coins();
         S.creatures = S.creatures.filter(x => x !== c);
         if (S.breed.f === c.id) S.breed.f = null; if (S.breed.m === c.id) S.breed.m = null;
         S.contracts = S.contracts.map(x => x === ct ? genContract() : x);
         closeModal(); toast(`📜 Contrato concluído! +${ct.reward.cr} 💰 +${ct.reward.rp} 🔬`, 'gold'); render(); break;
       }
-      case 'drop': { const i = S.contracts.findIndex(x => x.id === +el.dataset.c); if (i >= 0) { S.contracts[i] = genContract(); render(); } break; }
+      case 'drop': { const i = S.contracts.findIndex(x => x.id === +el.dataset.c); if (i >= 0) { sfx.drop(); S.contracts[i] = genContract(); render(); } break; }
       case 'fight': startBattle(id); break;
       case 'move': turn(el.dataset.v); break;
       case 'flee': S.battle.over = true; S.battle.log.push('Você encerrou a simulação.'); render(); break;
@@ -1004,6 +1148,7 @@
       <button class="btn primary" data-act="start">Assumir o laboratório</button>`);
   }
 
+  if (/github\.io$/.test(location.hostname)) $('#backlink').hidden = false; // link só aparece no site publicado
   if (!load()) newGame();
   render();
   if (!S.intro) intro();
