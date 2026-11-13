@@ -261,6 +261,8 @@
     fold: () => C.data.fold || { contacts: null, max: null, quality: 'nativa' },
   };
   const usedDefault = key => !C.data[key];
+  // menos de 3 aminoácidos: não há proteína para dobrar nem função para testar
+  const noProtein = () => (getData.protein().seq || '').length < 3;
 
   // ---------- registro de fases ----------
   const PHASES = [];
@@ -298,6 +300,12 @@
   function showBrief(i) {
     const p = PHASES[i];
     stopPhase();
+    const sk = p.skipInfo && p.skipInfo();
+    if (sk) {
+      showOverlay(`<h2>Fase ${i + 1}: ${p.title}</h2>${sk}
+        <div class="btnrow"><button class="big" data-act="skip" data-phase="${i}" data-primary>Ver o resultado final (Enter)</button><button class="big alt" data-act="menu">Menu de fases</button></div>`);
+      return;
+    }
     const note = p.needs && usedDefault(p.needs) && i > 0 ? `<p class="muted">Você ainda não concluiu a fase anterior, então esta fase vai usar a sequência correta como ponto de partida.</p>` : '';
     showOverlay(`<h2>Fase ${i + 1}: ${p.title}</h2>${p.brief()}${note}
       <h3>Controles</h3><p class="muted">${p.controls}</p>
@@ -324,8 +332,9 @@
     save();
     Sound.music(null);
     const last = i === PHASES.length - 1;
+    const nx = PHASES[i + 1], nxSkip = nx && nx.skipInfo && nx.skipInfo();
     showOverlay(`${html}<div class="btnrow">
-      ${last ? '' : `<button class="big" data-act="brief" data-phase="${i + 1}" data-primary>Próxima fase: ${PHASES[i + 1].title} (Enter)</button>`}
+      ${last ? '' : nxSkip ? `<button class="big" data-act="skip" data-phase="${i + 1}" data-primary>Ver o resultado final (Enter)</button>` : `<button class="big" data-act="brief" data-phase="${i + 1}" data-primary>Próxima fase: ${PHASES[i + 1].title} (Enter)</button>`}
       <button class="big alt" data-act="brief" data-phase="${i}">Jogar esta fase de novo</button>
       <button class="big alt" data-act="menu">Menu de fases</button></div>`);
     cur = null;
@@ -343,6 +352,7 @@
     if (!a && ph !== null) { showBrief(ph); return; }
     if (a === 'go') startPhase(ph);
     else if (a === 'brief') showBrief(ph);
+    else if (a === 'skip') { stopPhase(); PHASES[ph].skipNow(); }
     else if (a === 'menu') showMenu();
     else if (a === 'teacher') { C.teacher = !C.teacher; save(); showMenu(); }
     else if (a === 'resetcamp') { C = { unlocked: 1, done: {}, data: {}, teacher: C.teacher }; save(); showMenu(); }
@@ -1136,7 +1146,7 @@
   // FASE 4: TRANSCRIÇÃO (corredor de faixas)
   // =====================================================================
   (() => {
-    const LANES = [175, 240, 305, 370], POLX = 170, SPACING = 132;
+    const LANES = [175, 240, 305, 370], POLX = 170, SPACING = 320; // espaço entre colunas: tempo para trocar de faixa
     let dna, tmpl, expect, cols, scroll, speed, lane, laneY, rna, errors, bumps, i, intro, done, endT;
 
     function setup() {
@@ -1148,7 +1158,7 @@
         if (k > 4 && Math.random() < 0.3) { const need = RNA_FOR_TEMPLATE[t]; const opts = [0, 1, 2, 3].filter(q => lanes[q] !== need); lanes[pick(opts)] = 'X'; }
         return { t, lanes, done: false, got: null };
       });
-      scroll = -260; speed = 150; lane = 1; laneY = LANES[1]; rna = []; errors = 0; bumps = 0; i = 0; intro = 2.2; done = false; endT = 0;
+      scroll = -260; speed = 120; lane = 1; laneY = LANES[1]; rna = []; errors = 0; bumps = 0; i = 0; intro = 2.2; done = false; endT = 0;
     }
     const colX = k => POLX + 300 + k * SPACING - scroll;
     function resolve(c) {
@@ -1198,7 +1208,7 @@
       update(dt) {
         if (done) return;
         if (intro > 0) { intro -= dt; return; }
-        speed = 150 + 130 * Math.min(1, i / cols.length);
+        speed = 120 + 60 * Math.min(1, i / cols.length); // de ~2,7 s a ~1,8 s entre bases
         scroll += speed * dt;
         laneY += (LANES[lane] - laneY) * Math.min(1, dt * 16);
         while (i < cols.length && colX(i) <= POLX) { resolve(cols[i]); i++; }
@@ -1290,15 +1300,21 @@
         return `<button class="tile ${sel.includes(i) ? 'sel' : ''} ${inR ? 'dim' : ''}" data-act="tile" data-i="${i}" style="background:${BASE_COLOR[b]}">${b}${(i + 1) % 5 === 0 ? `<small>${i + 1}</small>` : ''}</button>`;
       }).join('');
       const ok = sel.length === 2;
+      const starts = [], ends = [];
+      for (let i = 0; i < pre.length - 1; i++) { if (pre[i] === 'G' && pre[i + 1] === 'U') starts.push(i); if (i > 0 && pre[i] === 'G' && pre[i - 1] === 'A') ends.push(i); }
+      if (pre[pre.length - 1] === 'G' && pre[pre.length - 2] === 'A') ends.push(pre.length - 1);
+      const possible = starts.some(a => ends.some(b => b > a + 3));
       showOverlay(`<h2>Splicing</h2>${head(2)}
         <p>O <b>spliceossomo</b> remove o íntron e une os éxons. Marque a <b>primeira</b> e a <b>última</b> base do íntron:</p>
         <ul><li>O íntron começa com <b>GU</b>. O sítio 5' de consenso é <b class="mono">GU<span style="color:#80deea">A/G</span>AGU</b>.</li>
             <li>O íntron termina com <b>AG</b>, quase sempre precedido de uma pirimidina (<b>C</b> ou <b>U</b>): <b>YAG</b>.</li>
             <li>Atenção: há sequências <b>GU</b> e <b>AG</b> falsas no meio do caminho.</li></ul>
         <div class="tiles">${tiles}</div>
-        ${sel.length === 1 ? '<p class="muted">Agora clique na última base do íntron (o G do AG).</p>' : sel.length === 0 ? '<p class="muted">Clique na primeira base do íntron (o G do GU).</p>' : `<p>Seleção: bases ${sel[0] + 1} a ${sel[1] + 1} (${sel[1] - sel[0] + 1} nt): <span class="mono">${seqHTML(pre.slice(sel[0], sel[1] + 1))}</span></p>`}
+        ${possible ? '' : `<div class="flow"><div><b style="color:#ffb74d">Nenhum par GU…AG neste pré-mRNA.</b> As mutações e os erros das fases anteriores destruíram os sítios de splicing, e o spliceossomo não tem onde se ligar. O resultado é a <b>retenção do íntron</b>: ele continua no mRNA.</div></div>`}
+        ${!possible ? '' : sel.length === 1 ? '<p class="muted">Agora clique na última base do íntron (o G do AG).</p>' : sel.length === 0 ? '<p class="muted">Clique na primeira base do íntron (o G do GU).</p>' : `<p>Seleção: bases ${sel[0] + 1} a ${sel[1] + 1} (${sel[1] - sel[0] + 1} nt): <span class="mono">${seqHTML(pre.slice(sel[0], sel[1] + 1))}</span></p>`}
         ${msg ? `<p style="color:#ff8a80">${msg}</p>` : ''}
-        <div class="btnrow"><button class="big" data-act="cut" ${ok ? 'data-primary' : 'disabled'}>✂ Cortar com o spliceossomo</button><button class="big alt" data-act="clearSel">Limpar seleção</button></div>`);
+        <div class="btnrow">${possible ? `<button class="big" data-act="cut" ${ok ? 'data-primary' : 'disabled'}>✂ Cortar com o spliceossomo</button><button class="big alt" data-act="clearSel">Limpar seleção</button>` : ''}
+          <button class="big ${possible ? 'alt' : ''}" data-act="noSplice" ${possible ? '' : 'data-primary'}>${possible ? 'Não há íntron reconhecível: manter o íntron' : 'Seguir sem splicing (íntron retido) (Enter)'}</button></div>`);
     }
     function doCut() {
       const [s, e] = sel;
@@ -1321,6 +1337,18 @@
         <div class="seq">pré-mRNA&nbsp;${pre.split('').map((b, i) => `<span class="b b${b}${i >= s && i <= e ? ' intron' : ''}" style="${i >= s && i <= e ? 'text-decoration:line-through;opacity:.6' : ''}">${b}</span>`).join('')}<br>mRNA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${seqHTML(mature)}</div>
         <p style="color:${kind === 'ok' ? '#9ccc65' : '#ffb74d'}">${text}</p>
         <div class="btnrow"><button class="big" data-act="toTail" data-primary>Continuar: cauda poli(A) (Enter)</button><button class="big alt" data-act="redoSplice">Refazer o splicing</button></div>`);
+    }
+    function noSplice() {
+      mature = pre;
+      const realIntron = toRNA(GENE.intron), had = pre.includes(realIntron);
+      spliceInfo = { kind: 'nenhum', text: had
+        ? 'O íntron <b>não foi removido</b>, embora os sítios GU e AG estivessem lá: os 9 nucleotídeos dele entram na sequência codificante (3 códons a mais, ou um códon de parada no meio do caminho).'
+        : 'Sem sítios de splicing reconhecíveis, o íntron foi <b>retido</b> no mRNA. Na célula, mRNAs assim costumam ficar presos no núcleo ou ser degradados pelo <i>decaimento mediado por códon sem sentido</i> (NMD).' };
+      Sound.tone(220, 0.3, { type: 'triangle', vol: 0.15, slide: 0.7 });
+      showOverlay(`<h2>Splicing</h2>${head(2)}
+        <div class="seq">mRNA&nbsp;${seqHTML(mature)}</div>
+        <p style="color:#ffb74d">${spliceInfo.text}</p>
+        <div class="btnrow"><button class="big" data-act="toTail" data-primary>Continuar: cauda poli(A) (Enter)</button>${had ? '<button class="big alt" data-act="redoSplice">Voltar e tentar o splicing</button>' : ''}</div>`);
     }
     function showTail() {
       const pct = Math.min(100, tail / 350 * 100);
@@ -1388,6 +1416,7 @@
         }
         if (a === 'clearSel') { sel = []; showSplice(); }
         if (a === 'cut' && sel.length === 2) doCut();
+        if (a === 'noSplice') noSplice();
         if (a === 'redoSplice') { sel = []; showSplice(); }
         if (a === 'toTail') { step = 3; showTail(); }
         if (a === 'toExport' && tail > 0) startExport();
@@ -1745,6 +1774,8 @@
     }
     PHASES.push({
       title: 'Dobramento', short: 'Esconda os aminoácidos hidrofóbicos no núcleo', needs: 'protein',
+      skipInfo: () => noProtein() ? `<p>A tradução não produziu uma proteína de verdade (${(getData.protein().seq || '').length} aminoácido[s]). Sem cadeia, não há o que dobrar, e sem proteína não há função para testar: o jogo vai direto para o resultado final.</p>` : null,
+      skipNow() { C.data.fold = { contacts: 0, max: 0, quality: 'sem proteína' }; C.done[6] = true; save(); PHASES[7].skipNow(); },
       controls: '<kbd>←↑→↓</kbd> posicionar o próximo aminoácido (ou toque numa casa vizinha) · <kbd>Backspace</kbd> desfazer · <kbd>R</kbd> chaperona (recomeçar) · <kbd>Enter</kbd> concluir',
       touch: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Backspace', 'Space'],
       song: { bpm: 76, play(step, t, d) { const ch = [[60, 67, 72], [57, 64, 69], [53, 60, 65], [55, 62, 67]][Math.floor(step / 8) % 4]; if (step % 8 === 0) for (const n of ch) Sound.note(midi(n), t, d * 7.5, 'sine', 0.13); if (step % 4 === 2) Sound.note(midi(ch[(step >> 2) % 3] + 12), t, d * 2, 'triangle', 0.07); } },
@@ -1816,7 +1847,7 @@
     const seq = pr.seq || '';
     const notes = [];
     let act = 1;
-    if (!seq.length) { act = 0; notes.push('Nenhuma proteína foi produzida.'); }
+    if (!seq.length) { act = 0; notes.push('nenhuma proteína foi produzida'); }
     else {
       let miss = 0, drastic = 0, cons = 0;
       for (let i = 0; i < PROTEIN_OK.length; i++) {
@@ -1890,23 +1921,24 @@
         completePhase(7, finalSummary(win), {});
       }, 600);
     }
-    function finalSummary(win) {
+    function finalSummary(win, noProt) {
+      if (!rep) rep = activityReport();
       const d2 = getData.dna2(), dna3 = getData.dna3(), pre = getData.pre(), m = getData.mrna(), pr = getData.protein(), fold = getData.fold();
       const subs = d2.filter(s => !s.ins).filter((s, k) => s.b !== CODING[k]).length, ins = d2.filter(s => s.ins).length;
       const dnaMut = dna3.length !== CODING.length ? 'com inserção' : dna3.split('').filter((b, k) => b !== CODING[k]).length;
       const trErr = pre.split('').filter((b, k) => b !== toRNA(dna3)[k]).length;
       const box = (ok, title, txt) => `<div>${ok ? '✅' : '⚠️'} <b>${title}:</b> ${txt}</div>`;
-      return `<h2>${win ? '✨ O vaga-lume brilhou!' : 'O vaga-lume quase não brilhou'}</h2>
-        <p>${win ? 'A luciferase que você produziu catalisou a oxidação da <b>luciferina</b> usando <b>ATP</b> e <b>O₂</b>, e a energia liberada saiu como luz.' : `A luciferase atingiu ${Math.round(light / GOAL * 100)}% do brilho necessário.`} Atividade da enzima: <b>${Math.round(rep.act * 100)}%</b>.</p>
+      return `<h2>${win ? '✨ O vaga-lume brilhou!' : noProt ? 'Sem proteína, sem luz' : 'O vaga-lume quase não brilhou'}</h2>
+        <p>${noProt ? 'Nenhuma luciferase funcional foi produzida, então o vaga-lume continua <b>apagado</b>. Veja abaixo em que etapa o caminho do gene até a proteína se perdeu.' : win ? 'A luciferase que você produziu catalisou a oxidação da <b>luciferina</b> usando <b>ATP</b> e <b>O₂</b>, e a energia liberada saiu como luz.' : `A luciferase atingiu ${Math.round(light / GOAL * 100)}% do brilho necessário.`}${noProt ? '' : ` Atividade da enzima: <b>${Math.round(rep.act * 100)}%</b>.`}</p>
         <h3>Do gene à função</h3>
         <div class="flow">
           ${box(subs + ins === 0, 'Replicação', subs + ins ? `${subs} substituição(ões) e ${ins} inserção(ões) na fita nova` : 'cópia sem erros')}
           ${box(dnaMut === 0, 'Reparo do DNA', dnaMut === 0 ? 'DNA final idêntico ao gene original' : `DNA final ${typeof dnaMut === 'number' ? `com ${dnaMut} mutação(ões)` : dnaMut}`)}
           ${box(trErr === 0, 'Transcrição', trErr ? `${trErr} erro(s) no pré-mRNA` : 'pré-mRNA fiel ao DNA')}
-          ${box(m.splice === 'ok' && m.tail >= 150, 'Processamento', `splicing ${m.splice === 'ok' ? 'correto' : m.splice === 'retido' ? 'reteve parte do íntron' : 'removeu parte de um éxon'} · cauda poli(A) de ${m.tail} A`)}
+          ${box(m.splice === 'ok' && m.tail >= 150, 'Processamento', `splicing ${{ ok: 'correto', retido: 'reteve parte do íntron', nenhum: 'não aconteceu (íntron retido)', exon: 'removeu parte de um éxon' }[m.splice] || m.splice} · cauda poli(A) de ${m.tail} A`)}
           ${box(pr.seq === PROTEIN_OK && pr.stop, 'Tradução', `${protHTML(pr.seq || '', PROTEIN_OK)}${pr.stop ? '' : pr.premature ? ' (truncada)' : ' (sem códon de parada)'}`)}
-          ${box(fold.quality === 'nativa', 'Dobramento', `${fold.quality}${fold.max != null ? ` (${fold.contacts}/${fold.max} contatos hidrofóbicos)` : ''}`)}
-          ${box(win, 'Função', `atividade de ${Math.round(rep.act * 100)}% · ${light}/${GOAL} reações de luz${rep.copies ? ` · ${rep.copies} cópia(s) extra(s) da enzima ajudando` : ''}`)}
+          ${box(fold.quality === 'nativa', 'Dobramento', noProt ? 'não aconteceu: não havia cadeia para dobrar' : `${fold.quality}${fold.max != null ? ` (${fold.contacts}/${fold.max} contatos hidrofóbicos)` : ''}`)}
+          ${box(win, 'Função', noProt ? 'não testada: não havia enzima, e o vaga-lume ficou apagado' : `atividade de ${Math.round(rep.act * 100)}% · ${light}/${GOAL} reações de luz${rep.copies ? ` · ${rep.copies} cópia(s) extra(s) da enzima ajudando` : ''}`)}
         </div>
         <p class="muted">Fatores que afetaram a atividade: ${rep.notes.join('; ')}.</p>
         <p>Cada etapa, do DNA à proteína, tem mecanismos de correção. Mesmo assim, um único erro pode atravessar todas elas e mudar a função de uma proteína: é assim que surgem muitas doenças genéticas e também a variação sobre a qual a evolução age.</p>`;
@@ -1914,6 +1946,8 @@
 
     PHASES.push({
       title: 'Função', short: 'A luciferase acende o vaga-lume', needs: 'protein',
+      skipInfo: () => noProtein() ? `<p>Sem uma proteína produzida na tradução, não há luciferase para catalisar a reação de luz. O vaga-lume fica apagado: vamos direto ao resumo do que aconteceu, do gene até aqui.</p>` : null,
+      skipNow() { rep = activityReport(); light = 0; done = true; Sound.arp([69, 65, 62, 57], 0.2, { type: 'triangle', vol: 0.2, dur: 0.4 }); completePhase(7, finalSummary(false, true), {}); },
       controls: '<kbd>←↑→↓</kbd> mover a enzima (ou toque para onde ir) · junte <b>luciferina</b> + <b>ATP</b> para produzir luz · evite os inibidores',
       touch: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
       song: { bpm: 120, play(step, t, d) { const ch = [[64, 68, 71], [61, 64, 68], [57, 61, 64], [59, 63, 66]][Math.floor(step / 8) % 4]; if (step % 2 === 0) Sound.note(midi(ch[0] - 12), t, d * 1.6, 'triangle', 0.5); Sound.note(midi(ch[step % 3] + 12 + (step % 8 > 4 ? 12 : 0)), t, d * 0.8, 'sine', 0.12); } },
