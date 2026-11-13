@@ -1,1 +1,849 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fagócito — um roguelike da imunidade inata</title>
+<style>
+  :root { --bg:#100a18; --panel:#1d1430; --text:#efe9f7; --muted:#a99bc0; --accent:#81d4fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; gap:12px; }
+  .wrap { width:100%; max-width:800px; }
+  h1 { font-size:20px; margin:0; font-weight:700; }
+  h1 small { font-weight:400; color:var(--muted); font-size:14px; margin-left:6px; }
+  .stage { position:relative; }
+  canvas { width:100%; aspect-ratio:800/620; display:block; border-radius:12px; background:#0b0710; outline:none; touch-action:manipulation; }
+  .overlay { position:absolute; inset:0; background:rgba(14,8,24,.93); border-radius:12px; display:flex; align-items:center; justify-content:center; padding:18px; overflow:auto; }
+  .overlay[hidden] { display:none; }
+  .card { max-width:600px; width:100%; }
+  .card h2 { margin:0 0 8px; font-size:22px; color:#81d4fa; }
+  .card p, .card li { margin:5px 0; }
+  .card ul { padding-left:18px; margin:6px 0; }
+  .muted { color:var(--muted); font-size:13px; }
+  kbd { background:#2c2240; border-radius:4px; padding:1px 6px; font-family:inherit; font-size:12px; color:var(--text); }
+  button.big { background:#81d4fa; color:#0d1b2a; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; margin-top:10px; }
+  button.big:hover { filter:brightness(1.08); }
+  .choices { display:grid; gap:10px; margin-top:10px; }
+  .choice { text-align:left; background:#241a38; border:1px solid #3a2d55; color:var(--text); border-radius:10px; padding:10px 12px; cursor:pointer; font:inherit; }
+  .choice:hover, .choice:focus { border-color:#81d4fa; outline:none; background:#2b2044; }
+  .choice b { display:block; font-size:15px; color:#ffe082; }
+  .choice span { display:block; margin-top:2px; }
+  .choice em { display:block; margin-top:4px; color:var(--muted); font-size:12px; font-style:normal; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; margin:10px 0; font-size:14px; }
+  .stats span { color:var(--muted); } .stats b { color:var(--text); float:right; }
+  .panel { background:var(--panel); border-radius:12px; padding:12px 14px; font-size:13px; }
+  .panel h3 { margin:0 0 6px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  #upgrades { color:var(--text); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px 18px; }
+  .grid p { margin:0; } .grid b { color:var(--text); } .grid span { color:var(--muted); }
+  .hint { color:var(--muted); font-size:13px; }
+  .touch { display:none; justify-content:center; gap:18px; user-select:none; -webkit-user-select:none; }
+  .dpad { display:grid; grid-template-columns:repeat(3,54px); gap:6px; }
+  .dpad button { height:50px; border-radius:10px; border:0; background:#2c2240; color:var(--text); font:inherit; font-size:18px; font-weight:700; touch-action:manipulation; }
+  .dpad button:active { background:#46366a; }
+  @media (pointer: coarse) { .touch { display:flex; } }
+</style>
+</head>
+<body>
+<div class="wrap"><h1>Fagócito <small>um roguelike da imunidade inata</small></h1></div>
+
+<div class="wrap stage">
+  <canvas id="game" width="800" height="620" tabindex="0"></canvas>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <h2>Você é um macrófago</h2>
+      <p>Uma infecção se espalhou pelo corpo. Avance por 5 tecidos, da ferida na pele até o linfonodo, e elimine a superbactéria <b>MRSA</b>.</p>
+      <ul>
+        <li><b>Esbarre</b> em um patógeno para fagocitá-lo. Ao digeri-lo, você recupera ATP, um pouco de vida e ganha biomassa.</li>
+        <li>Cada passo gasta <b>ATP</b>. Sem ATP, a célula se esgota e perde vida.</li>
+        <li>A <b>biomassa</b> sobe seu nível: escolha 1 entre 3 melhorias baseadas em mecanismos reais da imunidade inata.</li>
+        <li>Colete <b>itens</b> (glicose, anticorpos, complemento, interferon e quimiocina) e use com as teclas <kbd>1</kbd> a <kbd>5</kbd>.</li>
+        <li>Encontre o <b>vaso linfático</b> para descer de andar. A morte é permanente, e cada partida gera mapas novos.</li>
+      </ul>
+      <p class="muted"><kbd>←↑→↓</kbd>/<kbd>WASD</kbd> mover · <kbd>Q</kbd><kbd>E</kbd><kbd>Z</kbd><kbd>C</kbd> diagonais · <kbd>Espaço</kbd> esperar · <kbd>1</kbd>–<kbd>5</kbd> usar item (ou toque no item)</p>
+      <button class="big" id="startBtn">Começar (Enter)</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="levelup" hidden>
+    <div class="card">
+      <h2 id="luTitle">Ativação celular!</h2>
+      <p class="muted">Escolha uma melhoria (teclas 1–3).</p>
+      <div class="choices" id="luChoices"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="end" hidden>
+    <div class="card" id="endCard"></div>
+  </div>
+</div>
+
+<div class="wrap touch">
+  <div class="dpad">
+    <button data-d="-1,-1">↖</button><button data-d="0,-1">↑</button><button data-d="1,-1">↗</button>
+    <button data-d="-1,0">←</button><button data-d="0,0">·</button><button data-d="1,0">→</button>
+    <button data-d="-1,1">↙</button><button data-d="0,1">↓</button><button data-d="1,1">↘</button>
+  </div>
+</div>
+
+<div class="wrap hint"><kbd>←↑→↓</kbd>/<kbd>WASD</kbd> mover · <kbd>Q</kbd><kbd>E</kbd><kbd>Z</kbd><kbd>C</kbd> diagonais · <kbd>Espaço</kbd> esperar · <kbd>1</kbd>–<kbd>5</kbd> itens · toque nos itens do painel para usar</div>
+
+<div class="wrap panel"><h3>Melhorias adquiridas</h3><div id="upgrades">nenhuma ainda</div></div>
+
+<div class="wrap panel">
+  <h3>Patógenos</h3>
+  <div class="grid">
+    <p><b>Estafilococo</b> <span>cocos em cachos, como uvas. Atacam corpo a corpo.</span></p>
+    <p><b>E. coli</b> <span>bacilo com flagelos: rápido, age duas vezes por turno.</span></p>
+    <p><b>Vírus</b> <span>frágil, mas se replica se você demorar a eliminá-lo.</span></p>
+    <p><b>Clostrídio</b> <span>libera toxinas à distância, em linha reta.</span></p>
+    <p><b>Candida</b> <span>fungo parado que brota leveduras.</span></p>
+    <p><b>M. tuberculosis</b> <span>parede cerosa (reduz 1 de dano) e lenta; resiste bem à digestão.</span></p>
+    <p><b>MRSA</b> <span>superbactéria resistente que gera estafilococos. É o chefe final.</span></p>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ================= Constantes =================
+  const COLS = 40, ROWS = 25, TS = 20, W = 800, H = 620, MAP_H = ROWS * TS;
+  const WALL = 0, FLOOR = 1, EXIT = 2;
+  const DIRS8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+  const FLOORS = [
+    { name: 'Ferida na pele',     floor: '#3b1f27', floor2: '#43242d', wall: '#c98b7a', wallDot: '#a86e60', decor: 'rgba(255,200,190,.08)',
+      enemies: { coco: 5, bacilo: 2 }, items: 4 },
+    { name: 'Tecido conjuntivo',  floor: '#33281f', floor2: '#3a2e23', wall: '#d9b98c', wallDot: '#b8956a', decor: 'rgba(255,230,190,.08)',
+      enemies: { coco: 4, bacilo: 3, virus: 4 }, items: 4 },
+    { name: 'Corrente sanguínea', floor: '#3a0c14', floor2: '#430f18', wall: '#b23a48', wallDot: '#8e2a37', decor: 'rgba(255,90,90,.16)',
+      enemies: { bacilo: 4, virus: 5, clostridio: 3, coco: 3 }, items: 5 },
+    { name: 'Alvéolo pulmonar',   floor: '#232a40', floor2: '#283048', wall: '#e8a8b8', wallDot: '#c98898', decor: 'rgba(200,220,255,.08)',
+      enemies: { myco: 4, fungo: 2, virus: 4, clostridio: 3, bacilo: 3 }, items: 5 },
+    { name: 'Linfonodo',          floor: '#221a38', floor2: '#281f40', wall: '#9575cd', wallDot: '#7a5bb5', decor: 'rgba(200,180,255,.1)',
+      enemies: { mrsa: 1, coco: 4, myco: 3, clostridio: 3, virus: 3 }, items: 5 },
+  ];
+
+  const ENEMIES = {
+    coco:       { name: 'Estafilococo',    hp: 3,  dmg: 1, speed: 1,    xp: 2,  atp: 6,  bact: true,  fact: 'Estafilococos: cocos em cachos, como uvas. Atacam corpo a corpo.' },
+    bacilo:     { name: 'E. coli',         hp: 4,  dmg: 1, speed: 2,    xp: 3,  atp: 7,  bact: true,  fact: 'E. coli: bacilo com flagelos, rápido. Age duas vezes por turno.' },
+    virus:      { name: 'Vírus',           hp: 1,  dmg: 1, speed: 1,    xp: 1,  atp: 2,  replicate: 6, fact: 'Vírus: frágeis, mas se replicam se você demorar.' },
+    clostridio: { name: 'Clostrídio',      hp: 5,  dmg: 1, speed: 1,    xp: 5,  atp: 8,  bact: true,  ranged: 5, rangedDmg: 2, fact: 'Clostrídio: libera toxinas à distância, em linha reta.' },
+    fungo:      { name: 'Candida',         hp: 7,  dmg: 2, speed: 0,    xp: 5,  atp: 10, stationary: true, bud: 6, budType: 'levedura', fact: 'Candida: fungo parado que brota leveduras. Ataca quem encosta.' },
+    levedura:   { name: 'Levedura',        hp: 2,  dmg: 1, speed: 1,    xp: 1,  atp: 3,  fact: 'Levedura: broto da Candida.' },
+    myco:       { name: 'M. tuberculosis', hp: 9,  dmg: 2, speed: 0.5,  xp: 8,  atp: 12, bact: true, armor: 1, fact: 'M. tuberculosis: parede cerosa (reduz 1 de dano) e lenta.' },
+    mrsa:       { name: 'MRSA',            hp: 50, dmg: 3, speed: 1,    xp: 40, atp: 40, bact: true, armor: 1, boss: true, summon: 5, summonType: 'coco', fact: 'MRSA: superbactéria resistente que gera estafilococos. Fagocite-a para vencer!' },
+  };
+
+  const ITEMS = [
+    { id: 'glicose',     name: 'Glicose',     color: '#fff59d', desc: '+40 de ATP' },
+    { id: 'anticorpo',   name: 'Anticorpos',  color: '#80cbc4', desc: 'Opsonização: dano ×2 por 10 turnos' },
+    { id: 'complemento', name: 'Complemento', color: '#ce93d8', desc: 'Complexo de ataque à membrana: 4 de dano em todos os inimigos visíveis' },
+    { id: 'interferon',  name: 'Interferon',  color: '#90caf9', desc: 'Estado antiviral: bloqueia a replicação viral no andar e paralisa os vírus por 5 turnos' },
+    { id: 'quimiocina',  name: 'Quimiocina',  color: '#ffab91', desc: 'Revela o mapa e os patógenos por 30 turnos' },
+  ];
+  const ITEM_WEIGHTS = { glicose: 4, anticorpo: 2, complemento: 2, interferon: 1, quimiocina: 1 };
+
+  const UPGRADES = [
+    { id: 'burst',      max: 3, name: 'Explosão respiratória', desc: '+1 de dano em toda fagocitose.', bio: 'A NADPH oxidase gera espécies reativas de oxigênio dentro do fagossomo.' },
+    { id: 'lysozyme',   max: 2, name: 'Lisozima', desc: '+2 de dano contra bactérias.', bio: 'A lisozima quebra o peptidoglicano da parede bacteriana.' },
+    { id: 'membrane',   max: 3, name: 'Membrana reforçada', desc: '+6 de vida máxima e cura 6.', bio: 'Mais membrana e citoesqueleto para englobar alvos grandes.' },
+    { id: 'metabolism', max: 1, name: 'Metabolismo glicolítico', desc: 'Gasta ATP pela metade.', bio: 'Macrófagos ativados aumentam a glicólise para sustentar a resposta inflamatória.' },
+    { id: 'acid',       max: 2, name: 'Fagolisossomo ácido', desc: 'Cada digestão cura +2 de vida.', bio: 'A fusão com o lisossomo acidifica o fagossomo e ativa as hidrolases.' },
+    { id: 'pseudo',     max: 1, name: 'Pseudópodes longos', desc: 'Seus ataques também atingem o inimigo logo atrás do alvo.', bio: 'A polimerização de actina estende pseudópodes ao redor do alvo.' },
+    { id: 'chemo',      max: 2, name: 'Quimiotaxia', desc: '+2 de raio de visão.', bio: 'Gradientes de quimiocinas e de peptídeos bacterianos (fMLP) guiam a migração.' },
+    { id: 'opson',      max: 2, name: 'Receptores de opsoninas', desc: '+12% de chance de fagocitose completa (dano dobrado).', bio: 'Receptores Fc e de complemento (CR3) reconhecem patógenos opsonizados.' },
+    { id: 'nets',       max: 1, name: 'Armadilhas extracelulares', desc: 'Inimigos atingidos que sobrevivem ficam presos por 1 turno.', bio: 'Macrófagos e neutrófilos lançam redes de DNA e proteínas que aprisionam microrganismos.' },
+    { id: 'ifn',        max: 1, name: 'Interferon tipo I', desc: 'Vírus a até 5 casas de você não se replicam.', bio: 'Interferons induzem um estado antiviral nas células vizinhas.' },
+    { id: 'defensin',   max: 2, name: 'Defensinas', desc: 'Quem te ataca corpo a corpo sofre 1 de dano.', bio: 'Peptídeos antimicrobianos catiônicos que perfuram membranas.' },
+  ];
+
+  // ================= Estado =================
+  let tiles, explored, visible, distMap, rooms, exitPos, decor;
+  let p, up, inv, enemies, items, floorIdx, turn, msgs, floats, shots, parts;
+  let antibodyTurns, revealTurns, ifnFloor, atpAcc, pendingLevels, kills, seenTypes, nextId, cause, won, attackAnim;
+  let state = 'intro';
+
+  const grid = v => Array.from({ length: ROWS }, () => new Array(COLS).fill(v));
+  const inB = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
+  const walkable = (x, y) => inB(x, y) && tiles[y][x] !== WALL;
+  const canStep = (x, y, dx, dy) => walkable(x + dx, y + dy) && (dx === 0 || dy === 0 || (walkable(x + dx, y) && walkable(x, y + dy)));
+  const enemyAt = (x, y) => enemies.find(e => e.hp > 0 && e.x === x && e.y === y);
+  const itemAt = (x, y) => items.find(i => i.x === x && i.y === y);
+  const occupied = (x, y) => (p.x === x && p.y === y) || !!enemyAt(x, y);
+  const visionRadius = () => 6 + 2 * (up.chemo || 0);
+  const xpNeed = () => 8 + p.level * 7;
+
+  // ================= Mensagens e efeitos =================
+  function log(text, color = '#efe9f7') { msgs.push({ text, color }); if (msgs.length > 60) msgs.shift(); }
+  function floatText(x, y, text, color) { floats.push({ x: x * TS + TS / 2, y: y * TS, text, color, t: 0 }); }
+  function burst(x, y, color, n = 8) {
+    for (let i = 0; i < n; i++) parts.push({ x: x * TS + TS / 2, y: y * TS + TS / 2, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, color, t: 0 });
+  }
+
+  // ================= Geração do mapa =================
+  function carveRoom(r) { for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) tiles[y][x] = FLOOR; }
+  function hline(x0, x1, y) { for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) tiles[y][x] = FLOOR; }
+  function vline(y0, y1, x) { for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) tiles[y][x] = FLOOR; }
+  function corridor(a, b) {
+    if (Math.random() < 0.5) { hline(a.cx, b.cx, a.cy); vline(a.cy, b.cy, b.cx); }
+    else { vline(a.cy, b.cy, a.cx); hline(a.cx, b.cx, b.cy); }
+  }
+
+  function bfs(sx, sy) {
+    const d = grid(Infinity); d[sy][sx] = 0;
+    const q = [[sx, sy]];
+    for (let i = 0; i < q.length; i++) {
+      const [x, y] = q[i];
+      for (const [dx, dy] of DIRS8) {
+        if (!canStep(x, y, dx, dy)) continue;
+        const nx = x + dx, ny = y + dy;
+        if (d[ny][nx] > d[y][x] + 1) { d[ny][nx] = d[y][x] + 1; q.push([nx, ny]); }
+      }
+    }
+    return d;
+  }
+
+  function randomFloorTile(filter) {
+    for (let a = 0; a < 2000; a++) {
+      const x = rand(COLS), y = rand(ROWS);
+      if (tiles[y][x] === FLOOR && !occupied(x, y) && !itemAt(x, y) && (!filter || filter(x, y))) return { x, y };
+    }
+    return null;
+  }
+
+  function makeEnemy(type, x, y) {
+    const d = ENEMIES[type];
+    const hp = d.boss ? d.hp : Math.round(d.hp * (1 + 0.2 * floorIdx)); // patógenos mais virulentos nos tecidos profundos
+    return { id: nextId++, type, x, y, rx: x, ry: y, hp, maxHp: hp, dmg: d.dmg + (!d.boss && floorIdx >= 3 ? 1 : 0), energy: Math.random(), aware: !!d.boss, lost: 0, stun: 0,
+             timer: rand(d.replicate || d.bud || d.summon || 1), flash: 0, wob: Math.random() * 6 };
+  }
+
+  function genFloor(idx) {
+    const F = FLOORS[idx], boss = idx === FLOORS.length - 1;
+    tiles = grid(WALL); rooms = [];
+    if (boss) { const r = { x: COLS - 15, y: 7, w: 13, h: 11 }; r.cx = r.x + 6; r.cy = r.y + 5; rooms.push(r); carveRoom(r); }
+    for (let a = 0; a < 500 && rooms.length < 10; a++) {
+      const w = 5 + rand(7), h = 4 + rand(4), x = 1 + rand(COLS - w - 2), y = 1 + rand(ROWS - h - 2);
+      if (rooms.some(r => x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y)) continue;
+      const r = { x, y, w, h, cx: x + (w >> 1), cy: y + (h >> 1) };
+      rooms.push(r); carveRoom(r);
+    }
+    rooms.sort((a, b) => a.cx - b.cx);
+    for (let i = 1; i < rooms.length; i++) corridor(rooms[i - 1], rooms[i]);
+    for (let k = 0; k < 3; k++) corridor(pick(rooms), pick(rooms));
+
+    const start = rooms[0];
+    p.x = p.rx = start.cx; p.y = p.ry = start.cy;
+    const d = bfs(start.cx, start.cy);
+    let far = rooms[rooms.length - 1];
+    for (const r of rooms) if (d[r.cy][r.cx] !== Infinity && d[r.cy][r.cx] > d[far.cy][far.cx]) far = r;
+    exitPos = boss ? null : { x: far.cx, y: far.cy };
+    if (exitPos) tiles[exitPos.y][exitPos.x] = EXIT;
+
+    explored = grid(false); visible = grid(false);
+    decor = Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => Math.random()));
+    enemies = []; items = [];
+    const inStart = (x, y) => x >= start.x - 1 && x <= start.x + start.w && y >= start.y - 1 && y <= start.y + start.h;
+    for (const [type, n] of Object.entries(F.enemies)) {
+      for (let i = 0; i < n; i++) {
+        if (ENEMIES[type].boss) { enemies.push(makeEnemy(type, far.cx, far.cy)); continue; }
+        const pos = randomFloorTile((x, y) => !inStart(x, y) && Math.max(Math.abs(x - p.x), Math.abs(y - p.y)) >= 7);
+        if (pos) enemies.push(makeEnemy(type, pos.x, pos.y));
+      }
+    }
+    const pool = Object.entries(ITEM_WEIGHTS).filter(([k]) => k !== 'interferon' || idx >= 1);
+    const total = pool.reduce((s, [, w]) => s + w, 0);
+    for (let i = 0; i < F.items; i++) {
+      let r = Math.random() * total, id = pool[0][0];
+      for (const [k, w] of pool) { r -= w; if (r <= 0) { id = k; break; } }
+      const pos = randomFloorTile(); if (pos) items.push({ ...pos, id });
+    }
+    ifnFloor = false;
+    computeFOV(); computeDist(); noticeNew();
+  }
+
+  // ================= Visão e caminhos =================
+  function los(x0, y0, x1, y1) {
+    let dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
+    let x = x0, y = y0;
+    while (!(x === x1 && y === y1)) {
+      const e2 = 2 * err;
+      if (e2 >= dy) { err += dy; x += sx; }
+      if (e2 <= dx) { err += dx; y += sy; }
+      if (x === x1 && y === y1) break;
+      if (!walkable(x, y)) return false;
+    }
+    return true;
+  }
+
+  function computeFOV() {
+    visible = grid(false);
+    const R = visionRadius();
+    for (let y = Math.max(0, p.y - R); y <= Math.min(ROWS - 1, p.y + R); y++)
+      for (let x = Math.max(0, p.x - R); x <= Math.min(COLS - 1, p.x + R); x++) {
+        const dx = x - p.x, dy = y - p.y;
+        if (dx * dx + dy * dy <= R * R + R && los(p.x, p.y, x, y)) { visible[y][x] = true; explored[y][x] = true; }
+      }
+  }
+  function computeDist() { distMap = bfs(p.x, p.y); }
+
+  function noticeNew() {
+    for (const e of enemies) if (e.hp > 0 && visible[e.y][e.x] && !seenTypes.has(e.type)) {
+      seenTypes.add(e.type); log('Novo patógeno: ' + ENEMIES[e.type].fact, '#ffe082');
+    }
+  }
+
+  // ================= Turnos =================
+  function playerAct(dx, dy) {
+    if (state !== 'play') return;
+    if (dx || dy) {
+      const nx = p.x + dx, ny = p.y + dy;
+      const e = enemyAt(nx, ny);
+      if (e) attack(e, dx, dy);
+      else if (canStep(p.x, p.y, dx, dy)) {
+        p.x = nx; p.y = ny;
+        const it = itemAt(nx, ny);
+        if (it) pickup(it);
+        if (tiles[ny][nx] === EXIT) { descend(); return; }
+      } else return; // parede: não gasta turno
+    }
+    endTurn();
+  }
+
+  function pickup(it) {
+    const def = ITEMS.find(i => i.id === it.id);
+    if ((inv[it.id] || 0) >= 3) { log(`Você já carrega 3 de ${def.name}.`, '#9e9e9e'); return; }
+    inv[it.id] = (inv[it.id] || 0) + 1;
+    items = items.filter(i => i !== it);
+    log(`Você absorveu ${def.name} (${def.desc.toLowerCase()}).`, def.color);
+  }
+
+  function attack(e, dx, dy) {
+    attackAnim = { dx, dy, t: 0 };
+    const tx = e.x + dx, ty = e.y + dy;
+    hit(e);
+    if (up.pseudo) { const e2 = enemyAt(tx, ty); if (e2) hit(e2); }
+  }
+
+  function hit(e) {
+    const d = ENEMIES[e.type];
+    let dmg = p.atk + (d.bact ? 2 * (up.lysozyme || 0) : 0);
+    const crit = Math.random() < 0.12 + 0.12 * (up.opson || 0);
+    if (crit) dmg *= 2;
+    if (antibodyTurns > 0) dmg *= 2;
+    dmg = Math.max(1, dmg - (d.armor || 0));
+    e.hp -= dmg; e.flash = 0.25; e.aware = true;
+    floatText(e.x, e.y, (crit ? 'Fagocitose completa! −' : '−') + dmg, crit ? '#ffe082' : '#ffffff');
+    if (e.hp <= 0) kill(e, true);
+    else if (up.nets) e.stun = Math.max(e.stun, 1);
+  }
+
+  function kill(e, byPlayer) {
+    const d = ENEMIES[e.type];
+    e.hp = 0;
+    burst(e.x, e.y, '#ffffff', 10);
+    kills[e.type] = (kills[e.type] || 0) + 1;
+    p.xp += d.xp;
+    p.atp = Math.min(100, p.atp + d.atp);
+    const heal = 1 + 2 * (up.acid || 0);
+    p.hp = Math.min(p.maxHp, p.hp + heal);
+    log(`${byPlayer ? 'Você fagocitou' : 'Eliminado:'} ${d.name}! +${d.atp} ATP, +${heal} vida.`, '#a5d6a7');
+    while (p.xp >= xpNeed()) { p.xp -= xpNeed(); p.level++; p.maxHp += 2; p.hp = Math.min(p.maxHp, p.hp + 2); pendingLevels++; }
+    if (d.boss) won = true;
+  }
+
+  function damagePlayer(n, msg, src) {
+    p.hp -= n; p.flash = 0.3;
+    floatText(p.x, p.y, '−' + n, '#ff8a80');
+    log(msg, '#ff8a80');
+    if (p.hp <= 0) { p.hp = 0; cause = src || msg; }
+  }
+
+  function spawnNear(e, type, msg) {
+    const opts = DIRS8.map(([dx, dy]) => [e.x + dx, e.y + dy]).filter(([x, y]) => walkable(x, y) && !occupied(x, y) && tiles[y][x] !== EXIT);
+    if (!opts.length) return;
+    const [x, y] = pick(opts);
+    const n = makeEnemy(type, x, y); n.aware = e.aware; n.rx = e.x; n.ry = e.y;
+    enemies.push(n);
+    if (visible[e.y][e.x]) log(msg, '#ffcc80');
+  }
+
+  const countType = t => enemies.filter(e => e.hp > 0 && e.type === t).length;
+
+  function enemyTurn(e) {
+    const d = ENEMIES[e.type];
+    if (e.hp <= 0 || p.hp <= 0) return;
+    if (d.replicate) {
+      if (++e.timer >= d.replicate) {
+        e.timer = 0;
+        const blocked = ifnFloor || (up.ifn && cheb(e, p) <= 5);
+        if (!blocked && countType('virus') < 30) spawnNear(e, 'virus', 'Um vírus se replicou!');
+      }
+    }
+    if (d.bud && ++e.timer >= d.bud) { e.timer = 0; if (countType(d.budType) < 8) spawnNear(e, d.budType, 'A Candida brotou uma levedura!'); }
+    if (d.summon && ++e.timer >= d.summon) { e.timer = 0; if (countType(d.summonType) < 7) spawnNear(e, d.summonType, 'O MRSA liberou um estafilococo!'); }
+    if (e.stun > 0) { e.stun--; return; }
+
+    if (visible[e.y][e.x] && cheb(e, p) <= 9) { e.aware = true; e.lost = 0; }
+    else if (e.aware && !d.boss && ++e.lost > 12) e.aware = false;
+
+    if (d.stationary) { if (cheb(e, p) === 1) enemyAttack(e, d); return; }
+    e.energy += d.speed;
+    while (e.energy >= 1 && e.hp > 0 && p.hp > 0) { e.energy -= 1; enemyAction(e, d); }
+  }
+
+  function enemyAttack(e, d) {
+    damagePlayer(e.dmg, `${d.name} te atacou (−${e.dmg}).`, `Vencido por ${d.name}`);
+    e.lunge = { dx: p.x - e.x, dy: p.y - e.y, t: 0 };
+    if (up.defensin && p.hp > 0) {
+      e.hp -= up.defensin; e.flash = 0.2; floatText(e.x, e.y, '−' + up.defensin, '#80deea');
+      if (e.hp <= 0) kill(e, false);
+    }
+  }
+
+  function enemyAction(e, d) {
+    const c = cheb(e, p);
+    if (c === 1 && canStep(e.x, e.y, p.x - e.x, p.y - e.y)) { enemyAttack(e, d); return; }
+    const dx = p.x - e.x, dy = p.y - e.y;
+    if (d.ranged && e.aware && c <= d.ranged && c > 1 && (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) && los(e.x, e.y, p.x, p.y)) {
+      shots.push({ x0: e.x, y0: e.y, x1: p.x, y1: p.y, t: 0, color: '#ffb74d' });
+      damagePlayer(d.rangedDmg, `${d.name} lançou uma toxina (−${d.rangedDmg})!`, `Toxina de ${d.name}`);
+      return;
+    }
+    const moves = DIRS8.filter(([mx, my]) => canStep(e.x, e.y, mx, my) && !occupied(e.x + mx, e.y + my));
+    if (!moves.length) return;
+    let choice = null;
+    if (e.aware) {
+      let bestD = distMap[e.y][e.x];
+      for (const [mx, my] of moves.sort(() => Math.random() - 0.5)) {
+        const nd = distMap[e.y + my][e.x + mx];
+        if (nd < bestD) { bestD = nd; choice = [mx, my]; }
+      }
+    } else if (Math.random() < 0.4) choice = pick(moves);
+    if (choice && tiles[e.y + choice[1]][e.x + choice[0]] !== EXIT) { e.x += choice[0]; e.y += choice[1]; }
+  }
+
+  function endTurn() {
+    turn++;
+    atpAcc += up.metabolism ? 0.5 : 1;
+    if (atpAcc >= 2) { atpAcc -= 2; p.atp = Math.max(0, p.atp - 1); }
+    if (p.atp === 0 && turn % 3 === 0) damagePlayer(1, 'Sem ATP: a célula está se esgotando!', 'Esgotamento de ATP');
+    if (antibodyTurns > 0) antibodyTurns--;
+    if (revealTurns > 0) revealTurns--;
+    computeFOV(); computeDist();
+    for (const e of enemies.slice()) enemyTurn(e);
+    enemies = enemies.filter(e => e.hp > 0);
+    computeFOV(); noticeNew();
+    if (p.hp <= 0) { finish(false); return; }
+    if (won) { finish(true); return; }
+    if (pendingLevels > 0) openLevelUp();
+  }
+
+  function descend() {
+    floorIdx++;
+    p.hp = Math.min(p.maxHp, p.hp + 3);
+    genFloor(floorIdx);
+    log(`Você seguiu pelo vaso linfático até: ${FLOORS[floorIdx].name} (andar ${floorIdx + 1}/${FLOORS.length}).`, '#81d4fa');
+    if (floorIdx === FLOORS.length - 1) log('O MRSA está entrincheirado neste linfonodo. Encontre-o e fagocite-o!', '#ff8a80');
+    turn++;
+    if (pendingLevels > 0) openLevelUp();
+  }
+
+  // ================= Itens =================
+  function useItem(i) {
+    if (state !== 'play') return;
+    const it = ITEMS[i];
+    if (!inv[it.id]) { log(`Você não tem ${it.name}.`, '#9e9e9e'); return; }
+    inv[it.id]--;
+    switch (it.id) {
+      case 'glicose': p.atp = Math.min(100, p.atp + 40); log('Glicose metabolizada: +40 ATP.', it.color); break;
+      case 'anticorpo': antibodyTurns += 10; log('Patógenos opsonizados por anticorpos: dano ×2 por 10 turnos!', it.color); break;
+      case 'complemento': {
+        const targets = enemies.filter(e => e.hp > 0 && visible[e.y][e.x]);
+        log(`O complemento formou poros em ${targets.length} patógeno(s)!`, it.color);
+        for (const e of targets) {
+          shots.push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: 0, color: it.color });
+          e.hp -= 4; e.flash = 0.3; e.aware = true; floatText(e.x, e.y, '−4', it.color);
+          if (e.hp <= 0) kill(e, true);
+        }
+        break;
+      }
+      case 'interferon': {
+        ifnFloor = true;
+        let n = 0; for (const e of enemies) if (e.type === 'virus' && e.hp > 0) { e.stun = Math.max(e.stun, 5); n++; }
+        log(`Estado antiviral: a replicação viral parou neste andar (${n} vírus paralisados).`, it.color);
+        break;
+      }
+      case 'quimiocina': explored = grid(true); revealTurns = 30; log('Gradiente de quimiocinas: mapa e patógenos revelados.', it.color); break;
+    }
+    endTurn();
+  }
+
+  // ================= Melhorias =================
+  const luEl = document.getElementById('levelup'), luChoices = document.getElementById('luChoices');
+  let luOptions = [];
+  function openLevelUp() {
+    const avail = UPGRADES.filter(u => (up[u.id] || 0) < u.max).sort(() => Math.random() - 0.5).slice(0, 3);
+    if (!avail.length) { pendingLevels = 0; return; }
+    luOptions = avail;
+    state = 'levelup';
+    document.getElementById('luTitle').textContent = `Ativação celular! Nível ${p.level - pendingLevels + 1}`;
+    luChoices.innerHTML = avail.map((u, i) => `<button class="choice" data-i="${i}"><b>${i + 1}. ${u.name}${up[u.id] ? ` (${up[u.id] + 1}/${u.max})` : ''}</b><span>${u.desc}</span><em>${u.bio}</em></button>`).join('');
+    for (const b of luChoices.querySelectorAll('button')) b.addEventListener('click', () => chooseUpgrade(+b.dataset.i));
+    luEl.hidden = false;
+  }
+  function chooseUpgrade(i) {
+    const u = luOptions[i]; if (!u) return;
+    up[u.id] = (up[u.id] || 0) + 1;
+    if (u.id === 'burst') p.atk++;
+    if (u.id === 'membrane') { p.maxHp += 6; p.hp = Math.min(p.maxHp, p.hp + 6); }
+    if (u.id === 'chemo') computeFOV();
+    log(`Melhoria: ${u.name}.`, '#ffe082');
+    pendingLevels--;
+    luEl.hidden = true; state = 'play';
+    updateUpgradesPanel();
+    if (pendingLevels > 0) openLevelUp();
+    canvas.focus();
+  }
+  function updateUpgradesPanel() {
+    const list = UPGRADES.filter(u => up[u.id]).map(u => `${u.name}${u.max > 1 ? ` ×${up[u.id]}` : ''}`);
+    document.getElementById('upgrades').textContent = list.length ? list.join(' · ') : 'nenhuma ainda';
+  }
+
+  // ================= Início e fim =================
+  const introEl = document.getElementById('intro'), endEl = document.getElementById('end');
+  function start() {
+    p = { x: 0, y: 0, rx: 0, ry: 0, hp: 20, maxHp: 20, atp: 100, xp: 0, level: 1, atk: 2, flash: 0 };
+    up = {}; inv = {}; floorIdx = 0; turn = 0; msgs = []; floats = []; shots = []; parts = [];
+    antibodyTurns = 0; revealTurns = 0; ifnFloor = false; atpAcc = 0; pendingLevels = 0;
+    kills = {}; seenTypes = new Set(); nextId = 1; cause = ''; won = false; attackAnim = null;
+    genFloor(0);
+    log('Sinais de inflamação detectados. Você saiu do vaso e chegou à ferida na pele.', '#81d4fa');
+    log('Esbarre nos patógenos para fagocitá-los. Encontre o vaso linfático para avançar.', '#a99bc0');
+    updateUpgradesPanel();
+    state = 'play'; introEl.hidden = true; endEl.hidden = true; luEl.hidden = true;
+    canvas.focus();
+  }
+
+  function finish(victory) {
+    state = victory ? 'won' : 'dead';
+    const totalKills = Object.values(kills).reduce((s, n) => s + n, 0);
+    const killList = Object.entries(kills).map(([t, n]) => `${ENEMIES[t].name} ×${n}`).join(', ') || 'nenhum';
+    const ups = UPGRADES.filter(u => up[u.id]).map(u => u.name).join(', ') || 'nenhuma';
+    document.getElementById('endCard').innerHTML = victory ? `
+      <h2>Infecção contida!</h2>
+      <p>O MRSA foi fagocitado e o linfonodo está seguro. Agora você apresenta os antígenos aos linfócitos T, e a imunidade adaptativa assume daqui.</p>` : `
+      <h2>Apoptose</h2>
+      <p>A célula foi vencida pela infecção. <span class="muted">(${cause})</span></p>
+      <p class="muted">Cada partida gera mapas novos. Os macrófagos derivam de monócitos, e sempre chega mais um do sangue.</p>`;
+    document.getElementById('endCard').innerHTML += `
+      <div class="stats">
+        <span>Andar alcançado <b>${floorIdx + 1}/${FLOORS.length}</b></span>
+        <span>Nível <b>${p.level}</b></span>
+        <span>Turnos <b>${turn}</b></span>
+        <span>Patógenos fagocitados <b>${totalKills}</b></span>
+      </div>
+      <p class="muted"><b>Fagocitados:</b> ${killList}</p>
+      <p class="muted"><b>Melhorias:</b> ${ups}</p>
+      <button class="big" id="againBtn">Nova partida (Enter)</button>`;
+    document.getElementById('againBtn').addEventListener('click', start);
+    endEl.hidden = false;
+  }
+
+  // ================= Entrada =================
+  const KEYMAP = {
+    ArrowUp: [0, -1], KeyW: [0, -1], Numpad8: [0, -1],
+    ArrowDown: [0, 1], KeyS: [0, 1], Numpad2: [0, 1], KeyX: [0, 1],
+    ArrowLeft: [-1, 0], KeyA: [-1, 0], Numpad4: [-1, 0],
+    ArrowRight: [1, 0], KeyD: [1, 0], Numpad6: [1, 0],
+    KeyQ: [-1, -1], Numpad7: [-1, -1], KeyE: [1, -1], Numpad9: [1, -1],
+    KeyZ: [-1, 1], Numpad1: [-1, 1], KeyC: [1, 1], Numpad3: [1, 1],
+    Space: [0, 0], Period: [0, 0], Numpad5: [0, 0],
+  };
+  addEventListener('keydown', e => {
+    const k = e.code;
+    if (KEYMAP[k] || /^Digit[1-5]$/.test(k) || k === 'Enter') e.preventDefault();
+    if (state === 'intro') { if (k === 'Enter' || k === 'Space') start(); return; }
+    if (state === 'dead' || state === 'won') { if (k === 'Enter' || k === 'KeyR') start(); return; }
+    if (state === 'levelup') { const m = k.match(/^Digit([1-3])$/); if (m) chooseUpgrade(+m[1] - 1); return; }
+    if (KEYMAP[k]) { playerAct(...KEYMAP[k]); return; }
+    const m = k.match(/^Digit([1-5])$/); if (m) useItem(+m[1] - 1);
+  });
+  document.getElementById('startBtn').addEventListener('click', start);
+  for (const b of document.querySelectorAll('.dpad button')) {
+    b.addEventListener('click', () => { if (state === 'intro') { start(); return; } const [dx, dy] = b.dataset.d.split(',').map(Number); playerAct(dx, dy); });
+  }
+
+  // ================= Desenho =================
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const SLOT = { x0: 228, y: 506, w: 56, h: 56, gap: 6 };
+
+  canvas.addEventListener('pointerdown', ev => {
+    canvas.focus();
+    if (state !== 'play') return;
+    const r = canvas.getBoundingClientRect();
+    const x = (ev.clientX - r.left) * W / r.width, y = (ev.clientY - r.top) * H / r.height;
+    for (let i = 0; i < ITEMS.length; i++) {
+      const sx = SLOT.x0 + i * (SLOT.w + SLOT.gap);
+      if (x >= sx && x <= sx + SLOT.w && y >= SLOT.y && y <= SLOT.y + SLOT.h) { useItem(i); return; }
+    }
+  });
+
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
+  function capsule(cx, cy, len, rad, ang) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+    rr(-len / 2, -rad, len, rad * 2, rad); ctx.restore();
+  }
+
+  function drawItemIcon(id, cx, cy, s, now) {
+    const def = ITEMS.find(i => i.id === id);
+    ctx.save(); ctx.strokeStyle = def.color; ctx.fillStyle = def.color; ctx.lineWidth = Math.max(1.5, s * 0.12); ctx.lineCap = 'round';
+    if (id === 'glicose') {
+      ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * s * 0.38, cy + Math.sin(a) * s * 0.38); } ctx.closePath(); ctx.stroke();
+      circle(cx, cy, s * 0.08); ctx.fill();
+    } else if (id === 'anticorpo') {
+      ctx.beginPath(); ctx.moveTo(cx, cy + s * 0.4); ctx.lineTo(cx, cy); ctx.lineTo(cx - s * 0.3, cy - s * 0.35); ctx.moveTo(cx, cy); ctx.lineTo(cx + s * 0.3, cy - s * 0.35); ctx.stroke();
+    } else if (id === 'complemento') {
+      circle(cx, cy, s * 0.34); ctx.stroke(); circle(cx, cy, s * 0.14); ctx.stroke();
+    } else if (id === 'interferon') {
+      ctx.beginPath(); for (let i = 0; i < 12; i++) { const a = -Math.PI / 2 + i * Math.PI / 6, r = i % 2 ? s * 0.18 : s * 0.4; ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+    } else if (id === 'quimiocina') {
+      for (let i = 1; i <= 3; i++) { ctx.globalAlpha = 1 - i * 0.22; ctx.beginPath(); ctx.arc(cx - s * 0.3, cy, s * 0.17 * i, -0.9, 0.9); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
+
+  function drawEnemy(e, now) {
+    const d = ENEMIES[e.type];
+    let cx = e.rx * TS + TS / 2, cy = e.ry * TS + TS / 2;
+    if (e.lunge && e.lunge.t < 0.15) { const k = Math.sin(e.lunge.t / 0.15 * Math.PI) * 5; cx += Math.sign(e.lunge.dx) * k; cy += Math.sign(e.lunge.dy) * k; }
+    const wob = Math.sin(now / 300 + e.wob);
+    ctx.save();
+    switch (e.type) {
+      case 'coco':
+        ctx.fillStyle = '#ffd54f';
+        for (const [ox, oy] of [[-3, -3], [3, -3], [0, 2], [-5, 3], [5, 3]]) { circle(cx + ox, cy + oy + wob * 0.5, 3.6); ctx.fill(); }
+        break;
+      case 'bacilo': {
+        const ang = Math.sin(now / 400 + e.wob) * 0.5;
+        ctx.strokeStyle = '#a5d6a7'; ctx.lineWidth = 1;
+        for (let k = -1; k <= 1; k += 2) { ctx.beginPath(); for (let i = 0; i <= 8; i++) ctx.lineTo(cx - Math.cos(ang) * (7 + i) , cy - Math.sin(ang) * (7 + i) + Math.sin(now / 60 + i) * 1.5 + k * 2); ctx.stroke(); }
+        ctx.fillStyle = '#81c784'; capsule(cx, cy, 15, 4, ang); ctx.fill();
+        break;
+      }
+      case 'virus':
+        ctx.strokeStyle = '#ef9a9a'; ctx.lineWidth = 1.4;
+        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + now / 900; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 4, cy + Math.sin(a) * 4); ctx.lineTo(cx + Math.cos(a) * 7.5, cy + Math.sin(a) * 7.5); ctx.stroke(); }
+        ctx.fillStyle = '#ef5350'; circle(cx, cy, 4.5); ctx.fill();
+        break;
+      case 'clostridio':
+        ctx.fillStyle = '#ffb74d'; capsule(cx, cy, 16, 4, 0.3 + wob * 0.1); ctx.fill();
+        ctx.fillStyle = '#fff3e0'; ctx.beginPath(); ctx.ellipse(cx + 5 * Math.cos(0.3), cy + 5 * Math.sin(0.3), 3, 2.4, 0.3, 0, Math.PI * 2); ctx.fill();
+        break;
+      case 'fungo':
+        ctx.fillStyle = '#ba68c8'; circle(cx - 1, cy + 1, 7 + wob * 0.4); ctx.fill();
+        ctx.fillStyle = '#ce93d8'; circle(cx + 6, cy - 5, 3.2); ctx.fill();
+        ctx.fillStyle = '#7b1fa2'; circle(cx - 2, cy + 1, 2.4); ctx.fill();
+        break;
+      case 'levedura':
+        ctx.fillStyle = '#ce93d8'; ctx.beginPath(); ctx.ellipse(cx, cy, 5, 4, wob * 0.3, 0, Math.PI * 2); ctx.fill();
+        break;
+      case 'myco':
+        ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 2;
+        ctx.fillStyle = '#90a4ae';
+        capsule(cx - 2, cy - 3, 15, 2.6, 0.5 + wob * 0.05); ctx.fill(); ctx.stroke();
+        capsule(cx + 2, cy + 3, 15, 2.6, 0.2 + wob * 0.05); ctx.fill(); ctx.stroke();
+        break;
+      case 'mrsa': {
+        const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 20);
+        g.addColorStop(0, 'rgba(255,82,82,.45)'); g.addColorStop(1, 'rgba(255,82,82,0)');
+        ctx.fillStyle = g; circle(cx, cy, 20); ctx.fill();
+        ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d32f2f'; ctx.lineWidth = 1.5;
+        for (const [ox, oy] of [[0, 0], [-6, -5], [6, -5], [-8, 3], [8, 3], [-3, 8], [4, 8], [0, -10]]) { circle(cx + ox, cy + oy + wob, 4.8); ctx.fill(); ctx.stroke(); }
+        break;
+      }
+    }
+    if (e.flash > 0) { ctx.globalAlpha = Math.min(1, e.flash * 3); ctx.fillStyle = '#fff'; circle(cx, cy, d.boss ? 14 : 8); ctx.fill(); ctx.globalAlpha = 1; }
+    if (e.stun > 0) { ctx.strokeStyle = '#80deea'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]); circle(cx, cy, 9.5); ctx.stroke(); ctx.setLineDash([]); }
+    if (e.hp < e.maxHp) {
+      const bw = d.boss ? 30 : 16, by = cy - (d.boss ? 22 : 12);
+      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(cx - bw / 2, by, bw, 3);
+      ctx.fillStyle = d.boss ? '#ff5252' : '#ffab91'; ctx.fillRect(cx - bw / 2, by, bw * e.hp / e.maxHp, 3);
+    }
+    ctx.restore();
+  }
+
+  function drawPlayer(now) {
+    let cx = p.rx * TS + TS / 2, cy = p.ry * TS + TS / 2;
+    const R = TS * 0.46;
+    let ax = 0, ay = 0;
+    if (attackAnim && attackAnim.t < 0.18) { const k = Math.sin(attackAnim.t / 0.18 * Math.PI); ax = attackAnim.dx * k; ay = attackAnim.dy * k; }
+    ctx.save();
+    const glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, R * 2.2);
+    glow.addColorStop(0, antibodyTurns > 0 ? 'rgba(128,203,196,.35)' : 'rgba(129,212,250,.25)'); glow.addColorStop(1, 'rgba(129,212,250,0)');
+    ctx.fillStyle = glow; circle(cx, cy, R * 2.2); ctx.fill();
+    ctx.beginPath();
+    const n = 14;
+    for (let i = 0; i <= n; i++) {
+      const a = i / n * Math.PI * 2;
+      let r = R + Math.sin(now / 250 + i * 1.7) * 1.4;
+      const dot = Math.cos(a) * ax + Math.sin(a) * ay; // pseudópode na direção do ataque
+      if (dot > 0.3) r += dot * 9;
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = p.flash > 0 ? '#ffcdd2' : '#b3e5fc'; ctx.fill();
+    ctx.strokeStyle = '#e1f5fe'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.fillStyle = '#4fc3f7'; ctx.beginPath(); ctx.ellipse(cx - 1, cy + 1, 4.2, 3, 0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; for (const [ox, oy] of [[4, -3], [-4, -4], [3, 4]]) { circle(cx + ox, cy + oy, 1.1); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawBar(x, y, w, h, frac, color, text) {
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(x, y, w, h, 5); ctx.fill();
+    if (frac > 0) { ctx.fillStyle = color; rr(x, y, Math.max(h, w * Math.min(1, frac)), h, 5); ctx.fill(); }
+    ctx.fillStyle = '#100a18'; ctx.font = '700 11px system-ui, sans-serif'; ctx.fillText(text, x + 7, y + h - 4);
+  }
+
+  function fitText(text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    let t = text;
+    while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+    return t + '…';
+  }
+
+  function render(now) {
+    ctx.fillStyle = '#0b0710'; ctx.fillRect(0, 0, W, H);
+    if (state === 'intro' || !tiles) { requestAnimationFrame(frame); return; }
+    const F = FLOORS[floorIdx];
+
+    // mapa
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      if (!explored[y][x]) continue;
+      const px = x * TS, py = y * TS, v = visible[y][x];
+      const t = tiles[y][x];
+      if (t === WALL) {
+        const nearFloor = DIRS8.some(([dx, dy]) => walkable(x + dx, y + dy));
+        if (!nearFloor) continue;
+        ctx.fillStyle = F.wall; ctx.fillRect(px, py, TS, TS);
+        ctx.fillStyle = F.wallDot; circle(px + 6 + decor[y][x] * 8, py + 7 + (1 - decor[y][x]) * 6, 3); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(px, py + TS - 3, TS, 3);
+      } else {
+        ctx.fillStyle = (x + y) % 2 ? F.floor : F.floor2; ctx.fillRect(px, py, TS, TS);
+        if (decor[y][x] > 0.82) {
+          ctx.fillStyle = F.decor;
+          if (floorIdx === 2) { ctx.beginPath(); ctx.ellipse(px + TS / 2, py + TS / 2, 6, 4, decor[y][x] * 6, 0, Math.PI * 2); ctx.fill(); }
+          else { circle(px + 5 + decor[y][x] * 10, py + 5 + (1 - decor[y][x]) * 10, 2.5); ctx.fill(); }
+        }
+        if (t === EXIT) {
+          const g = ctx.createRadialGradient(px + TS / 2, py + TS / 2, 1, px + TS / 2, py + TS / 2, TS * 0.6);
+          g.addColorStop(0, '#e0f7fa'); g.addColorStop(0.5, '#26c6da'); g.addColorStop(1, 'rgba(38,198,218,0)');
+          ctx.fillStyle = g; circle(px + TS / 2, py + TS / 2, TS * 0.6); ctx.fill();
+          ctx.strokeStyle = '#006064'; ctx.lineWidth = 2; ctx.beginPath();
+          for (let i = 0; i < 20; i++) { const a = i * 0.6 + now / 400, r = i * 0.4; ctx.lineTo(px + TS / 2 + Math.cos(a) * r, py + TS / 2 + Math.sin(a) * r); }
+          ctx.stroke();
+        }
+      }
+      if (!v) { ctx.fillStyle = 'rgba(8,5,14,.62)'; ctx.fillRect(px, py, TS, TS); }
+    }
+
+    // itens
+    for (const it of items) {
+      if (!explored[it.y][it.x]) continue;
+      ctx.globalAlpha = visible[it.y][it.x] ? 1 : 0.4;
+      drawItemIcon(it.id, it.x * TS + TS / 2, it.y * TS + TS / 2 + Math.sin(now / 300 + it.x) * 1.5, 16, now);
+      ctx.globalAlpha = 1;
+    }
+
+    // inimigos
+    for (const e of enemies) {
+      if (e.hp <= 0) continue;
+      const v = visible[e.y][e.x];
+      if (!v && revealTurns <= 0) continue;
+      ctx.globalAlpha = v ? 1 : 0.45; drawEnemy(e, now); ctx.globalAlpha = 1;
+    }
+    drawPlayer(now);
+
+    for (const s of shots) {
+      ctx.globalAlpha = Math.max(0, 1 - s.t / 0.3); ctx.strokeStyle = s.color; ctx.lineWidth = 2.5; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(s.x0 * TS + TS / 2, s.y0 * TS + TS / 2); ctx.lineTo(s.x1 * TS + TS / 2, s.y1 * TS + TS / 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    for (const q of parts) { ctx.globalAlpha = Math.max(0, 1 - q.t / 0.5); ctx.fillStyle = q.color; ctx.fillRect(q.x - 1.5, q.y - 1.5, 3, 3); }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center';
+    for (const f of floats) {
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 1); ctx.font = '800 12px system-ui, sans-serif';
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,6,16,.85)'; ctx.strokeText(f.text, f.x, f.y - f.t * 18);
+      ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y - f.t * 18);
+    }
+    ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+    // HUD
+    ctx.fillStyle = '#150e22'; ctx.fillRect(0, MAP_H, W, H - MAP_H);
+    ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(0, MAP_H, W, 1);
+    drawBar(12, 508, 204, 16, p.hp / p.maxHp, p.hp / p.maxHp < 0.3 ? '#ef5350' : '#81d4fa', `Membrana ${p.hp}/${p.maxHp}`);
+    drawBar(12, 530, 204, 16, p.atp / 100, p.atp < 20 ? '#ffb74d' : '#fff59d', `ATP ${p.atp}/100`);
+    drawBar(12, 552, 204, 16, p.xp / xpNeed(), '#ce93d8', `Nível ${p.level} · biomassa ${p.xp}/${xpNeed()}`);
+    ctx.fillStyle = '#efe9f7'; ctx.font = '700 12px system-ui, sans-serif';
+    ctx.fillText(`Andar ${floorIdx + 1}/${FLOORS.length} · ${F.name}`, 12, 590);
+    ctx.fillStyle = '#a99bc0'; ctx.font = '12px system-ui, sans-serif';
+    const effects = [`Turno ${turn}`, `Dano ${p.atk}`];
+    if (antibodyTurns > 0) effects.push(`Anticorpos ${antibodyTurns}`);
+    if (revealTurns > 0) effects.push(`Quimiocina ${revealTurns}`);
+    if (ifnFloor) effects.push('Antiviral');
+    ctx.fillText(fitText(effects.join(' · '), 520), 12, 608);
+
+    for (let i = 0; i < ITEMS.length; i++) {
+      const it = ITEMS[i], sx = SLOT.x0 + i * (SLOT.w + SLOT.gap), n = inv[it.id] || 0;
+      ctx.fillStyle = n ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.03)'; rr(sx, SLOT.y, SLOT.w, SLOT.h, 8); ctx.fill();
+      ctx.globalAlpha = n ? 1 : 0.3; drawItemIcon(it.id, sx + SLOT.w / 2, SLOT.y + 22, 22, now); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#a99bc0'; ctx.font = '700 10px system-ui, sans-serif'; ctx.fillText(String(i + 1), sx + 5, SLOT.y + 12);
+      if (n) { ctx.fillStyle = '#efe9f7'; ctx.font = '800 11px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('×' + n, sx + SLOT.w - 5, SLOT.y + 12); ctx.textAlign = 'left'; }
+      ctx.fillStyle = n ? '#efe9f7' : '#5c5070'; ctx.font = '600 9.5px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(it.name, sx + SLOT.w / 2, SLOT.y + SLOT.h - 6); ctx.textAlign = 'left';
+    }
+
+    const LX = 546, LW = 246;
+    ctx.fillStyle = 'rgba(255,255,255,.04)'; rr(LX - 6, 504, LW + 10, 110, 8); ctx.fill();
+    ctx.font = '11.5px system-ui, sans-serif';
+    const last = msgs.slice(-6);
+    last.forEach((m, i) => {
+      ctx.globalAlpha = 0.45 + 0.55 * (i + 1) / last.length;
+      ctx.fillStyle = m.color; ctx.fillText(fitText(m.text, LW), LX, 520 + i * 17.5);
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+
+  // ================= Loop =================
+  let lastT = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    if (p) {
+      const k = Math.min(1, dt * 18);
+      p.rx += (p.x - p.rx) * k; p.ry += (p.y - p.ry) * k; p.flash = Math.max(0, p.flash - dt);
+      for (const e of enemies) { e.rx += (e.x - e.rx) * k; e.ry += (e.y - e.ry) * k; e.flash = Math.max(0, e.flash - dt); if (e.lunge) e.lunge.t += dt; }
+      if (attackAnim) attackAnim.t += dt;
+      for (const f of floats) f.t += dt; floats = floats.filter(f => f.t < 1);
+      for (const s of shots) s.t += dt; shots = shots.filter(s => s.t < 0.3);
+      for (const q of parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; } parts = parts.filter(q => q.t < 0.5);
+    }
+    render(now);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
 
