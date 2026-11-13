@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PolGame — jogos de genética e imunologia</title>
+<meta name="description" content="Jogos educativos gratuitos de genética e imunologia que rodam no navegador: replicação do DNA, pareamento de bases e imunidade inata.">
+<style>
+  :root { --bg:#120a1f; --card:#1d1430; --card2:#251a3c; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(1200px 600px at 50% -200px, #2b1748 0%, var(--bg) 60%); color:var(--text); font:15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  main { max-width:1040px; margin:0 auto; padding:48px 20px 40px; }
+  header { text-align:center; margin-bottom:36px; }
+  .helix { display:block; margin:0 auto 10px; }
+  h1 { margin:0; font-size:clamp(30px, 5vw, 44px); letter-spacing:-.01em; }
+  h1 span { background:linear-gradient(90deg, var(--A), var(--C), var(--G), var(--T)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p { color:var(--muted); margin:8px auto 0; max-width:560px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:20px; }
+  .card { background:var(--card); border:1px solid #2f2347; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:transform .15s ease, border-color .15s ease; }
+  .card:hover { transform:translateY(-3px); border-color:#4a3870; }
+  .art { height:150px; display:block; width:100%; background:var(--card2); }
+  .body { padding:16px 18px 18px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  .card h2 { margin:0; font-size:22px; }
+  .genre { color:var(--muted); font-size:13px; margin-top:-4px; }
+  .card p { margin:0; color:#d9d1e6; font-size:14px; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+  .tags span { background:#2c2240; color:#cbbfe0; border-radius:999px; padding:2px 9px; font-size:12px; }
+  .play { margin-top:auto; align-self:flex-start; display:inline-block; background:#ffca28; color:#1d1230; text-decoration:none; font-weight:700; border-radius:9px; padding:9px 18px; }
+  .play:hover { filter:brightness(1.08); }
+  .card:nth-child(2) .play { background:#42a5f5; }
+  .card:nth-child(3) .play { background:#81d4fa; color:#0d1b2a; }
+  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:40px; line-height:1.8; }
+  footer a { color:#cbbfe0; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="helix" width="180" height="40" viewBox="0 0 180 40" aria-hidden="true">
+      <g stroke-width="3" fill="none" stroke-linecap="round">
+        <path d="M0 20 C 22.5 -5, 22.5 45, 45 20 S 67.5 -5, 90 20 S 112.5 45, 135 20 S 157.5 -5, 180 20" stroke="#ef5350"/>
+        <path d="M0 20 C 22.5 45, 22.5 -5, 45 20 S 67.5 45, 90 20 S 112.5 -5, 135 20 S 157.5 45, 180 20" stroke="#42a5f5"/>
+      </g>
+      <g stroke-width="3" stroke-linecap="round">
+        <line x1="11" y1="10" x2="11" y2="30" stroke="#4caf50"/><line x1="34" y1="10" x2="34" y2="30" stroke="#ffca28"/>
+        <line x1="56" y1="10" x2="56" y2="30" stroke="#4caf50"/><line x1="79" y1="10" x2="79" y2="30" stroke="#ffca28"/>
+        <line x1="101" y1="10" x2="101" y2="30" stroke="#ffca28"/><line x1="124" y1="10" x2="124" y2="30" stroke="#4caf50"/>
+        <line x1="146" y1="10" x2="146" y2="30" stroke="#ffca28"/><line x1="169" y1="10" x2="169" y2="30" stroke="#4caf50"/>
+      </g>
+    </svg>
+    <h1>Pol<span>Game</span></h1>
+    <p>Jogos educativos de genética e imunologia. Rodam direto no navegador, no computador ou no celular, sem instalar nada.</p>
+  </header>
+
+  <section class="grid">
+    <article class="card">
+      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="320" height="150" fill="#2a1440"/>
+        <rect x="0" y="118" width="320" height="32" fill="#e9c46a"/>
+        <g fill="#8e5bd6"><circle cx="8" cy="122" r="4"/><circle cx="24" cy="122" r="4"/><circle cx="40" cy="122" r="4"/><circle cx="56" cy="122" r="4"/><circle cx="72" cy="122" r="4"/><circle cx="88" cy="122" r="4"/><circle cx="104" cy="122" r="4"/><circle cx="120" cy="122" r="4"/><circle cx="136" cy="122" r="4"/><circle cx="152" cy="122" r="4"/><circle cx="168" cy="122" r="4"/><circle cx="184" cy="122" r="4"/><circle cx="200" cy="122" r="4"/><circle cx="216" cy="122" r="4"/><circle cx="232" cy="122" r="4"/><circle cx="248" cy="122" r="4"/><circle cx="264" cy="122" r="4"/><circle cx="280" cy="122" r="4"/><circle cx="296" cy="122" r="4"/><circle cx="312" cy="122" r="4"/></g>
+        <rect x="200" y="78" width="80" height="12" rx="6" fill="#e9c46a"/>
+        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle" fill="#1d1230">
+          <circle cx="150" cy="58" r="11" fill="#4caf50"/><text x="150" y="63">A</text>
+          <circle cx="235" cy="50" r="11" fill="#ffca28"/><text x="235" y="55">G</text>
+          <circle cx="290" cy="40" r="11" fill="#42a5f5"/><text x="290" y="45">C</text>
+        </g>
+        <path d="M58 98 L 40 96 L 26 100 L 12 96" stroke="rgba(255,255,255,.4)" stroke-width="2" fill="none"/>
+        <circle cx="40" cy="96" r="5" fill="#ef5350"/><circle cx="26" cy="100" r="5" fill="#4caf50"/><circle cx="12" cy="96" r="5" fill="#ffca28"/>
+        <rect x="58" y="86" width="24" height="32" rx="8" fill="#26c6da"/>
+        <rect x="76" y="100" width="8" height="11" rx="3" fill="#00838f"/>
+        <rect x="71" y="93" width="7" height="7" fill="#fff"/><rect x="75" y="95" width="2" height="4" fill="#102027"/>
+        <g transform="translate(115 104)"><polygon points="0,-9 8,-4 8,4 0,9 -8,4 -8,-4" fill="#b0bec5" stroke="#eceff1"/><rect x="-2" y="8" width="4" height="6" fill="#607d8b"/><path d="M0 14 L-9 14 M0 14 L9 14" stroke="#cfd8dc" stroke-width="2"/></g>
+      </svg>
+      <div class="body">
+        <h2>Fita Molde</h2>
+        <div class="genre">Plataforma · replicação do DNA</div>
+        <p>Você é a DNA polimerase. Colete os nucleotídeos complementares para copiar a fita molde, corrija mutações com a revisão 3'→5' e descubra o efeito de cada erro na proteína.</p>
+        <div class="tags"><span>pareamento de bases</span><span>mutações</span><span>código genético</span></div>
+        <a class="play" href="fita-molde/">Jogar</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="320" height="150" fill="#140a24"/>
+        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle">
+          <g fill="#4caf50"><rect x="88" y="120" width="26" height="26" rx="5"/><rect x="114" y="120" width="26" height="26" rx="5"/><rect x="140" y="120" width="26" height="26" rx="5"/><rect x="140" y="94" width="26" height="26" rx="5"/></g>
+          <g fill="#ef5350"><rect x="166" y="120" width="26" height="26" rx="5"/><rect x="192" y="120" width="26" height="26" rx="5"/><rect x="166" y="94" width="26" height="26" rx="5"/><rect x="192" y="94" width="26" height="26" rx="5"/></g>
+          <g fill="#42a5f5"><rect x="218" y="120" width="26" height="26" rx="5"/><rect x="218" y="94" width="26" height="26" rx="5"/><rect x="218" y="68" width="26" height="26" rx="5"/><rect x="244" y="120" width="26" height="26" rx="5"/></g>
+          <g fill="#ffca28"><rect x="140" y="14" width="26" height="26" rx="5"/><rect x="166" y="14" width="26" height="26" rx="5"/><rect x="166" y="40" width="26" height="26" rx="5"/><rect x="192" y="40" width="26" height="26" rx="5"/></g>
+          <g fill="#1d1230"><text x="101" y="138">A</text><text x="127" y="138">A</text><text x="153" y="138">A</text><text x="153" y="112">A</text><text x="179" y="138">T</text><text x="205" y="138">T</text><text x="179" y="112">T</text><text x="205" y="112">T</text><text x="231" y="138">C</text><text x="231" y="112">C</text><text x="231" y="86">C</text><text x="257" y="138">C</text><text x="153" y="32">G</text><text x="179" y="32">G</text><text x="179" y="58">G</text><text x="205" y="58">G</text></g>
+        </g>
+        <g stroke="#fff" stroke-width="1.6" opacity=".8"><line x1="162" y1="128" x2="170" y2="128"/><line x1="162" y1="134" x2="170" y2="134"/><line x1="162" y1="102" x2="170" y2="102"/><line x1="162" y1="108" x2="170" y2="108"/></g>
+      </svg>
+      <div class="body">
+        <h2>GenoBlocos</h2>
+        <div class="genre">Quebra-cabeça de blocos · pareamento e mutagênese</div>
+        <p>Cada peça é um nucleotídeo. Encaixe bases complementares lado a lado para ganhar pontes de hidrogênio, use enzimas como power-ups e sobreviva à radiação UV, ao cigarro, aos vírus e ao raio-X.</p>
+        <div class="tags"><span>A–T e C–G</span><span>CRISPR</span><span>reparo do DNA</span></div>
+        <a class="play" href="genoblocos/">Jogar</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="320" height="150" fill="#3b1f27"/>
+        <g fill="#c98b7a"><rect x="0" y="0" width="320" height="22"/><rect x="0" y="128" width="320" height="22"/></g>
+        <g fill="#a86e60"><circle cx="20" cy="11" r="4"/><circle cx="70" cy="9" r="4"/><circle cx="130" cy="12" r="4"/><circle cx="200" cy="10" r="4"/><circle cx="270" cy="12" r="4"/><circle cx="40" cy="139" r="4"/><circle cx="110" cy="137" r="4"/><circle cx="180" cy="140" r="4"/><circle cx="250" cy="138" r="4"/><circle cx="305" cy="139" r="4"/></g>
+        <circle cx="120" cy="75" r="44" fill="rgba(129,212,250,.18)"/>
+        <path d="M120 47 C 140 45, 150 58, 172 66 C 182 70, 182 82, 170 86 C 150 92, 142 104, 120 103 C 98 104, 90 92, 92 75 C 90 58, 100 49, 120 47 Z" fill="#b3e5fc" stroke="#e1f5fe" stroke-width="2"/>
+        <ellipse cx="116" cy="77" rx="12" ry="9" fill="#4fc3f7" transform="rotate(20 116 77)"/>
+        <g fill="#ffd54f"><circle cx="198" cy="72" r="7"/><circle cx="211" cy="72" r="7"/><circle cx="204" cy="84" r="7"/><circle cx="192" cy="84" r="7"/><circle cx="216" cy="84" r="7"/></g>
+        <g transform="translate(262 52) rotate(25)"><rect x="-18" y="-6" width="36" height="12" rx="6" fill="#81c784"/><path d="M-18 0 q -8 -6 -16 0 t -14 0" stroke="#a5d6a7" fill="none" stroke-width="1.5"/></g>
+        <g transform="translate(270 104)"><g stroke="#ef9a9a" stroke-width="2"><line x1="-12" y1="0" x2="12" y2="0"/><line x1="0" y1="-12" x2="0" y2="12"/><line x1="-8" y1="-8" x2="8" y2="8"/><line x1="-8" y1="8" x2="8" y2="-8"/></g><circle r="7" fill="#ef5350"/></g>
+      </svg>
+      <div class="body">
+        <h2>GULP!</h2>
+        <div class="genre">Roguelike · imunidade inata</div>
+        <p>Você é um macrófago, o "grande comedor". Atravesse cinco tecidos fagocitando bactérias, vírus e fungos, evolua com mecanismos reais da imunidade inata e enfrente a superbactéria MRSA.</p>
+        <div class="tags"><span>fagocitose</span><span>patógenos</span><span>citocinas</span></div>
+        <a class="play" href="gulp/">Jogar</a>
+      </div>
+    </article>
+  </section>
+
+  <footer>
+    Feito por Rafael Piergiorge · <a href="https://github.com/Piergiorge/PolGame">código no GitHub</a><br>
+    Todos os jogos têm som (tecla <b>M</b> liga e desliga) e controles na tela para celular.
+  </footer>
+</main>
+</body>
+</html>
