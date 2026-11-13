@@ -36,10 +36,18 @@
   .touch button.small { font-size:12px; }
   .touch button:active { background:#4a3870; }
   @media (pointer: coarse) { .touch { display:flex; } }
+
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; }
+  .topbar .left { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; }
+  .backlink:hover { color:var(--text); }
+  .backlink[hidden] { display:none; }
+  .soundbtn { background:rgba(255,255,255,.08); color:var(--text); border:0; border-radius:8px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
+  .soundbtn:hover { background:rgba(255,255,255,.15); }
 </style>
 </head>
 <body>
-<div class="wrap"><h1>GenoBlocos <small>quebra-cabeça de blocos genético</small></h1></div>
+<div class="wrap topbar"><div class="left"><a class="backlink" href="../">← Todos os jogos</a><h1>GenoBlocos <small>quebra-cabeça de blocos genético</small></h1></div><button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button></div>
 
 <div class="wrap stage">
   <canvas id="game" width="560" height="620" tabindex="0"></canvas>
@@ -92,6 +100,89 @@
 
 <script>
 (() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('genoblocos-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('genoblocos-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
+
   // ================= Constantes =================
   const COLS = 10, ROWS = 22, HIDDEN = 2, CELL = 28, BX = 140, BY = 30, W = 560, H = 620;
   const LOCK_DELAY = 0.5, MAX_LOCK_RESETS = 15, DAS = 0.16, ARR = 0.045;
@@ -202,7 +293,7 @@
   function tryMove(dx, dy) {
     if (collides(piece.m, piece.x + dx, piece.y + dy)) return false;
     piece.x += dx; piece.y += dy;
-    if (dx) onMoved();
+    if (dx) { onMoved(); Sound.tone(260, 0.03, { type: 'square', vol: 0.05 }); }
     return true;
   }
 
@@ -215,7 +306,7 @@
     if (piece.type === 'O') return;
     const m2 = rotateMatrix(piece.m, dir);
     for (const [kx, ky] of KICKS) {
-      if (!collides(m2, piece.x + kx, piece.y + ky)) { piece.m = m2; piece.x += kx; piece.y += ky; onMoved(); return; }
+      if (!collides(m2, piece.x + kx, piece.y + ky)) { piece.m = m2; piece.x += kx; piece.y += ky; onMoved(); Sound.tone(520, 0.05, { type: 'square', vol: 0.07, slide: 1.4 }); return; }
     }
   }
 
@@ -228,6 +319,7 @@
         if (v) trails.push({ x: piece.x + c, y0: piece.y + r, y1: piece.y + r + d, color: BASE_COLOR[piece.base], t: 0 });
       }));
       shake = 0.12;
+      Sound.noise(0.12, { freq: 250, vol: 0.3 }); Sound.tone(110, 0.12, { vol: 0.15, slide: 0.5 });
     }
     piece.y += d; score += 2 * d;
     lockPiece();
@@ -235,6 +327,7 @@
 
   function holdPiece() {
     if (!canHold) return;
+    Sound.tone(392, 0.08, { type: 'triangle', vol: 0.15, slide: 1.5 });
     const cur = piece.entry;
     if (hold) { const h = hold; hold = cur; spawn(h); }
     else { hold = cur; spawn(queue.shift()); }
@@ -271,6 +364,10 @@
     if (withCombo) { combo++; if (combo > 1) pts += 50 * (combo - 1) * level; }
     score += pts; lines += count; totalBonds += bonds;
     flash = 0.15;
+    // acorde da linha: mais linhas, acorde maior; cada ponte de hidrogênio soma um brilho agudo
+    if (count >= 4) Sound.arp([69, 73, 76, 81, 85, 88], 0.06, { type: 'square', vol: 0.14, dur: 0.25 });
+    else Sound.arp([69, 72, 76, 81].slice(0, count + 1), 0.06, { type: 'square', vol: 0.13, dur: 0.18 });
+    for (let k = 0; k < Math.min(bonds, 8); k++) Sound.tone(midi(84 + [0, 4, 7, 12][k % 4] + 12 * Math.floor(k / 4)), 0.08, { type: 'sine', vol: 0.12, delay: 0.25 + k * 0.045 });
     const midY = BY + 230;
     if (count >= 4) { tetrads++; popup('TÉTRADE!', '#ffd54f', midY - 30, 30); }
     popup(`+${pts}`, '#ffffff', midY + 6, 20);
@@ -279,6 +376,7 @@
     const newLevel = Math.floor(lines / 10) + 1;
     if (newLevel > level) {
       level = newLevel;
+      Sound.arp([69, 72, 76, 79, 81, 84], 0.07, { type: 'triangle', vol: 0.18, delay: 0.45 });
       popup(`Nível ${level} · fase ${phaseOf(level)}`, '#b39ddb', midY - 70, 18);
       const novas = Object.values(THREATS).filter(t => t.minLevel === level).map(t => t.name);
       if (novas.length) popup(`Nova ameaça: ${novas.join(' e ')}`, '#ce93d8', midY - 46, 14);
@@ -292,6 +390,7 @@
       if (y + r < 0) { gameOver(); return; }
       board[y + r][x + c] = { base: piece.base, power: m[r][c] === 2 ? piece.power : null, damaged: false };
     }
+    Sound.tone(170, 0.05, { type: 'triangle', vol: 0.14 });
     scoreClear(clearFullRows(), true);
     if (board.slice(0, HIDDEN).some(row => row.some(Boolean))) { gameOver(); return; }
     canHold = true;
@@ -300,6 +399,7 @@
 
   // ================= Power-ups =================
   function gainPower(p) {
+    Sound.arp([84, 88, 91], 0.05, { type: 'sine', vol: 0.2 });
     if (inventory.length < 3) { inventory.push(p); popup(`Power-up: ${POWERS[p].name}!`, POWERS[p].color, BY + 140, 16); }
     else { score += 500; popup('+500 (inventário cheio)', POWERS[p].color, BY + 140, 15); }
   }
@@ -378,7 +478,8 @@
 
   function usePower() {
     if (!inventory.length) return;
-    if (APPLY[inventory[0]]()) { inventory.shift(); powersUsed++; }
+    const id = inventory[0];
+    if (APPLY[id]()) { inventory.shift(); powersUsed++; POWER_SOUND[id](); }
     if (collides(piece.m, piece.x, piece.y)) { piece.y--; if (collides(piece.m, piece.x, piece.y)) gameOver(); }
   }
 
@@ -442,7 +543,21 @@
     },
   };
 
+  const POWER_SOUND = {
+    helicase: () => Sound.noise(0.5, { freq: 400, sweep: 3000, vol: 0.25 }),
+    crispr: () => { Sound.noise(0.04, { freq: 5000, vol: 0.3 }); Sound.noise(0.04, { freq: 5000, vol: 0.3, delay: 0.09 }); Sound.tone(1200, 0.06, { vol: 0.08, delay: 0.09 }); },
+    ligase: () => Sound.arp([76, 83, 88], 0.07, { type: 'triangle', vol: 0.2 }),
+    telomerase: () => Sound.tone(600, 0.8, { type: 'sine', vol: 0.22, slide: 0.5 }),
+    reparo: () => Sound.arp([72, 79, 84, 91], 0.06, { type: 'sine', vol: 0.2 }),
+  };
+  const THREAT_SOUND = {
+    uv: () => { Sound.tone(60, 0.6, { type: 'sawtooth', vol: 0.2 }); Sound.noise(0.4, { freq: 2000, vol: 0.15 }); },
+    cigarro: () => Sound.noise(0.8, { filter: 'lowpass', freq: 900, vol: 0.3 }),
+    virus: () => { Sound.tone(300, 0.5, { type: 'sine', vol: 0.2, slide: 2.5 }); Sound.tone(450, 0.5, { type: 'sine', vol: 0.12, slide: 0.4, delay: 0.1 }); },
+    raiox: () => { Sound.noise(0.15, { freq: 4000, vol: 0.35 }); Sound.tone(1500, 0.25, { type: 'sawtooth', vol: 0.12, slide: 0.2 }); },
+  };
   function applyThreat(t) {
+    THREAT_SOUND[t.type]();
     threatsSuffered++;
     THREAT_APPLY[t.type](t);
   }
@@ -450,13 +565,24 @@
   // ================= Fluxo do jogo =================
   const introEl = document.getElementById('intro'), overEl = document.getElementById('over');
 
+  // Música em lá menor; o andamento acelera com o nível
+  const GENO_SONG = { bpm: () => 112 + Math.min(level, 15) * 5, play(step, t, d) {
+    if (state !== 'play') return;
+    const CH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [52, 56, 59]];
+    const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
+    Sound.note(midi(ch[0] - 12 + (s % 2 ? 12 : 0)), t, d * 0.9, 'triangle', 0.55);
+    if (s % 2 === 0) Sound.note(midi(ch[[0, 1, 2, 1][s / 2]] + 12), t, d * 1.4, 'square', 0.14);
+  } };
+
   function startGame() {
+    Sound.ensure(); Sound.music(GENO_SONG);
     reset(); state = 'play'; introEl.hidden = true; overEl.hidden = true; canvas.focus();
   }
 
   function gameOver() {
     if (state === 'over') return;
     state = 'over';
+    Sound.music(null); Sound.arp([69, 65, 62, 57], 0.18, { type: 'triangle', vol: 0.22, dur: 0.35 });
     const record = score > best;
     if (record) { best = score; try { localStorage.setItem('genoblocos-best', String(best)); } catch (e) {} }
     const mm = Math.floor(elapsed / 60), ss = Math.floor(elapsed % 60).toString().padStart(2, '0');
@@ -556,7 +682,7 @@
     slowTimer = Math.max(0, slowTimer - dt);
     if (level >= 2) {
       threatTimer -= dt;
-      if (!pendingThreat && threatTimer <= 3) pendingThreat = chooseThreat();
+      if (!pendingThreat && threatTimer <= 3) { pendingThreat = chooseThreat(); for (let k = 0; k < 3; k++) Sound.tone(880, 0.12, { type: 'square', vol: 0.09, delay: k * 0.5 }); }
       if (threatTimer <= 0) {
         applyThreat(pendingThreat); pendingThreat = null; threatTimer = threatInterval();
         if (state !== 'play') return;
