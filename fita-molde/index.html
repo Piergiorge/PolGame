@@ -3,96 +3,107 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fita Molde — platformer de replicação do DNA</title>
+<title>Fita Molde — do gene à proteína</title>
 <style>
-  :root { --bg:#140b22; --panel:#1f1433; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
+  :root { --bg:#140b22; --panel:#1f1433; --panel2:#2a1d42; --line:#3a2d55; --text:#efe9f7; --muted:#a99bc0; --accent:#80deea;
+          --A:#4caf50; --T:#ef5350; --U:#ff8a65; --C:#42a5f5; --G:#ffca28; --gold:#ffd54f; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; gap:12px; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:14px; gap:10px; }
   .wrap { width:100%; max-width:800px; }
-  h1 { font-size:20px; margin:0; font-weight:700; letter-spacing:.01em; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; }
+  .topbar .left { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  h1 { font-size:20px; margin:0; font-weight:700; }
   h1 small { font-weight:400; color:var(--muted); font-size:14px; margin-left:6px; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; }
+  .backlink:hover { color:var(--text); }
+  .backlink[hidden] { display:none; }
+  .tbtns { display:flex; gap:6px; }
+  .soundbtn, .tbtn { background:rgba(255,255,255,.08); color:var(--text); border:0; border-radius:8px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
+  .soundbtn:hover, .tbtn:hover { background:rgba(255,255,255,.15); }
   .stage { position:relative; }
-  canvas { width:100%; aspect-ratio:800/448; display:block; border-radius:10px; background:#2a1440; outline:none; touch-action:none; }
-  .overlay { position:absolute; inset:0; background:rgba(18,9,32,.9); border-radius:10px; display:flex; align-items:center; justify-content:center; padding:18px; overflow:auto; }
+  canvas { width:100%; aspect-ratio:800/450; display:block; border-radius:10px; background:#2a1440; outline:none; touch-action:none; }
+  .overlay { position:absolute; inset:0; background:rgba(18,9,32,.94); border-radius:10px; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow:auto; }
   .overlay[hidden] { display:none; }
-  .card { max-width:600px; width:100%; }
-  .card h2 { margin:0 0 6px; font-size:22px; color:#ffd54f; }
-  .card p { margin:6px 0; }
-  .card .muted { color:var(--muted); font-size:13px; }
-  .seq { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:15px; background:#2a1d42; border-radius:8px; padding:8px 10px; margin:8px 0; line-height:1.7; overflow-x:auto; white-space:nowrap; }
-  .b { font-weight:700; }
-  .bA { color:var(--A); } .bT { color:var(--T); } .bC { color:var(--C); } .bG { color:var(--G); }
+  .stage.open .overlay { position:relative; inset:auto; min-height:min(450px, 56.25vw); }
+  .stage.open canvas { position:absolute; inset:0; opacity:.35; }
+  .card { max-width:660px; width:100%; margin:auto 0; }
+  .card h2 { margin:0 0 6px; font-size:21px; color:#ffd54f; }
+  .card h3 { margin:12px 0 4px; font-size:15px; color:var(--accent); }
+  .card p, .card li { margin:5px 0; }
+  .card ul { padding-left:18px; margin:6px 0; }
+  .muted { color:var(--muted); font-size:13px; }
+  .seq { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:14px; background:#2a1d42; border-radius:8px; padding:8px 10px; margin:8px 0; line-height:1.8; overflow-x:auto; white-space:nowrap; }
+  .b { font-weight:700; } .bA { color:var(--A); } .bT { color:var(--T); } .bU { color:var(--U); } .bC { color:var(--C); } .bG { color:var(--G); }
   .bad { background:#ff5252; color:#fff !important; border-radius:3px; padding:0 2px; }
-  table { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0; }
-  th, td { text-align:left; padding:4px 8px; border-bottom:1px solid #35274f; }
-  th { color:var(--muted); font-weight:600; }
-  td.mono { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .eff-ok { color:#81c784; } .eff-sil { color:#90caf9; } .eff-mis { color:#ffb74d; } .eff-non { color:#ff5252; } .eff-na { color:#7d7096; }
+  .ins { background:#ab47bc; color:#fff !important; border-radius:3px; padding:0 2px; }
+  .intron { background:rgba(255,255,255,.12); border-radius:3px; }
+  table.t { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0; }
+  table.t th, table.t td { text-align:left; padding:4px 8px; border-bottom:1px solid #35274f; }
+  table.t th { color:var(--muted); font-weight:600; }
   .stats { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:13px; color:var(--muted); margin:8px 0 12px; }
   .stats b { color:var(--text); }
   button.big { background:#ffca28; color:#1d1230; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; }
   button.big:hover { filter:brightness(1.08); }
-  .hint { color:var(--muted); font-size:13px; }
+  button.big.alt { background:#3a2d55; color:var(--text); }
+  button.big:disabled { opacity:.45; cursor:not-allowed; }
+  .btnrow { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .phases { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:10px; margin-top:10px; }
+  .ph { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px; text-align:left; color:var(--text); font:inherit; cursor:pointer; display:flex; flex-direction:column; gap:3px; min-height:118px; }
+  .ph:hover:not(:disabled) { border-color:var(--accent); }
+  .ph:disabled { opacity:.45; cursor:not-allowed; }
+  .ph .n { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .ph b { font-size:15px; }
+  .ph span { font-size:12px; color:var(--muted); }
+  .ph .st { margin-top:auto; font-size:12px; color:#9ccc65; }
+  .hint { color:var(--muted); font-size:13px; min-height:20px; }
   kbd { background:#2f2347; border-radius:4px; padding:1px 6px; font-family:inherit; font-size:12px; color:var(--text); }
-  .legend { background:var(--panel); border-radius:10px; padding:12px 14px; display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px 18px; font-size:13px; }
-  .legend div { display:flex; gap:10px; align-items:flex-start; }
-  .legend .ico { flex:0 0 22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#1d1230; }
-  .legend b { color:var(--text); }
-  .legend span { color:var(--muted); }
-  .touch { display:none; justify-content:space-between; gap:10px; user-select:none; -webkit-user-select:none; }
-  .touch .pad { display:flex; gap:10px; }
-  .touch button { width:64px; height:56px; border-radius:12px; border:0; background:#2f2347; color:var(--text); font:inherit; font-size:18px; font-weight:700; touch-action:none; }
-  .touch button:active { background:#4a3870; }
+  .touch { display:none; flex-wrap:wrap; justify-content:center; gap:8px; user-select:none; -webkit-user-select:none; }
+  .touch button { min-width:56px; height:52px; padding:0 10px; border-radius:12px; border:0; background:#2f2347; color:var(--text); font:inherit; font-size:17px; font-weight:700; touch-action:none; }
   .touch button.small { font-size:12px; }
+  .touch button:active { background:#4a3870; }
+  .touch button[hidden] { display:none; }
   @media (pointer: coarse) { .touch { display:flex; } }
-
-  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; }
-  .topbar .left { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
-  .backlink { color:var(--muted); text-decoration:none; font-size:13px; }
-  .backlink:hover { color:var(--text); }
-  .backlink[hidden] { display:none; }
-  .soundbtn { background:rgba(255,255,255,.08); color:var(--text); border:0; border-radius:8px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
-  .soundbtn:hover { background:rgba(255,255,255,.15); }
+  /* fase 5 */
+  .tiles { display:flex; flex-wrap:wrap; gap:16px 3px; margin:18px 0 8px; }
+  .tile { width:26px; height:30px; border-radius:5px; border:0; font:700 14px ui-monospace, Menlo, monospace; color:#1d1230; cursor:pointer; position:relative; }
+  .tile.sel { outline:3px solid #fff; }
+  .tile.inr { box-shadow:0 0 0 2px #ffffff55 inset; }
+  .tile.dim { opacity:.35; }
+  .tile small { position:absolute; top:-13px; left:0; right:0; font:10px system-ui; color:var(--muted); }
+  .order { display:grid; gap:8px; margin-top:8px; }
+  .order button { text-align:left; background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:9px 12px; font:inherit; cursor:pointer; }
+  .order button:hover { border-color:var(--accent); }
+  .order button.done { border-color:#9ccc65; color:#9ccc65; cursor:default; }
+  .meter { height:16px; background:#2a1d42; border-radius:8px; overflow:hidden; position:relative; margin:8px 0; }
+  .meter i { position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg, #4caf50, #9ccc65); }
+  .meter .zone { position:absolute; top:0; bottom:0; background:rgba(255,255,255,.18); border-left:1px dashed #fff8; border-right:1px dashed #fff8; }
+  .flow { display:grid; gap:6px; margin:10px 0; }
+  .flow div { background:var(--panel); border-radius:8px; padding:7px 10px; font-size:13px; }
+  .flow b { color:var(--accent); }
 </style>
 </head>
 <body>
-<div class="wrap topbar"><div class="left"><a class="backlink" href="../">← Todos os jogos</a><h1>Fita Molde <small>um platformer de replicação do DNA</small></h1></div><button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button></div>
-
+<div class="wrap topbar">
+  <div class="left"><a class="backlink" href="../">← Todos os jogos</a><h1>Fita Molde <small id="phaseLabel">do gene à proteína</small></h1></div>
+  <div class="tbtns"><button class="tbtn" id="menuBtn" type="button">☰ Fases</button><button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button></div>
+</div>
 <div class="wrap stage">
-  <canvas id="game" width="800" height="448" tabindex="0"></canvas>
-
-  <div class="overlay" id="intro">
-    <div class="card">
-      <h2>Você é a DNA polimerase</h2>
-      <p>Copie a fita molde mostrada no topo da tela. Colete os nucleotídeos <b>complementares</b> na ordem certa: <b class="bA">A</b> pareia com <b class="bT">T</b> e <b class="bC">C</b> pareia com <b class="bG">G</b>.</p>
-      <p>Pegou a base errada? Ela é incorporada como <b>mutação</b>. Use a <b>revisão 3'→5'</b> (<kbd>E</kbd> ou <kbd>↓</kbd>) para remover o último nucleotídeo.</p>
-      <p>Pule em cima dos <b>bacteriófagos</b> para eliminá-los. Já nas <b>espécies reativas de oxigênio</b> não dá para pisar: desvie delas. Pegue a <b>helicase</b> para ganhar o pulo duplo. Complete a fita e chegue ao <b>telômero</b>.</p>
-      <p class="muted"><kbd>←</kbd><kbd>→</kbd> ou <kbd>A</kbd><kbd>D</kbd> mover · <kbd>Espaço</kbd>/<kbd>W</kbd>/<kbd>↑</kbd> pular (segure para ir mais alto) · <kbd>E</kbd>/<kbd>↓</kbd> revisar · <kbd>R</kbd> reiniciar</p>
-      <p style="margin-top:12px"><button class="big" id="startBtn">Começar (Enter)</button></p>
-    </div>
-  </div>
-
-  <div class="overlay" id="results" hidden>
-    <div class="card" id="resultsCard"></div>
-  </div>
+  <canvas id="game" width="800" height="450" tabindex="0"></canvas>
+  <div class="overlay" id="ov" hidden><div class="card" id="ovCard"></div></div>
 </div>
-
 <div class="wrap touch" id="touch">
-  <div class="pad"><button data-k="ArrowLeft" aria-label="Esquerda">◀</button><button data-k="ArrowRight" aria-label="Direita">▶</button></div>
-  <div class="pad"><button data-k="KeyE" class="small">Revisar</button><button data-k="Space" aria-label="Pular">▲</button></div>
+  <button data-k="ArrowLeft" aria-label="Esquerda">◀</button>
+  <button data-k="ArrowRight" aria-label="Direita">▶</button>
+  <button data-k="ArrowUp" aria-label="Cima">▲</button>
+  <button data-k="ArrowDown" aria-label="Baixo">▼</button>
+  <button data-k="Space" class="small">Pular/OK</button>
+  <button data-k="KeyE" class="small">Revisar</button>
+  <button data-k="Digit1" class="small">1 MMR</button>
+  <button data-k="Digit2" class="small">2 NER</button>
+  <button data-k="Digit3" class="small">3 BER</button>
+  <button data-k="Backspace" class="small">Desfazer</button>
 </div>
-
-<div class="wrap hint"><kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espaço</kbd> pular · <kbd>E</kbd>/<kbd>↓</kbd> revisão 3'→5' · <kbd>R</kbd> reiniciar · <kbd>H</kbd> mostrar hitboxes</div>
-
-<div class="wrap legend">
-  <div><div class="ico" style="background:#26c6da">P</div><p style="margin:0"><b>DNA polimerase</b> <span>(você): sintetiza a nova fita de 5'→3' lendo o molde de 3'→5'. Os nucleotídeos coletados formam uma cauda atrás dela.</span></p></div>
-  <div><div class="ico" style="background:linear-gradient(90deg,var(--A) 50%,var(--T) 50%)"></div><p style="margin:0"><b>Pareamento</b> <span>A–T tem 2 pontes de hidrogênio e C–G tem 3. O painel do topo desenha as pontes de cada par correto.</span></p></div>
-  <div><div class="ico" style="background:#b0bec5">φ</div><p style="margin:0"><b>Bacteriófago</b> <span>patrulha plataformas e dá meia-volta em paredes e bordas. Pise em cima para eliminá-lo.</span></p></div>
-  <div><div class="ico" style="background:#ff7043">•</div><p style="margin:0"><b>ERO</b> <span>(espécie reativa de oxigênio): flutua em ondas e danifica o DNA ao toque. Não dá para pisar nela.</span></p></div>
-  <div><div class="ico" style="background:#80deea">⬡</div><p style="margin:0"><b>Helicase</b> <span>abre a dupla hélice e, aqui, libera o pulo duplo.</span></p></div>
-  <div><div class="ico" style="background:#9ccc65">✓</div><p style="margin:0"><b>Checkpoints G1/S e G2/M</b> <span>salvam seu progresso no ciclo celular.</span></p></div>
-</div>
-
+<div class="wrap hint" id="hint"></div>
 <script>
 (() => {
   // ================= Som (gerado por código com a Web Audio API) =================
@@ -178,619 +189,1838 @@
   // links "todos os jogos" só aparecem no site publicado
   for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
-  // ================= Constantes =================
-  const T = 32, ROWS = 14, COLS = 110, W = 800, H = 448, STEP = 1 / 120;
-  const P = {
-    gravity: 2000, maxFall: 900, runSpeed: 230, groundAccel: 2200, airAccel: 1400,
-    jumpVelocity: 680, jumpCut: 0.45, coyoteTime: 0.10, jumpBuffer: 0.12,
-    stompBounce: 420, phageSpeed: 70, rosSpeed: 90, baseRespawn: 5,
-  };
+  // =====================================================================
+  // NÚCLEO DA CAMPANHA
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const canvas = $('#game'), ctx = canvas.getContext('2d');
+  const W = 800, H = 450;
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
-  const BASE_COLOR = { A: '#4caf50', T: '#ef5350', C: '#42a5f5', G: '#ffca28' };
-  const PAIR = { A: 'T', T: 'A', C: 'G', G: 'C' };
-  const HBONDS = { A: 2, T: 2, C: 3, G: 3 };
-  const TEMPLATE = 'TACCGGACCATT';                                  // fita molde, 3'→5'
-  const TARGET = [...TEMPLATE].map(b => PAIR[b]).join('');          // ATGGCCTGGTAA, 5'→3'
-
-  // Código genético (ordem TCAG)
+  // ---------- genética compartilhada ----------
+  const BASE_COLOR = { A: '#4caf50', T: '#ef5350', U: '#ff8a65', C: '#42a5f5', G: '#ffca28' };
+  const DNA_PAIR = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const RNA_FOR_TEMPLATE = { A: 'U', T: 'A', C: 'G', G: 'C' }; // ribonucleotídeo que pareia com a base do molde
+  const HBONDS = { A: 2, T: 2, U: 2, C: 3, G: 3 };
   const ORDER = 'TCAG', AA = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
-  const AA3 = { A:'Ala', R:'Arg', N:'Asn', D:'Asp', C:'Cys', Q:'Gln', E:'Glu', G:'Gly', H:'His', I:'Ile', L:'Leu', K:'Lys', M:'Met', F:'Phe', P:'Pro', S:'Ser', T:'Thr', W:'Trp', Y:'Tyr', V:'Val', '*':'Stop' };
-  const codonAA = c => AA[16 * ORDER.indexOf(c[0]) + 4 * ORDER.indexOf(c[1]) + ORDER.indexOf(c[2])];
+  const AA3 = { A: 'Ala', R: 'Arg', N: 'Asn', D: 'Asp', C: 'Cys', Q: 'Gln', E: 'Glu', G: 'Gly', H: 'His', I: 'Ile', L: 'Leu', K: 'Lys', M: 'Met', F: 'Phe', P: 'Pro', S: 'Ser', T: 'Thr', W: 'Trp', Y: 'Tyr', V: 'Val', '*': 'Stop' };
+  const codonAA = c => { const d = c.replace(/U/g, 'T'); return AA[16 * ORDER.indexOf(d[0]) + 4 * ORDER.indexOf(d[1]) + ORDER.indexOf(d[2])]; };
+  const HYDRO = new Set('AVLIMFWC'.split(''));
+  const isH = aa => HYDRO.has(aa);
+  const toRNA = s => s.replace(/T/g, 'U');
 
-  // ================= Fase =================
-  const grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
-  const fill = (x0, x1, y0, y1, v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) grid[y][x] = v; };
-  fill(0, COLS - 1, 12, 13);
-  for (const [a, b] of [[16, 18], [30, 33], [52, 54], [66, 69], [88, 90]]) fill(a, b, 12, 13, 0);
-  fill(0, 0, 0, 11); fill(COLS - 1, COLS - 1, 0, 11);
-  for (const [x0, x1, y0, y1] of [
-    [8, 12, 9, 9], [20, 24, 9, 9], [25, 28, 6, 6], [35, 39, 9, 9], [44, 44, 10, 11], [46, 50, 8, 8],
-    [56, 60, 9, 9], [61, 63, 6, 6], [72, 76, 9, 9], [78, 80, 6, 6], [82, 85, 3, 3], [93, 97, 9, 9],
-    [100, 101, 10, 11], [102, 103, 9, 11],
-  ]) fill(x0, x1, y0, y1);
+  // Gene da luciferase (fictício, simplificado): éxon 1 + íntron + éxon 2 (fita codificante, 5'→3')
+  const GENE = { exon1: 'ATGAAACTGGTT', intron: 'GTAAGTCAG', exon2: 'TCTGAATTCATCTGGTAA' };
+  const CODING = GENE.exon1 + GENE.intron + GENE.exon2;             // 39 nt
+  const TEMPLATE = CODING.split('').map(b => DNA_PAIR[b]).join(''); // fita molde (3'→5', alinhada)
+  const INTRON = [GENE.exon1.length, GENE.exon1.length + GENE.intron.length - 1]; // [12, 20]
+  const PROTEIN_OK = 'MKLVSEFIW';
+  const UTR5 = 'GCCACC', UTR3 = 'CUAAUAAAGCCA';
 
-  const PHAGE_SPAWNS = [[10, 8], [24, 11], [38, 11], [48, 7], [60, 11], [74, 8], [84, 11], [96, 11]];
-  const ROS_SPAWNS = [{ x0: 18, x1: 24, r: 6 }, { x0: 55, x1: 61, r: 5 }, { x0: 77, x1: 83, r: 8 }, { x0: 92, x1: 99, r: 6 }];
-  const NUC_SPAWNS = [
-    [4, 10, 'A'], [6, 10, 'T'], [10, 7, 'G'], [12, 7, 'C'],
-    [20, 10, 'G'], [22, 7, 'A'], [26, 4, 'G'], [27, 4, 'C'],
-    [35, 7, 'C'], [37, 7, 'T'], [39, 7, 'C'], [42, 10, 'G'],
-    [47, 6, 'T'], [49, 6, 'G'], [53, 9, 'A'], [57, 7, 'C'], [59, 7, 'G'],
-    [62, 4, 'T'], [64, 10, 'A'], [72, 7, 'G'], [74, 7, 'T'], [76, 7, 'A'],
-    [79, 4, 'A'], [80, 4, 'C'], [84, 2, 'G'], [86, 10, 'T'], [89, 9, 'A'],
-    [93, 7, 'T'], [95, 7, 'A'], [97, 7, 'G'], [99, 10, 'C'],
-  ];
-  const HELICASE_POS = { x: 28 * T + 16, y: 5 * T + 16 };
-  const CHECKPOINTS_DEF = [{ c: 41, label: 'G1/S' }, { c: 71, label: 'G2/M' }];
-  const START = { x: 2 * T + 4, y: 12 * T - 30 };
-  const GOAL = { x: 105 * T, y: 8 * T, w: 2 * T, h: 4 * T };
+  function translateFromAUG(mrna) {
+    const start = mrna.indexOf('AUG');
+    if (start < 0) return { protein: '', start: -1, stop: false, codons: [] };
+    const codons = [];
+    let prot = '', stop = false;
+    for (let i = start; i + 3 <= mrna.length; i += 3) {
+      const c = mrna.slice(i, i + 3), a = codonAA(c);
+      codons.push(c);
+      if (a === '*') { stop = true; break; }
+      prot += a;
+    }
+    return { protein: prot, start, stop, codons };
+  }
 
-  const solidAt = (tx, ty) => {
-    if (tx < 0 || tx >= COLS) return true;
-    if (ty < 0 || ty >= ROWS) return false;
-    return grid[ty][tx] === 1;
+  // HTML de sequência colorida
+  function seqHTML(s, opts = {}) {
+    return s.split('').map((b, i) => {
+      const cls = ['b', 'b' + b];
+      if (opts.ref && opts.ref[i] !== undefined && opts.ref[i] !== b) cls.push('bad');
+      if (opts.intron && i >= opts.intron[0] && i <= opts.intron[1]) cls.push('intron');
+      return `<span class="${cls.join(' ')}">${b}</span>${opts.codons && (i + 1) % 3 === 0 ? ' ' : ''}`;
+    }).join('');
+  }
+  const protHTML = (p, ref) => p.split('').map((a, i) => `<span class="${ref && ref[i] !== a ? 'bad' : ''}">${AA3[a] || a}</span>`).join('–') || '<i>(nenhum aminoácido)</i>';
+
+  // ---------- estado da campanha ----------
+  const SAVE_KEY = 'fitamolde-campanha-v1';
+  let C = { unlocked: 1, done: {}, data: {}, teacher: false };
+  try { const t = localStorage.getItem(SAVE_KEY); if (t) C = { ...C, ...JSON.parse(t) }; } catch (e) {}
+  const save = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(C)); } catch (e) {} };
+
+  // Dados de cada fase, com padrão "correto" caso a fase anterior não tenha sido jogada
+  const getData = {
+    dna2: () => C.data.dna2 || CODING.split('').map(b => ({ b, ins: false })),
+    dna3: () => C.data.dna3 || CODING,
+    pre: () => C.data.pre || toRNA(C.data.dna3 || CODING),
+    mrna: () => C.data.mrna || { seq: UTR5 + toRNA(GENE.exon1 + GENE.exon2) + UTR3, cap: true, tail: 200, splice: 'ok' },
+    protein: () => C.data.protein != null ? C.data.protein : { seq: PROTEIN_OK, stop: true, nonstop: false },
+    fold: () => C.data.fold || { contacts: null, max: null, quality: 'nativa' },
   };
+  const usedDefault = key => !C.data[key];
 
-  // ================= Estado =================
-  let player, phages, ros, nucs, helicase, checkpoints, spawn, trail, texts;
-  let strand, mutations, corrected, hits, elapsed, hasHelicase, state = 'intro';
-  let camX = 0, shake = 0, jumpBufferTimer = 0, goalMsgTimer = 0, showDebug = false;
+  // ---------- registro de fases ----------
+  const PHASES = [];
+  let cur = null, curIdx = -1;
+  const ov = $('#ov'), ovCard = $('#ovCard');
+  const stageEl = document.querySelector('.stage');
+  function showOverlay(html) { ovCard.innerHTML = html; ov.hidden = false; stageEl.classList.add('open'); ov.scrollTop = 0; }
+  function hideOverlay() { ov.hidden = true; ovCard.innerHTML = ''; stageEl.classList.remove('open'); }
+  const overlayOpen = () => !ov.hidden;
 
-  function makePhage([c, r]) {
-    const w = 24, h = 26;
-    return { x: c * T + (T - w) / 2, y: (r + 1) * T - h, w, h, vx: 0, vy: 0, dir: 1, onGround: false, dead: false, deadTimer: 0 };
+  function setTouch(list) {
+    for (const b of document.querySelectorAll('#touch button')) b.hidden = !list.includes(b.dataset.k);
+  }
+  function stopPhase() { if (cur && cur.stop) cur.stop(); cur = null; Sound.music(null); }
+
+  function showMenu() {
+    stopPhase();
+    $('#phaseLabel').textContent = 'do gene à proteína';
+    $('#hint').innerHTML = '';
+    const items = PHASES.map((p, i) => {
+      const open = C.teacher || i < C.unlocked;
+      return `<button class="ph" data-phase="${i}" ${open ? '' : 'disabled'}><span class="n">Fase ${i + 1}</span><b>${p.title}</b><span>${p.short}</span>
+        <span class="st">${C.done[i] ? '✔ concluída' : open ? '▶ disponível' : '🔒 bloqueada'}</span></button>`;
+    }).join('');
+    showOverlay(`<h2>Fita Molde: do gene à proteína</h2>
+      <p>Acompanhe o gene da <b>luciferase</b>, a enzima que faz o vaga-lume brilhar, desde a replicação do DNA até a proteína funcionando. O que você produz em cada fase passa para a seguinte, com acertos e erros.</p>
+      <div class="phases">${items}</div>
+      <div class="btnrow">
+        <button class="big alt" data-act="teacher">${C.teacher ? '✔ Modo professor ativo' : 'Modo professor: liberar todas as fases'}</button>
+        <button class="big alt" data-act="resetcamp">Recomeçar campanha</button>
+      </div>
+      <p class="muted">Se você pular uma fase, a seguinte usa a sequência correta como ponto de partida.</p>`);
   }
 
-  function respawnPlayer() {
-    player = { x: spawn.x, y: spawn.y, w: 22, h: 30, vx: 0, vy: 0, onGround: false, coyote: 0, jumping: false,
-               facing: 1, invuln: 1.0, prevBottom: 0, squash: 0, airJumps: 0 };
-    trail = [];
+  function showBrief(i) {
+    const p = PHASES[i];
+    stopPhase();
+    const note = p.needs && usedDefault(p.needs) && i > 0 ? `<p class="muted">Você ainda não concluiu a fase anterior, então esta fase vai usar a sequência correta como ponto de partida.</p>` : '';
+    showOverlay(`<h2>Fase ${i + 1}: ${p.title}</h2>${p.brief()}${note}
+      <h3>Controles</h3><p class="muted">${p.controls}</p>
+      <div class="btnrow"><button class="big" data-act="go" data-phase="${i}" data-primary>Começar (Enter)</button><button class="big alt" data-act="menu">Menu de fases</button></div>`);
   }
 
-  function reset() {
-    spawn = { ...START };
-    respawnPlayer(); player.invuln = 0;
-    phages = PHAGE_SPAWNS.map(makePhage);
-    ros = ROS_SPAWNS.map((d, i) => ({ x0: d.x0 * T, x1: d.x1 * T, cy: d.r * T + 16, x: d.x0 * T + (i * 37) % ((d.x1 - d.x0) * T), y: d.r * T + 16, dir: 1, t: i }));
-    nucs = NUC_SPAWNS.map(([c, r, b]) => ({ x: c * T + 16, y: r * T + 16, base: b, active: true, timer: 0, phase: c * 0.7 }));
-    helicase = { ...HELICASE_POS, taken: false };
-    checkpoints = CHECKPOINTS_DEF.map(d => ({ x: d.c * T + 8, y: 10 * T, w: 16, h: 2 * T, label: d.label, active: false }));
-    strand = []; mutations = 0; corrected = 0; hits = 0; elapsed = 0; hasHelicase = false;
-    texts = []; camX = 0; shake = 0; jumpBufferTimer = 0; goalMsgTimer = 0;
+  function startPhase(i) {
+    hideOverlay();
+    cur = PHASES[i]; curIdx = i;
+    $('#phaseLabel').textContent = `Fase ${i + 1}: ${cur.title}`;
+    $('#hint').innerHTML = cur.controls;
+    setTouch(cur.touch || []);
+    for (const k in keys) keys[k] = false;
+    Sound.ensure();
+    cur.start();
+    Sound.music(cur.song || null);
+    canvas.focus();
   }
 
-  // ================= Entrada =================
+  function completePhase(i, html, data) {
+    Object.assign(C.data, data || {});
+    C.done[i] = true;
+    C.unlocked = Math.max(C.unlocked, i + 2);
+    save();
+    Sound.music(null);
+    const last = i === PHASES.length - 1;
+    showOverlay(`${html}<div class="btnrow">
+      ${last ? '' : `<button class="big" data-act="brief" data-phase="${i + 1}" data-primary>Próxima fase: ${PHASES[i + 1].title} (Enter)</button>`}
+      <button class="big alt" data-act="brief" data-phase="${i}">Jogar esta fase de novo</button>
+      <button class="big alt" data-act="menu">Menu de fases</button></div>`);
+    cur = null;
+  }
+  function failPhase(i, html) {
+    Sound.music(null);
+    showOverlay(`${html}<div class="btnrow"><button class="big" data-act="go" data-phase="${i}" data-primary>Tentar de novo (Enter)</button><button class="big alt" data-act="menu">Menu de fases</button></div>`);
+    cur = null;
+  }
+
+  ov.addEventListener('click', e => {
+    const el = e.target.closest('[data-act], [data-phase]'); if (!el) return;
+    Sound.ensure();
+    const a = el.dataset.act, ph = el.dataset.phase !== undefined ? +el.dataset.phase : null;
+    if (!a && ph !== null) { showBrief(ph); return; }
+    if (a === 'go') startPhase(ph);
+    else if (a === 'brief') showBrief(ph);
+    else if (a === 'menu') showMenu();
+    else if (a === 'teacher') { C.teacher = !C.teacher; save(); showMenu(); }
+    else if (a === 'resetcamp') { C = { unlocked: 1, done: {}, data: {}, teacher: C.teacher }; save(); showMenu(); }
+    else if (cur && cur.overlayAction) cur.overlayAction(a, el);
+  });
+  $('#menuBtn').addEventListener('click', () => { Sound.ensure(); showMenu(); $('#menuBtn').blur(); });
+
+  // ---------- entrada ----------
   const keys = {};
-  const JUMP = ['Space', 'KeyW', 'ArrowUp'], PROOF = ['KeyE', 'ArrowDown', 'KeyS'];
-  const GAME_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyR', 'KeyH', 'Enter'];
-  const introEl = document.getElementById('intro');
-  const resultsEl = document.getElementById('results');
+  const GAME_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyR', 'KeyH', 'Backspace', 'Digit1', 'Digit2', 'Digit3', 'Enter'];
+  function keyDown(code) {
+    if (overlayOpen()) {
+      if (cur && cur.overlayKey && cur.overlayKey(code, true)) return;
+      if (code === 'Enter' || code === 'Space') { const b = ovCard.querySelector('[data-primary]'); if (b && !b.disabled) b.click(); }
+      return;
+    }
+    if (keys[code]) return;
+    keys[code] = true;
+    if (cur && cur.key) cur.key(code, true);
+  }
+  function keyUp(code) { keys[code] = false; if (overlayOpen()) { if (cur && cur.overlayKey) cur.overlayKey(code, false); return; } if (cur && cur.key) cur.key(code, false); }
+  addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (GAME_KEYS.includes(e.code) && (!overlayOpen() || e.code === 'Space' || e.code === 'Enter')) e.preventDefault();
+    if (e.repeat) return;
+    keyDown(e.code);
+  });
+  addEventListener('keyup', e => keyUp(e.code));
+  addEventListener('blur', () => { for (const k in keys) if (keys[k]) keyUp(k); });
+  for (const btn of document.querySelectorAll('#touch button')) {
+    const k = btn.dataset.k;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); Sound.ensure(); keyDown(k); });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) btn.addEventListener(ev, () => { if (keys[k]) keyUp(k); });
+  }
+  const held = codes => codes.some(c => keys[c]);
+  canvas.addEventListener('pointerdown', e => {
+    canvas.focus();
+    if (!cur || !cur.pointer || overlayOpen()) return;
+    const r = canvas.getBoundingClientRect();
+    cur.pointer((e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height);
+  });
 
-  // Música: progressão C – Am – F – G, com baixo e arpejo
-  const FITA_SONG = { bpm: 128, play(step, t, d) {
+  // ---------- utilidades de desenho ----------
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
+  function label(text, x, y, opts = {}) {
+    ctx.font = opts.font || '600 13px system-ui, sans-serif';
+    ctx.textAlign = opts.align || 'left'; ctx.textBaseline = opts.base || 'alphabetic';
+    if (opts.stroke) { ctx.lineWidth = 4; ctx.strokeStyle = opts.stroke; ctx.strokeText(text, x, y); }
+    ctx.fillStyle = opts.color || '#efe9f7'; ctx.fillText(text, x, y);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+  function baseTile(x, y, w, h, b, opts = {}) {
+    ctx.globalAlpha = opts.alpha ?? 1;
+    ctx.fillStyle = opts.color || BASE_COLOR[b] || '#9e9e9e'; rr(x, y, w, h, Math.min(5, w / 4)); ctx.fill();
+    if (opts.ring) { ctx.strokeStyle = opts.ring; ctx.lineWidth = 2.5; ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    label(b, x + w / 2, y + h / 2 + 1, { font: `700 ${Math.round(h * 0.6)}px system-ui, sans-serif`, align: 'center', base: 'middle', color: opts.text || '#1d1230' });
+  }
+  // textos flutuantes compartilhados (coordenadas de tela)
+  let floats = [];
+  function floatMsg(text, x, y, color = '#fff') { floats.push({ text, x, y, color, t: 0 }); }
+  function drawFloats(dt) {
+    for (const f of floats) {
+      f.t += dt;
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 1.6);
+      ctx.font = '700 13px system-ui, sans-serif';
+      const tw = ctx.measureText(f.text).width;
+      ctx.fillStyle = 'rgba(20,10,35,.75)'; rr(f.x - tw / 2 - 6, f.y - 14 - f.t * 24, tw + 12, 20, 6); ctx.fill();
+      label(f.text, f.x, f.y - f.t * 24, { font: '700 13px system-ui, sans-serif', align: 'center', color: f.color });
+      ctx.globalAlpha = 1;
+    }
+    floats = floats.filter(f => f.t < 1.6);
+  }
+  function bgCell(t) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#2a1440'); g.addColorStop(1, '#4a2050');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function panel(x, y, w, h, a = 0.8) { ctx.fillStyle = `rgba(20,10,35,${a})`; rr(x, y, w, h, 10); ctx.fill(); }
+
+  // =====================================================================
+  // MOTOR DE PLATAFORMA (fases 1 e 2): a DNA polimerase copia a fita molde
+  // =====================================================================
+  const T = 32, ROWS = 14, STEP = 1 / 120;
+  const PP = { gravity: 2000, maxFall: 900, runSpeed: 230, groundAccel: 2200, airAccel: 1400, jumpVelocity: 680, jumpCut: 0.45,
+               coyoteTime: 0.10, jumpBuffer: 0.12, stompBounce: 420, phageSpeed: 70, rosSpeed: 90, interSpeed: 60, baseRespawn: 5 };
+  const BASE_NOTE = { A: 72, T: 76, C: 79, G: 84 };
+
+  function makePlatformer(cfg) {
+    let L, grid, COLS, player, phages, ros, inters, nucs, helicase, checkpoints, spawn, trail, texts;
+    let strand, mutations, corrected, hits, insertions, elapsed, hasHelicase, camX, shake, jumpBufferTimer, goalMsgTimer, acc, done;
+    const N = cfg.target.length;
+
+    const solidAt = (tx, ty) => { if (tx < 0 || tx >= COLS) return true; if (ty < 0 || ty >= ROWS) return false; return grid[ty][tx] === 1; };
+    const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    const boxAt = (cx, cy, r) => ({ x: cx - r, y: cy - r, w: r * 2, h: r * 2 });
+    const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
+    const idx = () => strand.filter(s => !s.ins).length; // posição atual no molde
+
+    function makePhage([c, r]) { const w = 24, h = 26; return { x: c * T + (T - w) / 2, y: (r + 1) * T - h, w, h, vx: 0, vy: 0, dir: 1, onGround: false, dead: false, deadTimer: 0 }; }
+    function respawnPlayer() {
+      player = { x: spawn.x, y: spawn.y, w: 22, h: 30, vx: 0, vy: 0, onGround: false, coyote: 0, jumping: false, facing: 1, invuln: 1.0, prevBottom: 0, squash: 0, airJumps: 0 };
+      trail = [];
+    }
+    function reset() {
+      L = cfg.buildLevel(); grid = L.grid; COLS = L.COLS;
+      spawn = { ...L.start };
+      respawnPlayer(); player.invuln = 0;
+      phages = L.phages.map(makePhage);
+      ros = L.ros.map((d, i) => ({ x0: d.x0 * T, x1: d.x1 * T, cy: d.r * T + 16, x: d.x0 * T + (i * 37) % Math.max(1, (d.x1 - d.x0) * T), y: d.r * T + 16, dir: 1, t: i }));
+      inters = (L.inters || []).map((d, i) => ({ x0: d.x0 * T, x1: d.x1 * T, cy: d.r * T + 16, x: d.x1 * T, y: d.r * T + 16, dir: -1, t: i * 1.3, cool: 0 }));
+      nucs = L.nucs.map(([c, r, b]) => ({ x: c * T + 16, y: r * T + 16, base: b, active: true, timer: 0, phase: c * 0.7 }));
+      helicase = L.helicase ? { ...L.helicase, taken: false } : null;
+      checkpoints = L.checkpoints.map(d => ({ x: d.c * T + 8, y: 10 * T, w: 16, h: 2 * T, label: d.label, active: false }));
+      strand = []; mutations = 0; corrected = 0; hits = 0; insertions = 0; elapsed = 0; hasHelicase = false;
+      texts = []; camX = 0; shake = 0; jumpBufferTimer = 0; goalMsgTimer = 0; acc = 0; done = false;
+    }
+
+    function popText(text, color, x = player.x + player.w / 2, y = player.y - 8) { texts.push({ text, color, x, y, t: 0 }); }
+
+    function collect(n) {
+      if (idx() >= N) return;
+      n.active = false; n.timer = PP.baseRespawn;
+      const i = idx(), need = cfg.target[i];
+      strand.push({ b: n.base, ins: false });
+      if (n.base === need) { Sound.tone(midi(BASE_NOTE[n.base]), 0.18, { type: 'triangle', vol: 0.3 }); Sound.tone(midi(BASE_NOTE[n.base] + 7), 0.22, { type: 'sine', vol: 0.15, delay: 0.06 }); popText(`+${n.base} ✓`, BASE_COLOR[n.base]); }
+      else { Sound.tone(midi(BASE_NOTE[n.base]), 0.35, { type: 'sawtooth', vol: 0.14, slide: 0.7 }); Sound.tone(midi(BASE_NOTE[n.base] + 1), 0.35, { type: 'sawtooth', vol: 0.12, slide: 0.7 }); mutations++; shake = 0.25; popText(`Mutação! ${n.base} não pareia com ${cfg.template[i]}`, '#ff5252'); }
+      if (idx() === N) { Sound.arp([72, 76, 79, 84, 88], 0.08, { type: 'square', vol: 0.12, delay: 0.15 }); popText(cfg.completeMsg || 'Fita completa! Siga até o fim →', '#ffffff', player.x + player.w / 2, player.y - 28); }
+    }
+    function proofread() {
+      if (!strand.length) return;
+      const last = strand.pop();
+      Sound.tone(880, 0.14, { type: 'triangle', vol: 0.2, slide: 0.45 });
+      if (last.ins) { corrected++; popText(`Revisão: inserção ${last.b} removida`, '#80deea'); return; }
+      const i = idx();
+      if (last.b !== cfg.target[i]) { corrected++; popText(`Revisão 3'→5': ${last.b} removido`, '#80deea'); }
+      else popText(`${last.b} removido (estava correto)`, '#b0a6c4');
+    }
+    function intercalate() {
+      if (idx() >= N || !strand.length) return;
+      const b = pick(['A', 'T', 'C', 'G']);
+      strand.push({ b, ins: true }); insertions++;
+      Sound.tone(300, 0.4, { type: 'sine', vol: 0.18, slide: 1.8 });
+      popText(`Intercalação! Inserção de ${b}: matriz de leitura deslocada`, '#ce93d8');
+      shake = 0.3;
+    }
+
+    // ---------- física ----------
+    function moveBody(b, dt) {
+      let hitX = false;
+      b.x += b.vx * dt;
+      const top = Math.floor(b.y / T), bottom = Math.floor((b.y + b.h - 0.001) / T);
+      if (b.vx > 0) { const tx = Math.floor((b.x + b.w - 0.001) / T); for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = tx * T - b.w; b.vx = 0; hitX = true; break; } }
+      else if (b.vx < 0) { const tx = Math.floor(b.x / T); for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = (tx + 1) * T; b.vx = 0; hitX = true; break; } }
+      b.y += b.vy * dt;
+      const wasGround = b.onGround; b.onGround = false;
+      const left = Math.floor(b.x / T), right = Math.floor((b.x + b.w - 0.001) / T);
+      if (b.vy > 0) { const ty = Math.floor((b.y + b.h - 0.001) / T); for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) { if (!wasGround && b.vy > 300) b.squash = 0.12; b.y = ty * T - b.h; b.vy = 0; b.onGround = true; break; } }
+      else if (b.vy < 0) { const ty = Math.floor(b.y / T); for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) { b.y = (ty + 1) * T; b.vy = 0; break; } }
+      return hitX;
+    }
+    const jumpHeld = () => held(['Space', 'KeyW', 'ArrowUp']);
+    function doJump(mult) { player.vy = -PP.jumpVelocity * mult; jumpBufferTimer = 0; player.onGround = false; player.jumping = true; Sound.tone(mult < 1 ? 520 : 360, 0.16, { type: 'square', vol: 0.1, slide: 2.2 }); }
+    function updatePlayer(dt) {
+      const p = player;
+      const dir = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
+      if (dir !== 0) { p.vx = approach(p.vx, dir * PP.runSpeed, (p.onGround ? PP.groundAccel : PP.airAccel) * dt); p.facing = dir; }
+      else p.vx = approach(p.vx, 0, (p.onGround ? PP.groundAccel * 1.2 : PP.airAccel * 0.3) * dt);
+      p.coyote = p.onGround ? PP.coyoteTime : p.coyote - dt;
+      if (p.onGround) p.airJumps = hasHelicase ? 1 : 0;
+      jumpBufferTimer -= dt;
+      if (jumpBufferTimer > 0) { if (p.coyote > 0) { doJump(1); p.coyote = 0; } else if (p.airJumps > 0) { doJump(0.9); p.airJumps--; } }
+      if (p.jumping && !jumpHeld() && p.vy < 0) { p.vy *= PP.jumpCut; p.jumping = false; }
+      if (p.vy >= 0) p.jumping = false;
+      p.vy = Math.min(p.vy + PP.gravity * dt, PP.maxFall);
+      p.prevBottom = p.y + p.h;
+      moveBody(p, dt);
+      p.invuln = Math.max(0, p.invuln - dt); p.squash = Math.max(0, p.squash - dt);
+      const tip = { x: p.x + p.w / 2 - p.facing * 8, y: p.y + p.h * 0.6 }, last = trail[trail.length - 1];
+      if (!last || Math.hypot(tip.x - last.x, tip.y - last.y) > 3) { trail.push(tip); if (trail.length > 80) trail.shift(); }
+      if (p.y > ROWS * T + 64) hurt('Queda no nucleoplasma!');
+    }
+    const edgeProbe = e => ({ x: e.dir > 0 ? e.x + e.w + 1 : e.x - 1, y: e.y + e.h + 1 });
+    const groundAhead = e => { const p = edgeProbe(e); return solidAt(Math.floor(p.x / T), Math.floor(p.y / T)); };
+    function updatePhage(e, dt) {
+      if (e.dead) { e.deadTimer -= dt; return; }
+      e.vx = e.dir * PP.phageSpeed; e.vy = Math.min(e.vy + PP.gravity * dt, PP.maxFall);
+      if (moveBody(e, dt)) e.dir *= -1; else if (e.onGround && !groundAhead(e)) e.dir *= -1;
+      if (e.y > ROWS * T + 64) e.remove = true;
+    }
+    function updateFlyer(r, dt, speed, amp) {
+      r.t += dt; r.x += r.dir * speed * dt;
+      if (r.x < r.x0) { r.x = r.x0; r.dir = 1; } if (r.x > r.x1) { r.x = r.x1; r.dir = -1; }
+      r.y = r.cy + Math.sin(r.t * 2.5) * amp;
+    }
+    function hurt(msg) { hits++; respawnPlayer(); popText(msg, '#ff8a80'); Sound.tone(300, 0.4, { type: 'sawtooth', vol: 0.16, slide: 0.3 }); Sound.noise(0.25, { freq: 500, vol: 0.15 }); }
+    function interactions() {
+      const p = player;
+      for (const e of phages) {
+        if (e.dead || p.invuln > 0 || !overlap(p, e)) continue;
+        if (p.vy > 0 && p.prevBottom <= e.y + 6) {
+          e.dead = true; e.deadTimer = 0.5; p.y = e.y - p.h;
+          p.vy = jumpHeld() ? -Math.max(PP.stompBounce, PP.jumpVelocity * 0.85) : -PP.stompBounce; p.jumping = true;
+          Sound.noise(0.1, { freq: 700, vol: 0.25 }); Sound.tone(260, 0.14, { type: 'square', vol: 0.15, slide: 0.4 });
+          popText('Fago eliminado!', '#cfd8dc', e.x + e.w / 2, e.y - 6);
+        } else { hurt('Infectada por um fago!'); return; }
+      }
+      if (p.invuln <= 0) for (const r of ros) if (overlap(p, boxAt(r.x, r.y, 10))) { hurt('Dano oxidativo!'); return; }
+      if (p.invuln <= 0) for (const r of inters) if (overlap(p, boxAt(r.x, r.y, 12))) { intercalate(); p.invuln = 1.2; p.vy = -320; return; }
+      for (const n of nucs) if (n.active && overlap(p, boxAt(n.x, n.y, 11))) collect(n);
+      if (helicase && !helicase.taken && overlap(p, boxAt(helicase.x, helicase.y, 13))) {
+        helicase.taken = true; hasHelicase = true; p.airJumps = 1;
+        Sound.arp([67, 72, 76, 79, 84], 0.06, { type: 'triangle', vol: 0.2 });
+        popText('Helicase! Pulo duplo liberado', '#80deea');
+      }
+      for (const c of checkpoints) if (!c.active && overlap(p, c)) {
+        c.active = true; spawn = { x: c.x - 4, y: 12 * T - 30 };
+        Sound.arp([72, 79, 84], 0.09, { type: 'square', vol: 0.12 }); popText(`Checkpoint ${c.label}`, '#9ccc65');
+      }
+      if (overlap(p, L.goal)) {
+        if (idx() >= N) finish();
+        else if (goalMsgTimer <= 0) { Sound.tone(140, 0.25, { type: 'square', vol: 0.12 }); popText(`Fita incompleta: faltam ${N - idx()} nucleotídeos`, '#ffd54f'); goalMsgTimer = 1.5; }
+      }
+    }
+    function step(dt) {
+      elapsed += dt; goalMsgTimer -= dt; shake = Math.max(0, shake - dt);
+      updatePlayer(dt);
+      for (const e of phages) updatePhage(e, dt);
+      for (const r of ros) updateFlyer(r, dt, PP.rosSpeed, 16);
+      for (const r of inters) updateFlyer(r, dt, PP.interSpeed, 10);
+      for (const n of nucs) if (!n.active && (n.timer -= dt) <= 0) n.active = true;
+      interactions();
+      phages = phages.filter(e => !e.remove && !(e.dead && e.deadTimer <= 0));
+      for (const t of texts) { t.t += dt; t.y -= 28 * dt; }
+      texts = texts.filter(t => t.t < 1.8);
+      const target = Math.max(0, Math.min(player.x + player.w / 2 - W / 2, COLS * T - W));
+      camX += (target - camX) * Math.min(1, dt * 8);
+    }
+    function finish() {
+      if (done) return; done = true;
+      cfg.onFinish({ strand: strand.map(s => ({ ...s })), mutations, corrected, hits, insertions, elapsed });
+    }
+
+    // ---------- desenho ----------
+    let seed = 7; const srnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const ORG = Array.from({ length: 26 }, () => ({ type: srnd() < 0.4 ? 'mito' : srnd() < 0.6 ? 'ves' : 'ribo', x: srnd() * 1800, y: 40 + srnd() * 300, s: 0.7 + srnd() * 0.7, a: srnd() * Math.PI }));
+    function drawBackground() {
+      const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cfg.bg ? cfg.bg[0] : '#2a1440'); g.addColorStop(1, cfg.bg ? cfg.bg[1] : '#4a2050');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      for (const o of ORG) {
+        const x = ((o.x - camX * 0.3) % 1800 + 1800) % 1800 - 200;
+        ctx.save(); ctx.translate(x, o.y); ctx.rotate(o.a); ctx.scale(o.s, o.s);
+        if (o.type === 'mito') { ctx.fillStyle = 'rgba(230,120,80,.18)'; ctx.beginPath(); ctx.ellipse(0, 0, 46, 20, 0, 0, Math.PI * 2); ctx.fill(); }
+        else if (o.type === 'ves') { ctx.strokeStyle = 'rgba(180,150,255,.22)'; ctx.lineWidth = 3; circle(0, 0, 14); ctx.stroke(); }
+        else { ctx.fillStyle = 'rgba(255,255,255,.1)'; for (let i = 0; i < 6; i++) { circle(i * 12, Math.sin(i) * 6, 3); ctx.fill(); } }
+        ctx.restore();
+      }
+    }
+    function drawTiles(cx) {
+      const c0 = Math.max(0, Math.floor(cx / T)), c1 = Math.min(COLS - 1, Math.ceil((cx + W) / T));
+      for (let y = 0; y < ROWS; y++) for (let x = c0; x <= c1; x++) {
+        if (!grid[y][x]) continue;
+        const px = x * T, py = y * T, top = !solidAt(x, y - 1), bot = y < ROWS - 1 && !solidAt(x, y + 1);
+        ctx.fillStyle = '#e9c46a'; ctx.fillRect(px, py, T, T);
+        ctx.strokeStyle = '#c99d45'; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (let k = 0; k < 4; k++) { const lx = px + 4 + k * 8; ctx.moveTo(lx - 1, py + 6); ctx.lineTo(lx + 1, py + T / 2); ctx.lineTo(lx - 1, py + T - 6); }
+        ctx.stroke();
+        ctx.fillStyle = '#8e5bd6';
+        for (let k = 0; k < 4; k++) { if (top) { circle(px + 4 + k * 8, py + 4, 4); ctx.fill(); } if (bot) { circle(px + 4 + k * 8, py + T - 4, 4); ctx.fill(); } }
+      }
+    }
+    function drawNuc(n, now) {
+      const y = n.y + Math.sin(now / 300 + n.phase) * 3;
+      ctx.fillStyle = 'rgba(255,255,255,.12)'; circle(n.x, y, 14); ctx.fill();
+      ctx.fillStyle = BASE_COLOR[n.base]; circle(n.x, y, 11); ctx.fill();
+      label(n.base, n.x, y + 1, { font: '700 13px system-ui, sans-serif', align: 'center', base: 'middle', color: '#1d1230' });
+    }
+    function drawPhage(e, now) {
+      const cx = e.x + e.w / 2;
+      if (e.dead) { ctx.globalAlpha = Math.max(0, e.deadTimer / 0.5); ctx.fillStyle = '#90a4ae'; rr(e.x - 2, e.y + e.h - 7, e.w + 4, 7, 3); ctx.fill(); ctx.globalAlpha = 1; return; }
+      const hy = e.y + 9, hr = 9;
+      ctx.fillStyle = '#b0bec5'; ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * hr, hy + Math.sin(a) * hr); }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#607d8b'; ctx.fillRect(cx - 2, hy + hr - 1, 4, 7);
+      ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = 2; const wig = Math.sin(now / 80 + e.x) * 3; ctx.beginPath();
+      for (const [dx, w] of [[-9, 1], [9, -1], [-4, -1], [4, 1]]) { ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx + dx + w * wig, e.y + e.h); }
+      ctx.stroke();
+      const ex = cx + e.dir * 3; ctx.fillStyle = '#fff'; ctx.fillRect(ex - 5, hy - 3, 4, 5); ctx.fillRect(ex + 1, hy - 3, 4, 5);
+    }
+    function drawROS(r, now) {
+      const rot = now / 400; ctx.fillStyle = 'rgba(255,112,67,.25)'; circle(r.x, r.y, 18); ctx.fill();
+      ctx.fillStyle = '#ff7043'; ctx.beginPath();
+      for (let i = 0; i < 18; i++) { const a = rot + i * Math.PI / 9, rad = i % 2 ? 6 : 12; ctx.lineTo(r.x + Math.cos(a) * rad, r.y + Math.sin(a) * rad); }
+      ctx.closePath(); ctx.fill();
+      label('•OH', r.x, r.y + 0.5, { font: '700 8px system-ui, sans-serif', align: 'center', base: 'middle' });
+    }
+    function drawInter(r, now) {
+      // agente intercalante: molécula plana (anéis aromáticos) que se encaixa entre os pares de bases
+      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(Math.sin(now / 500 + r.t) * 0.3);
+      ctx.fillStyle = 'rgba(255,152,0,.22)'; circle(0, 0, 20); ctx.fill();
+      ctx.fillStyle = '#ffb74d'; ctx.strokeStyle = '#e65100'; ctx.lineWidth = 1.5;
+      for (const ox of [-11, 0, 11]) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(ox + Math.cos(a) * 6.5, Math.sin(a) * 6.5); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      ctx.restore();
+    }
+    function drawCheckpoint(c) {
+      ctx.fillStyle = '#d7ccc8'; ctx.fillRect(c.x + 6, c.y, 3, c.h);
+      ctx.fillStyle = c.active ? '#9ccc65' : '#7e7491'; ctx.beginPath(); ctx.moveTo(c.x + 9, c.y + 2); ctx.lineTo(c.x + 48, c.y + 10); ctx.lineTo(c.x + 9, c.y + 20); ctx.fill();
+      label(c.label, c.x + 12, c.y + 14, { font: '700 9px system-ui, sans-serif', color: '#1d1230' });
+    }
+    function drawGoal(now) {
+      const g = L.goal, ready = idx() >= N;
+      ctx.globalAlpha = ready ? 1 : 0.55;
+      ctx.fillStyle = '#ab47bc'; rr(g.x + 10, g.y, g.w - 20, g.h, 20); ctx.fill();
+      ctx.fillStyle = '#ce93d8'; for (let i = 0; i < 5; i++) ctx.fillRect(g.x + 10, g.y + 18 + i * 22, g.w - 20, 6);
+      ctx.globalAlpha = 1;
+      label(ready ? L.goalLabel + ' ✓' : L.goalLabel, g.x + g.w / 2, g.y - 8 + Math.sin(now / 300) * 2, { font: '700 11px system-ui, sans-serif', align: 'center', color: ready ? '#ffd54f' : '#cbb8e0' });
+    }
+    function drawPlayer() {
+      const p = player; if (p.invuln > 0 && Math.floor(p.invuln * 12) % 2 === 0) return;
+      let sx = 1, sy = 1; if (p.squash > 0) { sx = 1.25; sy = 0.78; } else if (!p.onGround && p.vy < -200) { sx = 0.88; sy = 1.12; }
+      const dw = p.w * sx, dh = p.h * sy, dx = p.x + (p.w - dw) / 2, dy = p.y + p.h - dh;
+      ctx.fillStyle = '#26c6da'; rr(dx, dy, dw, dh, 8); ctx.fill();
+      ctx.fillStyle = '#00838f'; rr(p.facing > 0 ? dx + dw - 6 : dx - 2, dy + dh * 0.45, 8, dh * 0.35, 3); ctx.fill();
+      const eyeX = p.facing > 0 ? dx + dw - 11 : dx + 4;
+      ctx.fillStyle = '#fff'; ctx.fillRect(eyeX, dy + 6, 7, 7); ctx.fillStyle = '#102027'; ctx.fillRect(eyeX + (p.facing > 0 ? 4 : 1), dy + 8, 2, 4);
+      if (hasHelicase) { ctx.fillStyle = '#80deea'; circle(dx + dw / 2, dy - 4, 3); ctx.fill(); }
+    }
+    function drawTail() {
+      if (!strand.length || trail.length < 2) return;
+      const pts = [];
+      for (let k = 0; k < Math.min(strand.length, 18); k++) {
+        const ti = trail.length - 1 - (k + 1) * 4; if (ti < 0) break;
+        const s = strand[strand.length - 1 - k];
+        pts.push({ ...trail[ti], s });
+      }
+      ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(player.x + player.w / 2, player.y + player.h * 0.6);
+      for (const p of pts) ctx.lineTo(p.x, p.y); ctx.stroke();
+      for (const p of pts) { ctx.fillStyle = BASE_COLOR[p.s.b]; circle(p.x, p.y, 5); ctx.fill(); if (p.s.ins) { ctx.strokeStyle = '#ce93d8'; ctx.lineWidth = 2; ctx.stroke(); } }
+    }
+    function drawHUD(now) {
+      // janela do molde ao redor da posição atual
+      const WIN = Math.min(N, 13), cw = 24, labelW = 58, gap = 5;
+      const i0 = clamp(idx() - 6, 0, N - WIN);
+      const totalW = labelW * 2 + cw * WIN + gap * 4, x0 = (W - totalW) / 2, y0 = 6;
+      panel(x0 - 8, y0, totalW + 16, 74);
+      label(`Molde 3'${i0 > 0 ? ' …' : ''}`, x0 + labelW - 6, y0 + 22, { font: '600 11px system-ui, sans-serif', align: 'right', color: '#cbb8e0' });
+      label(`Nova 5'${i0 > 0 ? ' …' : ''}`, x0 + labelW - 6, y0 + 52, { font: '600 11px system-ui, sans-serif', align: 'right', color: '#cbb8e0' });
+      const endX = x0 + labelW + cw * WIN + gap * 4 + 4;
+      label(i0 + WIN < N ? "… 5'" : "5'", endX, y0 + 22, { font: '600 11px system-ui, sans-serif', color: '#cbb8e0' });
+      label(i0 + WIN < N ? "… 3'" : "3'", endX, y0 + 52, { font: '600 11px system-ui, sans-serif', color: '#cbb8e0' });
+      // mapeia posição do molde -> base da nova fita (ignorando inserções) e inserções após cada posição
+      const nb = [], insAfter = {};
+      let j = 0;
+      for (const s of strand) { if (s.ins) { (insAfter[j - 1] = insAfter[j - 1] || []).push(s.b); } else nb[j++] = s.b; }
+      const pulse = 0.5 + 0.5 * Math.sin(now / 160);
+      for (let k = 0; k < WIN; k++) {
+        const i = i0 + k, cx = x0 + labelW + k * cw + Math.floor(i / 3) * gap - Math.floor(i0 / 3) * gap;
+        if (cfg.intron && i >= cfg.intron[0] && i <= cfg.intron[1]) { ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(cx, y0 + 4, cw, 60); }
+        baseTile(cx + 1, y0 + 8, cw - 2, 20, cfg.template[i], { alpha: 0.75 });
+        if (i < nb.length) {
+          const b = nb[i], ok = b === cfg.target[i];
+          baseTile(cx + 1, y0 + 38, cw - 2, 20, b, { ring: ok ? null : '#ff5252' });
+          if (ok) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.beginPath(); const k2 = HBONDS[b]; for (let q = 0; q < k2; q++) { const lx = cx + cw / 2 + (q - (k2 - 1) / 2) * 5; ctx.moveTo(lx, y0 + 30); ctx.lineTo(lx, y0 + 36); } ctx.stroke(); }
+          else label('✕', cx + cw / 2, y0 + 34, { font: '700 10px system-ui, sans-serif', align: 'center', base: 'middle', color: '#ff5252' });
+        } else {
+          ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); rr(cx + 1.5, y0 + 38.5, cw - 3, 19, 4); ctx.stroke(); ctx.setLineDash([]);
+          if (i === nb.length) { ctx.strokeStyle = `rgba(255,213,79,${0.4 + 0.6 * pulse})`; ctx.lineWidth = 2; rr(cx, y0 + 7, cw, 22, 5); ctx.stroke(); rr(cx, y0 + 37, cw, 22, 5); ctx.stroke(); label('?', cx + cw / 2, y0 + 49, { font: '700 12px system-ui, sans-serif', align: 'center', base: 'middle', color: '#ffd54f' }); }
+        }
+        if (insAfter[i]) { ctx.fillStyle = '#ab47bc'; rr(cx + cw - 6, y0 + 58, 12, 12, 3); ctx.fill(); label('+', cx + cw, y0 + 65, { font: '700 10px system-ui, sans-serif', align: 'center', base: 'middle' }); }
+      }
+      if (cfg.intron) label('íntron', x0 + totalW - 4, y0 + 70, { font: '10px system-ui, sans-serif', align: 'right', color: '#a99bc0' });
+      label(`${idx()}/${N}`, x0 + labelW / 2 - 6, y0 + 70, { font: '600 10px system-ui, sans-serif', align: 'center', color: '#a99bc0' });
+      const txt = `Erros: ${mutations}   Revisões: ${corrected}   Danos: ${hits}${insertions ? `   Inserções: ${insertions}` : ''}${hasHelicase ? '   Helicase ✓' : ''}`;
+      ctx.font = '600 12px system-ui, sans-serif'; const w = ctx.measureText(txt).width + 20;
+      panel(10, H - 34, w, 24, 0.75); label(txt, 20, H - 18, { font: '600 12px system-ui, sans-serif' });
+    }
+
+    return {
+      ...cfg.phase,
+      start() { reset(); },
+      key(code, down) {
+        if (!down) return;
+        if (['Space', 'KeyW', 'ArrowUp'].includes(code)) jumpBufferTimer = PP.jumpBuffer;
+        if (['KeyE', 'ArrowDown', 'KeyS'].includes(code)) proofread();
+        if (code === 'KeyR') { reset(); }
+      },
+      update(dt) { acc += Math.min(0.1, dt); while (acc >= STEP && !done) { step(STEP); acc -= STEP; } },
+      render(dt) {
+        const now = performance.now();
+        drawBackground();
+        const sx = shake > 0 ? (Math.random() - 0.5) * 8 : 0, sy = shake > 0 ? (Math.random() - 0.5) * 6 : 0;
+        const cx = Math.round(camX);
+        ctx.save(); ctx.translate(-cx + sx, sy);
+        drawTiles(cx);
+        for (const c of checkpoints) drawCheckpoint(c);
+        drawGoal(now);
+        for (const n of nucs) if (n.active && n.x > cx - 40 && n.x < cx + W + 40) drawNuc(n, now);
+        if (helicase && !helicase.taken) { const y = helicase.y + Math.sin(now / 250) * 3; ctx.fillStyle = 'rgba(128,222,234,.25)'; circle(helicase.x, y, 18); ctx.fill(); for (let i = 0; i < 6; i++) { const a = now / 600 + i * Math.PI / 3; ctx.fillStyle = i % 2 ? '#4dd0e1' : '#80deea'; circle(helicase.x + Math.cos(a) * 8, y + Math.sin(a) * 8, 5); ctx.fill(); } label('helicase', helicase.x, y - 20, { font: '600 10px system-ui, sans-serif', align: 'center', color: '#e0f7fa' }); }
+        for (const e of phages) drawPhage(e, now);
+        for (const r of ros) drawROS(r, now);
+        for (const r of inters) drawInter(r, now);
+        drawTail(); drawPlayer();
+        for (const t of texts) {
+          ctx.globalAlpha = Math.max(0, 1 - t.t / 1.8); ctx.font = '700 13px system-ui, sans-serif';
+          const tw = ctx.measureText(t.text).width; ctx.fillStyle = 'rgba(20,10,35,.7)'; rr(t.x - tw / 2 - 6, t.y - 14, tw + 12, 20, 6); ctx.fill();
+          label(t.text, t.x, t.y, { font: '700 13px system-ui, sans-serif', align: 'center', color: t.color }); ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+        drawHUD(now);
+      },
+      debug: () => ({ player, strand, idx: idx(), L }),
+    };
+  }
+
+  // ---------- ferramentas de construção de fase ----------
+  function emptyGrid(cols) { return Array.from({ length: ROWS }, () => new Array(cols).fill(0)); }
+  function fillG(g, x0, x1, y0, y1, v = 1) { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) g[y][x] = v; }
+
+  // ---------- Fase 1: fase original (tutorial) ----------
+  const P1_TEMPLATE = 'TACCGGACCATT', P1_TARGET = 'ATGGCCTGGTAA';
+  function buildLevel1() {
+    const COLS = 110, g = emptyGrid(COLS);
+    fillG(g, 0, COLS - 1, 12, 13);
+    for (const [a, b] of [[16, 18], [30, 33], [52, 54], [66, 69], [88, 90]]) fillG(g, a, b, 12, 13, 0);
+    fillG(g, 0, 0, 0, 11); fillG(g, COLS - 1, COLS - 1, 0, 11);
+    for (const [x0, x1, y0, y1] of [[8, 12, 9, 9], [20, 24, 9, 9], [25, 28, 6, 6], [35, 39, 9, 9], [44, 44, 10, 11], [46, 50, 8, 8], [56, 60, 9, 9], [61, 63, 6, 6], [72, 76, 9, 9], [78, 80, 6, 6], [82, 85, 3, 3], [93, 97, 9, 9], [100, 101, 10, 11], [102, 103, 9, 11]]) fillG(g, x0, x1, y0, y1);
+    return {
+      COLS, grid: g, start: { x: 2 * T + 4, y: 12 * T - 30 }, goal: { x: 105 * T, y: 8 * T, w: 2 * T, h: 4 * T }, goalLabel: 'Telômero',
+      phages: [[10, 8], [24, 11], [38, 11], [48, 7], [60, 11], [74, 8], [84, 11], [96, 11]],
+      ros: [{ x0: 18, x1: 24, r: 6 }, { x0: 55, x1: 61, r: 5 }, { x0: 77, x1: 83, r: 8 }, { x0: 92, x1: 99, r: 6 }], inters: [],
+      nucs: [[4, 10, 'A'], [6, 10, 'T'], [10, 7, 'G'], [12, 7, 'C'], [20, 10, 'G'], [22, 7, 'A'], [26, 4, 'G'], [27, 4, 'C'], [35, 7, 'C'], [37, 7, 'T'], [39, 7, 'C'], [42, 10, 'G'],
+             [47, 6, 'T'], [49, 6, 'G'], [53, 9, 'A'], [57, 7, 'C'], [59, 7, 'G'], [62, 4, 'T'], [64, 10, 'A'], [72, 7, 'G'], [74, 7, 'T'], [76, 7, 'A'], [79, 4, 'A'], [80, 4, 'C'], [84, 2, 'G'], [86, 10, 'T'], [89, 9, 'A'],
+             [93, 7, 'T'], [95, 7, 'A'], [97, 7, 'G'], [99, 10, 'C']],
+      helicase: { x: 28 * T + 16, y: 5 * T + 16 }, checkpoints: [{ c: 41, label: 'G1/S' }, { c: 71, label: 'G2/M' }],
+    };
+  }
+  const SONG_REPL = { bpm: 128, play(step, t, d) {
     const CH = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];
     const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
     if (s % 2 === 0) Sound.note(midi(ch[0] - 24), t, d * 1.6, 'triangle', 0.7);
     Sound.note(midi(ch[[0, 1, 2, 1, 2, 1, 0, 2][s]] + 12), t, d * 0.8, 'square', 0.16);
     if (s === 0 || s === 4) Sound.note(midi(ch[2] + 24), t, d * 1.5, 'sine', 0.1);
   } };
-  // Cada base tem uma nota: o pareamento correto soa harmonioso
-  const BASE_NOTE = { A: 72, T: 76, C: 79, G: 84 };
 
-  function start() { Sound.ensure(); Sound.music(FITA_SONG); reset(); state = 'play'; introEl.hidden = true; resultsEl.hidden = true; for (const k in keys) keys[k] = false; canvas.focus(); }
+  PHASES.push(makePlatformer({
+    target: P1_TARGET, template: P1_TEMPLATE, buildLevel: buildLevel1, completeMsg: 'Fita completa! Siga até o telômero →',
+    phase: {
+      title: 'Replicação', short: 'Tutorial: copie uma fita molde curta', song: SONG_REPL,
+      controls: '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espaço</kbd>/<kbd>↑</kbd> pular (segure para ir mais alto) · <kbd>E</kbd>/<kbd>↓</kbd> revisão 3\'→5\' · <kbd>R</kbd> reiniciar',
+      touch: ['ArrowLeft', 'ArrowRight', 'Space', 'KeyE'],
+      brief: () => `<p>Você é a <b>DNA polimerase</b>. Copie a fita molde mostrada no topo coletando os nucleotídeos <b>complementares</b> na ordem certa: <b class="bA">A</b>–<b class="bT">T</b> e <b class="bC">C</b>–<b class="bG">G</b>.</p>
+        <p>Pegou a base errada? Ela vira uma mutação. Use a <b>revisão 3'→5'</b> para removê-la. Pise nos bacteriófagos, desvie das espécies reativas de oxigênio, pegue a helicase (pulo duplo) e chegue ao telômero.</p>`,
+    },
+    onFinish(r) {
+      const got = r.strand.map(s => s.b).join('');
+      const span = (s, ref) => s.split('').map((b, i) => `<span class="b b${b}${ref && b !== ref[i] ? ' bad' : ''}">${b}</span>`).join('');
+      const exp = P1_TARGET.match(/.{3}/g), gc = got.match(/.{3}/g);
+      let stopped = false; const prot = [];
+      const rows = exp.map((ec, i) => {
+        const g2 = gc[i], ea = codonAA(ec), ga = codonAA(g2);
+        let eff;
+        if (stopped) eff = '<span class="muted">não traduzido</span>';
+        else if (g2 === ec) eff = '<span style="color:#81c784">Correto</span>';
+        else if (ga === ea) eff = '<span style="color:#90caf9">Silenciosa</span>';
+        else if (ga === '*') eff = '<span style="color:#ff5252">Sem sentido (stop prematuro)</span>';
+        else if (ea === '*') eff = '<span style="color:#ff5252">Perda do códon de parada</span>';
+        else eff = '<span style="color:#ffb74d">Troca de sentido (missense)</span>';
+        if (!stopped) { if (ga === '*') stopped = true; else prot.push(AA3[ga]); }
+        return `<tr><td class="b">${span(ec)} <span class="muted">${AA3[ea]}</span></td><td class="b">${span(g2, ec)} <span class="muted">${AA3[ga]}</span></td><td>${eff}</td></tr>`;
+      }).join('');
+      const wrong = got.split('').filter((b, i) => b !== P1_TARGET[i]).length;
+      Sound.arp(wrong ? [72, 75, 79, 78] : [72, 76, 79, 84, 79, 84, 88], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
+      completePhase(0, `<h2>Telômero alcançado: ${wrong === 0 ? 'replicação perfeita!' : `${wrong} mutação(ões)`}</h2>
+        <div class="seq">Molde&nbsp;3'-${span(P1_TEMPLATE)}-5'<br>Nova&nbsp;&nbsp;5'-${span(got, P1_TARGET)}-3'</div>
+        <table class="t"><tr><th>Esperado</th><th>Obtido</th><th>Efeito</th></tr>${rows}</table>
+        <p>Proteína: <b>${prot.join('–') || '(nenhuma)'}</b>${stopped ? '' : ' <span class="muted">(sem códon de parada)</span>'}</p>
+        <div class="stats"><span>Erros incorporados <b>${r.mutations}</b></span><span>Revisões <b>${r.corrected}</b></span><span>Danos <b>${r.hits}</b></span><span>Tempo <b>${Math.floor(r.elapsed / 60)}:${String(Math.floor(r.elapsed % 60)).padStart(2, '0')}</b></span></div>
+        <p class="muted">Na próxima fase você replica um gene inteiro: o da luciferase.</p>`);
+    },
+  }));
 
-  function press(code) {
-    if (state === 'intro') { if (code === 'Enter' || code === 'Space') start(); return; }
-    if (state === 'won') { if (code === 'Enter' || code === 'KeyR') start(); return; }
-    if (keys[code]) return;
-    keys[code] = true;
-    if (JUMP.includes(code)) jumpBufferTimer = P.jumpBuffer;
-    if (PROOF.includes(code)) proofread();
-    if (code === 'KeyR') start();
-    if (code === 'KeyH') showDebug = !showDebug;
-  }
-  const release = code => { keys[code] = false; };
-
-  addEventListener('keydown', e => {
-    if (GAME_KEYS.includes(e.code)) e.preventDefault();
-    press(e.code);
-  });
-  addEventListener('keyup', e => release(e.code));
-  addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-  document.getElementById('startBtn').addEventListener('click', start);
-  for (const btn of document.querySelectorAll('#touch button')) {
-    const k = btn.dataset.k;
-    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'intro') { start(); return; } press(k); });
-    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) btn.addEventListener(ev, () => release(k));
-  }
-  const held = codes => codes.some(c => keys[c]);
-  const jumpHeld = () => held(JUMP);
-
-  // ================= Física =================
-  const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
-  const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  const boxAt = (cx, cy, r) => ({ x: cx - r, y: cy - r, w: r * 2, h: r * 2 });
-
-  function moveBody(b, dt) {
-    let hitX = false;
-    b.x += b.vx * dt;
-    const top = Math.floor(b.y / T), bottom = Math.floor((b.y + b.h - 0.001) / T);
-    if (b.vx > 0) {
-      const tx = Math.floor((b.x + b.w - 0.001) / T);
-      for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = tx * T - b.w; b.vx = 0; hitX = true; break; }
-    } else if (b.vx < 0) {
-      const tx = Math.floor(b.x / T);
-      for (let ty = top; ty <= bottom; ty++) if (solidAt(tx, ty)) { b.x = (tx + 1) * T; b.vx = 0; hitX = true; break; }
-    }
-    b.y += b.vy * dt;
-    const wasGround = b.onGround;
-    b.onGround = false;
-    const left = Math.floor(b.x / T), right = Math.floor((b.x + b.w - 0.001) / T);
-    if (b.vy > 0) {
-      const ty = Math.floor((b.y + b.h - 0.001) / T);
-      for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) {
-        if (!wasGround && b.vy > 300) b.squash = 0.12;
-        b.y = ty * T - b.h; b.vy = 0; b.onGround = true; break;
+  // ---------- Fase 2: o gene completo da luciferase (gerada por segmentos) ----------
+  function buildLevel2() {
+    const SEG = 7, N = CODING.length, START = 6, END = 12;
+    const COLS = START + N * SEG + END;
+    const g = emptyGrid(COLS);
+    fillG(g, 0, COLS - 1, 12, 13);
+    fillG(g, 0, 0, 0, 11); fillG(g, COLS - 1, COLS - 1, 0, 11);
+    const nucs = [], phages = [], ros = [], inters = [], checkpoints = [];
+    let helicase = null;
+    const cpSegs = { 13: 'Origem 2', 26: 'Origem 3' };
+    for (let i = 0; i < N; i++) {
+      const x = START + i * SEG, need = CODING[i];
+      const decoys = ['A', 'T', 'C', 'G'].filter(b => b !== need).sort(() => Math.random() - 0.5).slice(0, 2);
+      const trio = [need, ...decoys].sort(() => Math.random() - 0.5);
+      let type = pick(['A', 'B', 'C', 'D', 'E']);
+      if (i < 2 || cpSegs[i]) type = 'A';
+      if (i === 5) type = 'B';
+      if (type === 'A') { trio.forEach((b, k) => nucs.push([x + 1 + k * 2, 10, b])); if (i > 2 && !cpSegs[i] && Math.random() < 0.35) phages.push([x + 3, 11]); if (i > 6 && Math.random() < 0.25) inters.push({ x0: x, x1: x + 6, r: 9 }); }
+      if (type === 'B') {
+        fillG(g, x + 1, x + 5, 9, 9);
+        trio.forEach((b, k) => nucs.push([x + 1 + k * 2, 7, b]));
+        if (i === 5) helicase = { x: (x + 3) * T + 16, y: 8 * T + 16 };
+        else if (i > 3 && Math.random() < 0.3) ros.push({ x0: x, x1: x + 6, r: 5 });
+        if (i > 2 && i !== 5 && Math.random() < 0.3) phages.push([x + 3, 11]);
       }
-    } else if (b.vy < 0) {
-      const ty = Math.floor(b.y / T);
-      for (let tx = left; tx <= right; tx++) if (solidAt(tx, ty)) { b.y = (ty + 1) * T; b.vy = 0; break; }
+      if (type === 'C') {
+        fillG(g, x + 2, x + 4, 12, 13, 0);
+        const order = [[x + 1, 10], [x + 3, 9], [x + 5, 10]];
+        trio.forEach((b, k) => nucs.push([order[k][0], order[k][1], b]));
+        if (i > 6 && Math.random() < 0.3) inters.push({ x0: x, x1: x + 6, r: 7 });
+      }
+      if (type === 'D') {
+        fillG(g, x + 3, x + 3, 10, 11);
+        const order = [[x + 1, 10], [x + 3, 8], [x + 5, 10]];
+        trio.forEach((b, k) => nucs.push([order[k][0], order[k][1], b]));
+      }
+      if (type === 'E') {
+        fillG(g, x + 1, x + 2, 9, 9); fillG(g, x + 3, x + 5, 6, 6);
+        const order = [[x + 1, 7], [x + 4, 4], [x + 6, 10]];
+        trio.forEach((b, k) => nucs.push([order[k][0], order[k][1], b]));
+        if (i > 4 && Math.random() < 0.3) ros.push({ x0: x, x1: x + 6, r: 8 });
+      }
+      if (cpSegs[i]) checkpoints.push({ c: x + 6, label: cpSegs[i] });
     }
-    return hitX;
+    const gx = START + N * SEG + 6;
+    return { COLS, grid: g, start: { x: 2 * T + 4, y: 12 * T - 30 }, goal: { x: gx * T, y: 8 * T, w: 2 * T, h: 4 * T }, goalLabel: 'Fim do gene',
+             phages, ros, inters, nucs, helicase, checkpoints };
   }
 
-  // ================= Mecânicas de genética =================
-  function popText(text, color, x = player.x + player.w / 2, y = player.y - 8) {
-    texts.push({ text, color, x, y, t: 0 });
-  }
+  PHASES.push(makePlatformer({
+    target: CODING, template: TEMPLATE, buildLevel: buildLevel2, intron: INTRON, completeMsg: 'Gene copiado! Siga até o fim →',
+    bg: ['#1f1238', '#3a1a48'],
+    phase: {
+      title: 'O gene da luciferase', short: 'Replique um gene inteiro, com éxons e íntron', song: { ...SONG_REPL, bpm: 136 }, needs: null,
+      controls: '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espaço</kbd>/<kbd>↑</kbd> pular · <kbd>E</kbd>/<kbd>↓</kbd> revisão 3\'→5\' · <kbd>R</kbd> reiniciar',
+      touch: ['ArrowLeft', 'ArrowRight', 'Space', 'KeyE'],
+      brief: () => `<p>Agora o desafio é maior: replicar o gene inteiro da <b>luciferase</b>, a enzima que faz o vaga-lume brilhar. São <b>39 nucleotídeos</b>. A faixa clara no molde marca o <b>íntron</b>, um trecho que será removido do RNA na fase 5, mas que também precisa ser copiado no DNA.</p>
+        <p><b>Novo inimigo: o agente intercalante.</b> É uma molécula plana que se encaixa entre os pares de bases. Se ela te tocar, uma <b>base extra</b> é inserida na fita nova e desloca a matriz de leitura (<i>frameshift</i>). A revisão (<kbd>E</kbd>) remove a inserção.</p>
+        <p class="muted">Os erros que sobrarem seguem para a fase 3 (reparo do DNA).</p>`,
+    },
+    onFinish(r) {
+      const strand = r.strand;
+      let j = 0, html = '';
+      for (const s of strand) {
+        if (s.ins) html += `<span class="b ins" title="inserção">${s.b}</span>`;
+        else { const bad = s.b !== CODING[j]; html += `<span class="b b${s.b}${bad ? ' bad' : ''}${j >= INTRON[0] && j <= INTRON[1] ? ' intron' : ''}">${s.b}</span>`; j++; }
+      }
+      const subs = strand.filter(s => !s.ins).filter((s, k) => s.b !== CODING[k]).length;
+      const ins = strand.filter(s => s.ins).length;
+      Sound.arp(subs + ins ? [72, 75, 79, 78] : [72, 76, 79, 84, 79, 84, 88], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
+      completePhase(1, `<h2>Gene replicado!</h2>
+        <div class="seq">Molde&nbsp;3'-${seqHTML(TEMPLATE, { intron: INTRON })}-5'<br>Nova&nbsp;&nbsp;5'-${html}-3'</div>
+        <p class="muted">Faixa clara = íntron · vermelho = substituição · roxo = inserção</p>
+        <div class="stats"><span>Substituições <b>${subs}</b></span><span>Inserções <b>${ins}</b></span><span>Revisões <b>${r.corrected}</b></span><span>Danos <b>${r.hits}</b></span><span>Tempo <b>${Math.floor(r.elapsed / 60)}:${String(Math.floor(r.elapsed % 60)).padStart(2, '0')}</b></span></div>
+        <p>${subs + ins ? 'Ficaram erros na fita nova. Na <b>fase 3</b>, o sistema de reparo de pareamento incorreto (MMR) pode corrigi-los antes que virem mutações permanentes.' : 'Cópia perfeita! Mesmo assim, o DNA sofre danos do ambiente o tempo todo. Na <b>fase 3</b> você vai repará-los.'}</p>`,
+        { dna2: strand, dna3: null, pre: null, mrna: null, protein: null, fold: null });
+    },
+  }));
 
-  function collect(n) {
-    if (strand.length >= TARGET.length) return; // fita já completa: a base fica onde está
-    n.active = false; n.timer = P.baseRespawn;
-    const i = strand.length;
-    strand.push(n.base);
-    if (n.base === TARGET[i]) { Sound.tone(midi(BASE_NOTE[n.base]), 0.18, { type: 'triangle', vol: 0.3 }); Sound.tone(midi(BASE_NOTE[n.base] + 7), 0.22, { type: 'sine', vol: 0.15, delay: 0.06 }); }
-    else { Sound.tone(midi(BASE_NOTE[n.base]), 0.35, { type: 'sawtooth', vol: 0.14, slide: 0.7 }); Sound.tone(midi(BASE_NOTE[n.base] + 1), 0.35, { type: 'sawtooth', vol: 0.12, slide: 0.7 }); }
-    if (n.base === TARGET[i]) popText(`+${n.base} ✓`, BASE_COLOR[n.base]);
-    else { mutations++; shake = 0.25; popText(`Mutação! ${n.base} não pareia com ${TEMPLATE[i]}`, '#ff5252'); }
-    if (strand.length === TARGET.length) { Sound.arp([72, 76, 79, 84, 88], 0.08, { type: 'square', vol: 0.12, delay: 0.15 }); }
-    if (strand.length === TARGET.length) popText('Fita completa! Siga até o telômero →', '#ffffff', player.x + player.w / 2, player.y - 28);
-  }
+  // =====================================================================
+  // FASE 3: REPARO DO DNA
+  // =====================================================================
+  (() => {
+    const SW = 34, X0 = 80, TRACK_Y = 250, TIME = 60;
+    const PATH = { mm: 1, ins: 1, dimer: 2, U: 3, oxoG: 3 };
+    const PATH_NAME = { 1: 'MMR (reparo de pareamento incorreto)', 2: 'NER (reparo por excisão de nucleotídeos)', 3: 'BER (reparo por excisão de bases)' };
+    const LES_NAME = { mm: 'pareamento incorreto', ins: 'inserção (alça)', dimer: 'dímero de timina', U: 'uracila no DNA', oxoG: '8-oxoguanina' };
+    let slots, px, camX, timeLeft, busy, stun, lastPath, spawnT, repaired, wrongTries, finished, scanR, log;
 
-  function proofread() {
-    if (state !== 'play' || !strand.length) return;
-    const i = strand.length - 1, b = strand.pop();
-    Sound.tone(880, 0.14, { type: 'triangle', vol: 0.2, slide: 0.45 });
-    if (b !== TARGET[i]) { corrected++; popText(`Revisão 3'→5': ${b} removido`, '#80deea'); }
-    else popText(`${b} removido (estava correto)`, '#b0a6c4');
-  }
-
-  // ================= Atualização =================
-  function updatePlayer(dt) {
-    const p = player;
-    const dir = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
-    if (dir !== 0) { p.vx = approach(p.vx, dir * P.runSpeed, (p.onGround ? P.groundAccel : P.airAccel) * dt); p.facing = dir; }
-    else p.vx = approach(p.vx, 0, (p.onGround ? P.groundAccel * 1.2 : P.airAccel * 0.3) * dt);
-
-    p.coyote = p.onGround ? P.coyoteTime : p.coyote - dt;
-    if (p.onGround) p.airJumps = hasHelicase ? 1 : 0;
-    jumpBufferTimer -= dt;
-    if (jumpBufferTimer > 0) {
-      if (p.coyote > 0) { doJump(1); p.coyote = 0; }
-      else if (p.airJumps > 0) { doJump(0.9); p.airJumps--; }
+    function setup() {
+      const d2 = getData.dna2();
+      slots = []; let j = 0;
+      for (const s of d2) {
+        if (s.ins) slots.push({ b: s.b, ins: true, t: null, lesion: 'ins', seen: false });
+        else { slots.push({ b: s.b, ins: false, t: TEMPLATE[j], j, orig: s.b, lesion: s.b !== CODING[j] ? 'mm' : null, seen: false }); j++; }
+      }
+      px = X0; camX = 0; timeLeft = TIME; busy = null; stun = 0; lastPath = 0; spawnT = 7; repaired = []; wrongTries = 0; finished = false; scanR = 150; log = [];
+      addDamage('dimer', true); addDamage('U', true); addDamage('oxoG', true);
     }
-    if (p.jumping && !jumpHeld() && p.vy < 0) { p.vy *= P.jumpCut; p.jumping = false; }
-    if (p.vy >= 0) p.jumping = false;
-
-    p.vy = Math.min(p.vy + P.gravity * dt, P.maxFall);
-    p.prevBottom = p.y + p.h;
-    moveBody(p, dt);
-    p.invuln = Math.max(0, p.invuln - dt);
-    p.squash = Math.max(0, p.squash - dt);
-
-    const tip = { x: p.x + p.w / 2 - p.facing * 8, y: p.y + p.h * 0.6 };
-    const last = trail[trail.length - 1];
-    if (!last || Math.hypot(tip.x - last.x, tip.y - last.y) > 3) { trail.push(tip); if (trail.length > 80) trail.shift(); }
-
-    if (p.y > ROWS * T + 64) hurt('Queda no citoplasma!');
-  }
-
-  function doJump(mult) {
-    Sound.tone(mult < 1 ? 520 : 360, 0.16, { type: 'square', vol: 0.1, slide: 2.2 });
-    const p = player;
-    p.vy = -P.jumpVelocity * mult; jumpBufferTimer = 0; p.onGround = false; p.jumping = true;
-  }
-
-  function updatePhage(e, dt) {
-    if (e.dead) { e.deadTimer -= dt; return; }
-    e.vx = e.dir * P.phageSpeed;
-    e.vy = Math.min(e.vy + P.gravity * dt, P.maxFall);
-    if (moveBody(e, dt)) e.dir *= -1;
-    else if (e.onGround && !groundAhead(e)) e.dir *= -1;
-    if (e.y > ROWS * T + 64) e.remove = true;
-  }
-  const edgeProbe = e => ({ x: e.dir > 0 ? e.x + e.w + 1 : e.x - 1, y: e.y + e.h + 1 });
-  const groundAhead = e => { const p = edgeProbe(e); return solidAt(Math.floor(p.x / T), Math.floor(p.y / T)); };
-
-  function updateROS(r, dt) {
-    r.t += dt;
-    r.x += r.dir * P.rosSpeed * dt;
-    if (r.x < r.x0) { r.x = r.x0; r.dir = 1; }
-    if (r.x > r.x1) { r.x = r.x1; r.dir = -1; }
-    r.y = r.cy + Math.sin(r.t * 2.5) * 16;
-  }
-
-  function hurt(msg) {
-    Sound.tone(300, 0.4, { type: 'sawtooth', vol: 0.16, slide: 0.3 }); Sound.noise(0.25, { freq: 500, vol: 0.15 });
-    hits++;
-    respawnPlayer();
-    popText(msg, '#ff8a80');
-  }
-
-  function interactions() {
-    const p = player;
-    for (const e of phages) {
-      if (e.dead || p.invuln > 0 || !overlap(p, e)) continue;
-      if (p.vy > 0 && p.prevBottom <= e.y + 6) {
-        e.dead = true; e.deadTimer = 0.5;
-        p.y = e.y - p.h;
-        p.vy = jumpHeld() ? -Math.max(P.stompBounce, P.jumpVelocity * 0.85) : -P.stompBounce;
-        p.jumping = true;
-        Sound.noise(0.1, { freq: 700, vol: 0.25 }); Sound.tone(260, 0.14, { type: 'square', vol: 0.15, slide: 0.4 });
-        popText('Fago eliminado!', '#cfd8dc', e.x + e.w / 2, e.y - 6);
-      } else { hurt('Infectada por um fago!'); return; }
+    const free = k => slots[k] && !slots[k].ins && !slots[k].lesion;
+    function addDamage(type, silent) {
+      const opts = [];
+      for (let k = 0; k < slots.length; k++) {
+        if (type === 'dimer' && free(k) && free(k + 1) && slots[k].b === 'T' && slots[k + 1].b === 'T') opts.push(k);
+        if (type === 'U' && free(k) && slots[k].b === 'C') opts.push(k);
+        if (type === 'oxoG' && free(k) && slots[k].b === 'G') opts.push(k);
+      }
+      if (!opts.length) return false;
+      const k = pick(opts), s = slots[k];
+      if (type === 'dimer') { s.lesion = 'dimer'; slots[k + 1].lesion = 'dimer2'; }
+      if (type === 'U') { s.lesion = 'U'; s.b = 'U'; }
+      if (type === 'oxoG') s.lesion = 'oxoG';
+      if (!silent) {
+        const msg = { dimer: 'Raio UV! Novo dímero de timina', U: 'Desaminação espontânea: C virou U', oxoG: 'Uma ERO oxidou uma guanina (8-oxoG)' }[type];
+        floatMsg(msg, clamp(X0 + k * SW - camX, 120, W - 120), 150, '#ce93d8');
+        Sound.tone(type === 'dimer' ? 70 : 900, 0.4, { type: 'sawtooth', vol: 0.1, slide: type === 'dimer' ? 1 : 0.5 });
+      }
+      return true;
     }
-    if (p.invuln <= 0) for (const r of ros) if (overlap(p, boxAt(r.x, r.y, 10))) { hurt('Dano oxidativo!'); return; }
+    const lesionCount = () => slots.filter(s => s.lesion && s.lesion !== 'dimer2').length;
+    const curSlot = () => clamp(Math.round((px - X0) / SW), 0, slots.length - 1);
 
-    for (const n of nucs) if (n.active && overlap(p, boxAt(n.x, n.y, 11))) collect(n);
-
-    if (!helicase.taken && overlap(p, boxAt(helicase.x, helicase.y, 13))) {
-      helicase.taken = true; hasHelicase = true; p.airJumps = 1;
-      Sound.arp([67, 72, 76, 79, 84], 0.06, { type: 'triangle', vol: 0.2 });
-      popText('Helicase! Pulo duplo liberado', '#80deea');
+    function tryRepair(path) {
+      if (busy || stun > 0 || finished) return;
+      let k = curSlot();
+      if (slots[k].lesion === 'dimer2') k--;
+      const s = slots[k];
+      if (!s || !s.lesion) { floatMsg('Nenhuma lesão aqui', W / 2, 150, '#b0a6c4'); Sound.tone(200, 0.08, { vol: 0.06 }); return; }
+      s.seen = true;
+      if (PATH[s.lesion] !== path) {
+        wrongTries++; stun = 0.7; Sound.tone(150, 0.3, { type: 'square', vol: 0.12 });
+        floatMsg(`A via ${PATH_NAME[path].split(' ')[0]} não reconhece ${LES_NAME[s.lesion]}`, W / 2, 150, '#ff8a80');
+        return;
+      }
+      busy = { k, path, t: 0, dur: path === 3 ? 1.0 : 1.4 };
+      lastPath = path;
+      Sound.arp([60, 64, 67].map(n => n + path * 2), 0.12, { type: 'triangle', vol: 0.15 });
     }
-    for (const c of checkpoints) if (!c.active && overlap(p, c)) {
-      c.active = true; spawn = { x: c.x - 4, y: 12 * T - 30 };
-      Sound.arp([72, 79, 84], 0.09, { type: 'square', vol: 0.12 });
-      popText(`Checkpoint ${c.label}`, '#9ccc65');
+    function completeRepair() {
+      const { k } = busy, s = slots[k];
+      const type = s.lesion;
+      if (type === 'mm') s.b = CODING[s.j];
+      if (type === 'U') s.b = 'C';
+      if (type === 'dimer') slots[k + 1].lesion = null;
+      s.lesion = null;
+      repaired.push(type);
+      if (type === 'ins') slots.splice(k, 1);
+      busy = null;
+      Sound.arp([79, 84, 91], 0.06, { type: 'sine', vol: 0.18 });
+      floatMsg(`${LES_NAME[type]} reparado!`, W / 2, 150, '#9ccc65');
     }
-    if (overlap(p, GOAL)) {
-      if (strand.length === TARGET.length) win();
-      else if (goalMsgTimer <= 0) { Sound.tone(140, 0.25, { type: 'square', vol: 0.12 }); popText(`Fita incompleta: faltam ${TARGET.length - strand.length} nucleotídeos`, '#ffd54f'); goalMsgTimer = 1.5; }
+
+    function finish(early) {
+      if (finished) return; finished = true;
+      const before = getData.dna2();
+      const out = [], consequences = [];
+      for (let k = 0; k < slots.length; k++) {
+        const s = slots[k];
+        let b = s.b;
+        if (s.lesion === 'mm') consequences.push(`posição ${s.j + 1}: pareamento incorreto virou <b>mutação permanente</b> (${CODING[s.j]}→${s.b})`);
+        if (s.lesion === 'ins') consequences.push(`inserção de ${s.b} ficou no DNA: <b>mudança na matriz de leitura</b>`);
+        if (s.lesion === 'U') { b = 'T'; consequences.push(`posição ${s.j + 1}: a uracila pareou com A na replicação, <b>transição C→T</b>`); }
+        if (s.lesion === 'oxoG') { b = 'T'; consequences.push(`posição ${s.j + 1}: a 8-oxoG pareou com A, <b>transversão G→T</b>`); }
+        if (s.lesion === 'dimer') {
+          if (Math.random() < 0.5) { const nb = pick(['A', 'C', 'G']); b = nb; consequences.push(`posição ${s.j + 1}: a polimerase de translesão errou no dímero, <b>T→${nb}</b>`); }
+          else consequences.push(`posição ${s.j + 1}: a polimerase de translesão passou pelo dímero sem erro (sorte!)`);
+        }
+        out.push(b);
+      }
+      const dna3 = out.join('');
+      const counts = {}; for (const r of repaired) counts[r] = (counts[r] || 0) + 1;
+      const rows = Object.entries(LES_NAME).map(([k, n]) => `<tr><td>${n}</td><td>${['mm', 'ins'].includes(k) ? 'MMR' : k === 'dimer' ? 'NER' : 'BER'}</td><td>${counts[k] || 0}</td></tr>`).join('');
+      const nMut = consequences.filter(c => !c.includes('sorte')).length;
+      Sound.arp(nMut ? [72, 75, 79, 78] : [72, 76, 79, 84, 79, 84, 88], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
+      const beforeStr = before.map(s => s.b).join('');
+      completePhase(2, `<h2>${early ? 'DNA íntegro antes do prazo!' : 'Checkpoint G2/M alcançado'}</h2>
+        <p>Você reparou <b>${repaired.length}</b> lesão(ões)${wrongTries ? ` e tentou a via errada ${wrongTries} vez(es)` : ''}.</p>
+        <table class="t"><tr><th>Lesão</th><th>Via de reparo</th><th>Reparadas</th></tr>${rows}</table>
+        <h3>DNA que segue para a transcrição</h3>
+        <div class="seq">Antes&nbsp;&nbsp;${seqHTML(beforeStr)}<br>Depois&nbsp;${seqHTML(dna3, { ref: CODING, intron: dna3.length === CODING.length ? INTRON : null })}<br>Correto&nbsp;${seqHTML(CODING, { intron: INTRON })}</div>
+        ${consequences.length ? `<h3>Lesões não reparadas</h3><ul>${consequences.map(c => `<li>${c}</li>`).join('')}</ul>` : '<p>Nenhuma lesão sobrou: o DNA está idêntico ao original. 🎉</p>'}
+        <p class="muted">${dna3 === CODING ? 'O gene está perfeito para a transcrição.' : 'As mutações que sobraram vão aparecer no RNA e, depois, na proteína.'}</p>`,
+        { dna3, pre: null, mrna: null, protein: null, fold: null });
     }
-  }
 
-  function update(dt) {
-    if (state !== 'play') return;
-    elapsed += dt;
-    goalMsgTimer -= dt;
-    shake = Math.max(0, shake - dt);
-    updatePlayer(dt);
-    for (const e of phages) updatePhage(e, dt);
-    for (const r of ros) updateROS(r, dt);
-    for (const n of nucs) if (!n.active && (n.timer -= dt) <= 0) n.active = true;
-    interactions();
-    phages = phages.filter(e => !e.remove && !(e.dead && e.deadTimer <= 0));
-    for (const t of texts) { t.t += dt; t.y -= 28 * dt; }
-    texts = texts.filter(t => t.t < 1.6);
-    const target = Math.max(0, Math.min(player.x + player.w / 2 - W / 2, COLS * T - W));
-    camX += (target - camX) * Math.min(1, dt * 8);
-  }
+    function drawTile(x, y, b, opts = {}) { baseTile(x - 13, y - 13, 26, 26, b, opts); }
+    PHASES.push({
+      title: 'Reparo do DNA', short: 'Escolha a via certa para cada lesão', needs: 'dna2',
+      controls: '<kbd>←</kbd><kbd>→</kbd> percorrer o DNA · <kbd>1</kbd> MMR · <kbd>2</kbd> NER · <kbd>3</kbd> BER · <kbd>Enter</kbd> encerrar (sem lesões)',
+      touch: ['ArrowLeft', 'ArrowRight', 'Digit1', 'Digit2', 'Digit3', 'Space'],
+      song: { bpm: 100, play(step, t, d) { const r = [48, 51, 55, 53][Math.floor(step / 8) % 4]; if (step % 2 === 0) Sound.note(midi(r - 12), t, d * 1.5, 'triangle', 0.5); if (step % 4 === 1) Sound.note(midi(r + 12 + [0, 3, 7][step % 3]), t, d, 'sine', 0.18); } },
+      brief: () => `<p>Você é uma <b>enzima de reparo</b> percorrendo a dupla hélice que acabou de ser replicada. Antes do <b>checkpoint G2/M</b> (60 s), encontre as lesões e aplique a via de reparo correta:</p>
+        <ul>
+          <li><b>1 · MMR</b> (reparo de pareamento incorreto): bases mal pareadas e alças de inserção deixadas pela polimerase. Ele corrige a <b>fita nova</b> usando a fita molde.</li>
+          <li><b>2 · NER</b> (reparo por excisão de nucleotídeos): <b>dímeros de timina</b> causados por radiação UV, que distorcem a hélice.</li>
+          <li><b>3 · BER</b> (reparo por excisão de bases): bases danificadas isoladas, como <b>uracila</b> no DNA (desaminação da citosina) e <b>8-oxoguanina</b> (oxidação).</li>
+        </ul>
+        <p>Novas lesões aparecem enquanto você trabalha. As que sobrarem no fim viram <b>mutações</b>.</p>`,
+      start() { setup(); },
+      key(code, down) {
+        if (!down) return;
+        if (code === 'Digit1') tryRepair(1);
+        if (code === 'Digit2') tryRepair(2);
+        if (code === 'Digit3') tryRepair(3);
+        if ((code === 'Enter' || code === 'Space') && lesionCount() === 0) finish(true);
+      },
+      update(dt) {
+        if (finished) return;
+        timeLeft -= dt; stun = Math.max(0, stun - dt);
+        if (busy) { busy.t += dt; if (busy.t >= busy.dur) completeRepair(); }
+        else if (stun <= 0) {
+          const dir = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
+          px = clamp(px + dir * 210 * dt, X0, X0 + (slots.length - 1) * SW);
+        }
+        for (const s of slots) { const sx = X0 + slots.indexOf(s) * SW; if (Math.abs(sx - px) < scanR) s.seen = true; }
+        spawnT -= dt;
+        if (spawnT <= 0 && timeLeft > 12) { spawnT = 6 + Math.random() * 4; addDamage(pick(['dimer', 'U', 'oxoG', 'U', 'oxoG'])); }
+        const target = clamp(px - W / 2, 0, Math.max(0, X0 * 2 + slots.length * SW - W));
+        camX += (target - camX) * Math.min(1, dt * 6);
+        if (timeLeft <= 0) finish(false);
+      },
+      render(dt) {
+        const now = performance.now();
+        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#16213e'); g.addColorStop(1, '#2a1440');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        // núcleo: textura de cromatina ao fundo
+        ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 6;
+        for (let i = 0; i < 6; i++) { ctx.beginPath(); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, 60 + i * 70 + Math.sin((x + camX * 0.3) / 60 + i) * 20); ctx.stroke(); }
+        ctx.save(); ctx.translate(-Math.round(camX), 0);
+        const yTop = TRACK_Y - 34, yBot = TRACK_Y + 34;
+        // esqueletos açúcar-fosfato
+        ctx.lineWidth = 4;
+        for (const [y, c] of [[yTop - 20, '#ce93d8'], [yBot + 20, '#90caf9']]) {
+          ctx.strokeStyle = c; ctx.beginPath();
+          for (let x = X0 - 30; x <= X0 + slots.length * SW + 10; x += 6) ctx.lineTo(x, y + Math.sin(x / 40) * 3);
+          ctx.stroke();
+        }
+        label("5'", X0 - 50, yTop - 16, { color: '#ce93d8' }); label("3'", X0 + slots.length * SW + 8, yTop - 16, { color: '#ce93d8' });
+        label("3'", X0 - 50, yBot + 28, { color: '#90caf9' }); label("5'", X0 + slots.length * SW + 8, yBot + 28, { color: '#90caf9' });
+        for (let k = 0; k < slots.length; k++) {
+          const s = slots[k], x = X0 + k * SW;
+          if (x < camX - 40 || x > camX + W + 40) continue;
+          const shown = s.seen && s.lesion;
+          const inIntron = !s.ins && s.j >= INTRON[0] && s.j <= INTRON[1];
+          if (inIntron) { ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(x - SW / 2, yTop - 30, SW, yBot - yTop + 60); }
+          if (s.ins) {
+            // alça de inserção: a base extra fica para fora da hélice
+            ctx.strokeStyle = shown ? '#ab47bc' : '#ce93d8'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, yTop - 30, 16, Math.PI * 0.15, Math.PI * 0.85, true); ctx.stroke();
+            drawTile(x, yTop - 42, s.b, { ring: shown ? '#ab47bc' : null });
+            label('—', x, yBot + 5, { align: 'center', color: '#5c5070' });
+            continue;
+          }
+          const y1 = yTop + (s.lesion === 'dimer' || s.lesion === 'dimer2' ? (shown || slots[k - 1]?.seen ? -6 : 0) : 0);
+          // degrau (par de bases)
+          const pairOK = DNA_PAIR[s.b] === s.t;
+          ctx.strokeStyle = shown && s.lesion === 'mm' ? '#ff5252' : 'rgba(255,255,255,.35)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x, y1 + 14); ctx.lineTo(x, yBot - 14); ctx.stroke();
+          if (pairOK) { ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.4; ctx.beginPath(); const n = HBONDS[s.b]; for (let q = 0; q < n; q++) { const yy = TRACK_Y + (q - (n - 1) / 2) * 6; ctx.moveTo(x - 4, yy); ctx.lineTo(x + 4, yy); } ctx.stroke(); }
+          else if (shown && s.lesion === 'mm') label('≠', x + 9, TRACK_Y + 5, { font: '700 16px system-ui', color: '#ff5252' });
+          drawTile(x, y1, s.b, { ring: shown ? '#ff5252' : null, color: s.b === 'U' ? BASE_COLOR.U : null });
+          if (shown && s.lesion === 'oxoG') { ctx.fillStyle = '#ff5252'; circle(x + 11, y1 - 11, 6); ctx.fill(); label('O', x + 11, y1 - 10, { font: '700 8px system-ui', align: 'center', base: 'middle' }); }
+          if (shown && s.lesion === 'U') label('!', x + 12, y1 - 9, { font: '800 13px system-ui', color: '#ffeb3b' });
+          if (s.lesion === 'dimer' && (shown || slots[k + 1].seen)) { ctx.strokeStyle = '#e040fb'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x + 4, y1 - 2); ctx.lineTo(x + SW - 4, y1 - 2); ctx.stroke(); label('UV', x + SW / 2, y1 - 18, { font: '700 9px system-ui', align: 'center', color: '#e040fb' }); }
+          drawTile(x, yBot, s.t, { alpha: 0.85 });
+        }
+        // enzima de reparo
+        const k = curSlot(), ex = px, ey = yTop - 78 + Math.sin(now / 300) * 3;
+        const col = { 0: '#80deea', 1: '#ffd54f', 2: '#e040fb', 3: '#9ccc65' }[busy ? busy.path : lastPath];
+        ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ex, ey + 20); ctx.lineTo(ex, yTop - 16); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(128,222,234,.08)'; ctx.fillRect(ex - scanR, yTop - 60, scanR * 2, yBot - yTop + 110);
+        ctx.fillStyle = stun > 0 ? '#ff8a80' : col; rr(ex - 24, ey - 18, 48, 36, 14); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; rr(ex - 10, ey + 8, 20, 12, 5); ctx.fill();
+        ctx.fillStyle = '#fff'; circle(ex - 9, ey - 4, 5); ctx.fill(); circle(ex + 9, ey - 4, 5); ctx.fill();
+        ctx.fillStyle = '#102027'; circle(ex - 8, ey - 3, 2.4); ctx.fill(); circle(ex + 10, ey - 3, 2.4); ctx.fill();
+        if (busy) {
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(ex, ey, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * busy.t / busy.dur); ctx.stroke();
+          const stage = busy.path === 3 ? ['glicosilase remove a base', 'AP endonuclease corta', 'polimerase + ligase'] : busy.path === 2 ? ['reconhece a distorção', 'excisa ~30 nucleotídeos', 'polimerase + ligase'] : ['MutS reconhece o erro', 'remove o trecho da fita nova', 'polimerase + ligase'];
+          label(stage[Math.min(2, Math.floor(busy.t / busy.dur * 3))], ex, ey - 40, { font: '600 12px system-ui', align: 'center', stroke: 'rgba(20,10,35,.8)' });
+        }
+        ctx.restore();
+        // HUD
+        panel(10, 8, W - 20, 44);
+        label(`Checkpoint G2/M em ${Math.max(0, Math.ceil(timeLeft))} s`, 24, 28, { font: '700 14px system-ui' });
+        ctx.fillStyle = 'rgba(255,255,255,.1)'; rr(24, 36, 260, 8, 4); ctx.fill();
+        ctx.fillStyle = timeLeft < 15 ? '#ff7043' : '#80deea'; rr(24, 36, 260 * Math.max(0, timeLeft) / TIME, 8, 4); ctx.fill();
+        label(`Lesões restantes: ${lesionCount()}`, 330, 28, { font: '600 13px system-ui' });
+        label(`Reparadas: ${repaired.length}`, 330, 46, { font: '600 12px system-ui', color: '#9ccc65' });
+        if (lesionCount() === 0) label('DNA íntegro! Enter para liberar a célula', W - 24, 36, { font: '700 13px system-ui', align: 'right', color: '#ffd54f' });
+        // mapa da hélice
+        const mx = 24, mw = W - 48, my = H - 64;
+        ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(mx, my, mw, 8, 4); ctx.fill();
+        slots.forEach((s, i) => { if (s.lesion && s.lesion !== 'dimer2' && s.seen) { ctx.fillStyle = s.lesion === 'mm' || s.lesion === 'ins' ? '#ffd54f' : s.lesion === 'dimer' ? '#e040fb' : '#9ccc65'; circle(mx + mw * i / slots.length, my + 4, 4); ctx.fill(); } });
+        ctx.fillStyle = '#fff'; ctx.fillRect(mx + mw * curSlot() / slots.length - 1, my - 3, 3, 14);
+        panel(10, H - 46, W - 20, 38);
+        label('1 MMR: pareamento incorreto e inserções', 24, H - 22, { font: '600 12px system-ui', color: '#ffd54f' });
+        label('2 NER: dímeros de timina', 300, H - 22, { font: '600 12px system-ui', color: '#e040fb' });
+        label('3 BER: uracila e 8-oxoG', 480, H - 22, { font: '600 12px system-ui', color: '#9ccc65' });
+        drawFloats(dt);
+      },
+      debug: () => ({ slots, lesionCount: lesionCount(), timeLeft, px, setPx: v => { px = v; } }),
+    });
+  })();
 
-  // ================= Resultado =================
-  function win() {
-    state = 'won';
-    Sound.music(null);
-    const perfect = strand.every((b, i) => b === TARGET[i]);
-    if (perfect) Sound.arp([72, 76, 79, 84, 79, 84, 88], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
-    else Sound.arp([72, 75, 79, 78], 0.16, { type: 'triangle', vol: 0.2, dur: 0.3 });
-    const got = strand.join('');
-    const span = (s, ref) => [...s].map((b, i) => `<span class="b b${b}${ref && b !== ref[i] ? ' bad' : ''}">${b}</span>`).join('');
-    const codons = s => s.match(/.{3}/g);
-    const expC = codons(TARGET), gotC = codons(got);
-    let stopped = false;
-    const protein = [];
-    const rows = expC.map((ec, i) => {
-      const gc = gotC[i], ea = codonAA(ec), ga = codonAA(gc);
-      let eff, cls;
-      if (stopped) { eff = 'Não traduzido (após o stop)'; cls = 'eff-na'; }
-      else if (gc === ec) { eff = 'Correto'; cls = 'eff-ok'; }
-      else if (ga === ea) { eff = 'Silenciosa'; cls = 'eff-sil'; }
-      else if (ga === '*') { eff = 'Sem sentido (stop prematuro)'; cls = 'eff-non'; }
-      else if (ea === '*') { eff = 'Perda do códon de parada'; cls = 'eff-non'; }
-      else { eff = 'Troca de sentido (missense)'; cls = 'eff-mis'; }
-      if (!stopped) { if (ga === '*') stopped = true; else protein.push(AA3[ga]); }
-      return `<tr><td class="mono">${span(ec)} <span class="muted">${AA3[ea]}</span></td><td class="mono">${span(gc, ec)} <span class="muted">${AA3[ga]}</span></td><td class="${cls}">${eff}</td></tr>`;
-    }).join('');
-    const wrong = [...got].filter((b, i) => b !== TARGET[i]).length;
-    const fidelity = Math.round(100 * (TARGET.length - wrong) / TARGET.length);
-    const mm = Math.floor(elapsed / 60), ss = Math.floor(elapsed % 60).toString().padStart(2, '0');
-    const title = wrong === 0 ? 'Replicação perfeita!' : wrong === 1 ? 'Replicação com 1 mutação' : `Replicação com ${wrong} mutações`;
-    document.getElementById('resultsCard').innerHTML = `
-      <h2>Telômero alcançado: ${title}</h2>
-      <div class="seq">Molde&nbsp;3'-${span(TEMPLATE)}-5'<br>Nova&nbsp;&nbsp;5'-${span(got, TARGET)}-3'</div>
-      <p class="muted">A fita nova tem a mesma sequência do mRNA deste gene (com U no lugar de T). Erros não corrigidos viram mutações permanentes na próxima replicação. Veja o efeito de cada códon:</p>
-      <table><thead><tr><th>Esperado</th><th>Obtido</th><th>Efeito</th></tr></thead><tbody>${rows}</tbody></table>
-      <p>Proteína resultante: <b>${protein.length ? protein.join('–') : '(nenhum aminoácido)'}</b>${stopped ? ' (parada)' : ' <span class="muted">(sem códon de parada!)</span>'}</p>
-      <div class="stats">
-        <span>Fidelidade <b>${fidelity}%</b></span>
-        <span>Erros incorporados <b>${mutations}</b></span>
-        <span>Corrigidos pela revisão <b>${corrected}</b></span>
-        <span>Danos sofridos <b>${hits}</b></span>
-        <span>Tempo <b>${mm}:${ss}</b></span>
-      </div>
-      <button class="big" id="againBtn">Jogar de novo (Enter)</button>`;
-    document.getElementById('againBtn').addEventListener('click', start);
-    resultsEl.hidden = false;
-  }
+  // =====================================================================
+  // FASE 4: TRANSCRIÇÃO (corredor de faixas)
+  // =====================================================================
+  (() => {
+    const LANES = [175, 240, 305, 370], POLX = 170, SPACING = 132;
+    let dna, tmpl, expect, cols, scroll, speed, lane, laneY, rna, errors, bumps, i, intro, done, endT;
 
-  // ================= Desenho =================
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+    function setup() {
+      dna = getData.dna3();
+      tmpl = dna.split('').map(b => DNA_PAIR[b]);
+      expect = toRNA(dna);
+      cols = tmpl.map((t, k) => {
+        const lanes = ['A', 'U', 'C', 'G'].sort(() => Math.random() - 0.5);
+        if (k > 4 && Math.random() < 0.3) { const need = RNA_FOR_TEMPLATE[t]; const opts = [0, 1, 2, 3].filter(q => lanes[q] !== need); lanes[pick(opts)] = 'X'; }
+        return { t, lanes, done: false, got: null };
+      });
+      scroll = -260; speed = 150; lane = 1; laneY = LANES[1]; rna = []; errors = 0; bumps = 0; i = 0; intro = 2.2; done = false; endT = 0;
+    }
+    const colX = k => POLX + 300 + k * SPACING - scroll;
+    function resolve(c) {
+      let q = lane;
+      if (c.lanes[q] === 'X') {
+        bumps++; const opts = [0, 1, 2, 3].filter(z => c.lanes[z] !== 'X').sort((a, b) => Math.abs(a - lane) - Math.abs(b - lane));
+        q = opts[0]; lane = q;
+        floatMsg('Nucleossomo! A RNA polimerase foi desviada', POLX + 60, LANES[q] - 30, '#ffb74d');
+        Sound.noise(0.15, { freq: 300, vol: 0.25 });
+      }
+      const b = c.lanes[q], need = RNA_FOR_TEMPLATE[c.t];
+      c.done = true; c.got = b; rna.push(b);
+      if (b === need) Sound.tone(midi({ A: 72, U: 76, C: 79, G: 84 }[b]), 0.12, { type: 'triangle', vol: 0.22 });
+      else { errors++; Sound.tone(220, 0.25, { type: 'sawtooth', vol: 0.12, slide: 0.7 }); floatMsg(`${b} não pareia com ${c.t}`, POLX + 60, LANES[q] - 30, '#ff8a80'); }
+    }
+    function finish() {
+      done = true;
+      const pre = rna.join('');
+      const dnaErr = dna !== CODING;
+      const rows = [];
+      Sound.arp(errors ? [72, 75, 79, 78] : [72, 76, 79, 84, 79, 84, 88], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
+      completePhase(3, `<h2>Transcrição concluída!</h2>
+        <p>A RNA polimerase chegou ao terminador e liberou o <b>pré-mRNA</b> (transcrito primário), que ainda contém o íntron.</p>
+        <div class="seq">DNA molde&nbsp;3'-${seqHTML(tmpl.join(''))}-5'<br>pré-mRNA&nbsp;&nbsp;5'-${seqHTML(pre, { ref: expect })}-3'</div>
+        <div class="stats"><span>Erros de transcrição <b>${errors}</b></span><span>Nucleossomos no caminho <b>${bumps}</b></span><span>Comprimento <b>${pre.length} nt</b></span></div>
+        <p>${errors ? 'Erros de transcrição afetam só esta molécula de RNA: diferente das mutações no DNA, eles <b>não são herdados</b>. Mas a proteína feita a partir deste mRNA vai carregá-los.' : 'Transcrição perfeita: o RNA é uma cópia fiel do gene, com <b>U</b> no lugar de <b>T</b>.'}</p>
+        ${dnaErr ? '<p class="muted">Atenção: o DNA já tinha mutações vindas das fases anteriores. Elas foram transcritas fielmente, e isso não conta como erro aqui.</p>' : ''}`,
+        { pre, mrna: null, protein: null, fold: null });
+    }
 
-  function rr(x, y, w, h, r) {
-    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-  }
+    PHASES.push({
+      title: 'Transcrição', short: 'A RNA polimerase faz o pré-mRNA', needs: 'dna3',
+      controls: '<kbd>↑</kbd><kbd>↓</kbd> trocar de faixa para pegar o ribonucleotídeo complementar',
+      touch: ['ArrowUp', 'ArrowDown'],
+      song: { bpm: 150, play(step, t, d) { const r = [52, 55, 57, 55][Math.floor(step / 8) % 4]; Sound.note(midi(r - 12), t, d * 0.7, 'triangle', 0.55); if (step % 2 === 0) Sound.note(midi(r + 12 + [0, 7, 12, 7][(step / 2) % 4]), t, d * 0.9, 'square', 0.1); } },
+      brief: () => `<p>No núcleo, os <b>fatores de transcrição</b> reconhecem o promotor (a sequência TATA) e posicionam a <b>RNA polimerase II</b>, que é você. Ela abre a dupla hélice e avança sozinha, lendo a <b>fita molde</b> do DNA.</p>
+        <p>Para cada base do molde, troque de faixa para pegar o <b>ribonucleotídeo complementar</b>. No RNA não existe timina: o par do A do molde é <b class="bU">U</b> (uracila).</p>
+        <p><b class="bA">A</b>→<b class="bU">U</b> · <b class="bT">T</b>→<b class="bA">A</b> · <b class="bC">C</b>→<b class="bG">G</b> · <b class="bG">G</b>→<b class="bC">C</b> (molde → RNA)</p>
+        <p>Cuidado com os <b>nucleossomos</b> (DNA enrolado em histonas): eles bloqueiam faixas e desviam você. A velocidade aumenta ao longo do gene.</p>`,
+      start() { setup(); },
+      key(code, down) {
+        if (!down || done) return;
+        if (code === 'ArrowUp' || code === 'KeyW') { lane = Math.max(0, lane - 1); Sound.tone(500, 0.04, { type: 'sine', vol: 0.06 }); }
+        if (code === 'ArrowDown' || code === 'KeyS') { lane = Math.min(3, lane + 1); Sound.tone(420, 0.04, { type: 'sine', vol: 0.06 }); }
+      },
+      pointer(x, y) { if (done) return; const q = LANES.reduce((best, ly, k) => Math.abs(ly - y) < Math.abs(LANES[best] - y) ? k : best, 0); lane = q; },
+      update(dt) {
+        if (done) return;
+        if (intro > 0) { intro -= dt; return; }
+        speed = 150 + 130 * Math.min(1, i / cols.length);
+        scroll += speed * dt;
+        laneY += (LANES[lane] - laneY) * Math.min(1, dt * 16);
+        while (i < cols.length && colX(i) <= POLX) { resolve(cols[i]); i++; }
+        if (i >= cols.length) { endT += dt; if (endT > 1.2) finish(); }
+      },
+      render(dt) {
+        const now = performance.now();
+        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a1236'); g.addColorStop(1, '#2d1a45');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        // DNA molde (fita de cima) e fita codificante se reenrolando
+        const ry = 108;
+        ctx.strokeStyle = '#90caf9'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, ry - 16); ctx.lineTo(W, ry - 16); ctx.stroke();
+        for (let k = Math.max(0, i - 4); k < cols.length; k++) {
+          const x = colX(k); if (x < -30) continue; if (x > W + 30) break;
+          baseTile(x - 13, ry - 13, 26, 26, cols[k].t, { alpha: k === i ? 1 : 0.8, ring: k === i ? '#ffd54f' : null });
+          ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(x, ry + 16); ctx.lineTo(x, LANES[3] + 20); ctx.stroke(); ctx.setLineDash([]);
+        }
+        label("DNA molde 3'→5'", 12, 76, { font: '600 12px system-ui', color: '#90caf9' });
+        // faixas
+        for (let q = 0; q < 4; q++) { ctx.fillStyle = q % 2 ? 'rgba(255,255,255,.03)' : 'rgba(255,255,255,.06)'; ctx.fillRect(0, LANES[q] - 30, W, 60); }
+        for (let k = Math.max(0, i); k < cols.length; k++) {
+          const x = colX(k); if (x > W + 30) break;
+          cols[k].lanes.forEach((b, q) => {
+            const y = LANES[q] + Math.sin(now / 300 + k + q) * 3;
+            if (b === 'X') { ctx.fillStyle = '#8d6e63'; circle(x, y, 20); ctx.fill(); ctx.strokeStyle = '#d7ccc8'; ctx.lineWidth = 3; circle(x, y, 23); ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 1.6); ctx.stroke(); label('histona', x, y + 34, { font: '9px system-ui', align: 'center', color: '#d7ccc8' }); }
+            else { ctx.fillStyle = BASE_COLOR[b]; circle(x, y, 17); ctx.fill(); label(b, x, y + 1, { font: '800 16px system-ui', align: 'center', base: 'middle', color: '#1d1230' }); }
+          });
+        }
+        // RNA saindo
+        for (let k = 0; k < rna.length; k++) {
+          const x = POLX - 40 - (rna.length - 1 - k) * 22; if (x < -20) continue;
+          const y = laneY + 26 + Math.sin(now / 400 + k * 0.6) * 6 + (rna.length - 1 - k) * 2;
+          ctx.fillStyle = BASE_COLOR[rna[k]]; circle(x, y, 9); ctx.fill();
+          if (rna[k] !== expect[k]) { ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2; ctx.stroke(); }
+          label(rna[k], x, y + 1, { font: '700 10px system-ui', align: 'center', base: 'middle', color: '#1d1230' });
+        }
+        // RNA polimerase
+        ctx.fillStyle = 'rgba(255,213,79,.2)'; rr(POLX - 40, laneY - 34, 80, 68, 26); ctx.fill();
+        ctx.fillStyle = '#ffb300'; rr(POLX - 30, laneY - 26, 60, 52, 22); ctx.fill();
+        ctx.fillStyle = '#ffe082'; rr(POLX - 6, laneY - 16, 30, 32, 12); ctx.fill();
+        ctx.fillStyle = '#fff'; circle(POLX - 14, laneY - 8, 6); ctx.fill(); ctx.fillStyle = '#3e2723'; circle(POLX - 12, laneY - 7, 3); ctx.fill();
+        label('RNA pol II', POLX, laneY + 42, { font: '600 10px system-ui', align: 'center', color: '#ffe082' });
+        if (i < cols.length) { const need = cols[i].t; label(`molde ${need} → RNA ?`, POLX, LANES[0] - 44, { font: '700 13px system-ui', align: 'center', color: '#ffd54f', stroke: 'rgba(20,10,35,.8)' }); }
+        // HUD
+        panel(W - 250, 8, 240, 50);
+        label(`Transcritos: ${rna.length}/${cols.length}`, W - 236, 28, { font: '700 13px system-ui' });
+        label(`Erros: ${errors}   Nucleossomos: ${bumps}`, W - 236, 47, { font: '600 12px system-ui', color: '#a99bc0' });
+        if (intro > 0) { panel(W / 2 - 230, H / 2 - 40, 460, 80, 0.92); label('Promotor (TATA) reconhecido', W / 2, H / 2 - 8, { font: '700 18px system-ui', align: 'center', color: '#ffd54f' }); label('Fatores de transcrição posicionam a RNA polimerase II...', W / 2, H / 2 + 18, { font: '13px system-ui', align: 'center' }); }
+        if (i >= cols.length) { panel(W / 2 - 200, H / 2 - 30, 400, 60, 0.92); label('Terminador: a RNA polimerase se solta', W / 2, H / 2 + 6, { font: '700 16px system-ui', align: 'center', color: '#9ccc65' }); }
+        drawFloats(dt);
+      },
+      debug: () => ({ cols, i, lane, setLane: v => { lane = v; }, LANES }),
+    });
+  })();
 
-  // Organelas de fundo (geradas de forma determinística)
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const ORGANELLES = Array.from({ length: 26 }, () => ({ type: rnd() < 0.4 ? 'mito' : rnd() < 0.6 ? 'ves' : 'ribo', x: rnd() * 1800, y: 40 + rnd() * 300, s: 0.7 + rnd() * 0.7, a: rnd() * Math.PI }));
+  // =====================================================================
+  // FASE 5: PROCESSAMENTO DO RNA E TRANSPORTE
+  // =====================================================================
+  (() => {
+    const CAP_STEPS = [
+      { id: 0, txt: 'RNA trifosfatase: remove o último fosfato da ponta 5\'' },
+      { id: 1, txt: 'Guanililtransferase: liga um GMP pela ligação 5\'→5\' trifosfato' },
+      { id: 2, txt: 'Metiltransferase: adiciona um metil no N7 da guanina (m⁷G)' },
+    ];
+    let step, pre, capDone, capErr, capOrder, sel, mature, spliceInfo, tail, pumping, pumpTimer, cap;
+    // transporte
+    let mx, my, tx, ty, integ, inv, exos, pores, poreT, tdone, msgT;
+    const CX = 400, CY = 236, R = 196;
 
-  function drawBackground() {
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#2a1440'); g.addColorStop(1, '#4a2050');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    for (const o of ORGANELLES) {
-      const x = ((o.x - camX * 0.3) % 1800 + 1800) % 1800 - 200;
-      ctx.save(); ctx.translate(x, o.y); ctx.rotate(o.a); ctx.scale(o.s, o.s);
-      if (o.type === 'mito') {
-        ctx.fillStyle = 'rgba(230,120,80,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 46, 20, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'rgba(255,170,120,.3)'; ctx.lineWidth = 2; ctx.beginPath();
-        for (let i = -36; i <= 36; i += 2) ctx.lineTo(i, Math.sin(i * 0.35) * 10);
-        ctx.stroke();
-      } else if (o.type === 'ves') {
-        ctx.strokeStyle = 'rgba(180,150,255,.25)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
+    function setup() {
+      pre = getData.pre();
+      step = 1; capDone = 0; capErr = 0; capOrder = [...CAP_STEPS].sort(() => Math.random() - 0.5);
+      sel = []; mature = null; spliceInfo = null; tail = 0; pumping = false; cap = false;
+      showCap();
+    }
+    const head = n => `<p class="muted">Etapa ${n} de 4 · ${['Quepe 5\'', 'Splicing', 'Cauda poli(A)', 'Exportação'][n - 1]}</p>`;
+    function showCap(msg) {
+      showOverlay(`<h2>Processamento do pré-mRNA</h2>${head(1)}
+        <p>Assim que a ponta 5' do RNA sai da polimerase, ela recebe um <b>quepe</b> (7-metilguanosina), que protege o RNA e será reconhecido pelo ribossomo. Clique nas enzimas <b>na ordem certa</b>:</p>
+        <div class="seq">${capDone >= 3 ? '<b style="color:#ffd54f">m⁷G</b>-ppp-' : capDone === 2 ? 'G-ppp-' : capDone === 1 ? 'pp-' : 'ppp-'}${seqHTML(pre.slice(0, 18))}…</div>
+        <div class="order">${capOrder.map(s => `<button data-act="cap" data-v="${s.id}" class="${s.id < capDone ? 'done' : ''}">${s.id < capDone ? '✔ ' : ''}${s.txt}</button>`).join('')}</div>
+        ${msg ? `<p style="color:#ff8a80">${msg}</p>` : ''}
+        ${capDone >= 3 ? `<div class="btnrow"><button class="big" data-act="toSplice" data-primary>Quepe pronto: ir para o splicing (Enter)</button></div>` : ''}`);
+    }
+    function showSplice(msg) {
+      const tiles = pre.split('').map((b, i) => {
+        const s = sel[0], e = sel[1];
+        const inR = s != null && e != null && i >= s && i <= e;
+        return `<button class="tile ${sel.includes(i) ? 'sel' : ''} ${inR ? 'dim' : ''}" data-act="tile" data-i="${i}" style="background:${BASE_COLOR[b]}">${b}${(i + 1) % 5 === 0 ? `<small>${i + 1}</small>` : ''}</button>`;
+      }).join('');
+      const ok = sel.length === 2;
+      showOverlay(`<h2>Splicing</h2>${head(2)}
+        <p>O <b>spliceossomo</b> remove o íntron e une os éxons. Marque a <b>primeira</b> e a <b>última</b> base do íntron:</p>
+        <ul><li>O íntron começa com <b>GU</b>. O sítio 5' de consenso é <b class="mono">GU<span style="color:#80deea">A/G</span>AGU</b>.</li>
+            <li>O íntron termina com <b>AG</b>, quase sempre precedido de uma pirimidina (<b>C</b> ou <b>U</b>): <b>YAG</b>.</li>
+            <li>Atenção: há sequências <b>GU</b> e <b>AG</b> falsas no meio do caminho.</li></ul>
+        <div class="tiles">${tiles}</div>
+        ${sel.length === 1 ? '<p class="muted">Agora clique na última base do íntron (o G do AG).</p>' : sel.length === 0 ? '<p class="muted">Clique na primeira base do íntron (o G do GU).</p>' : `<p>Seleção: bases ${sel[0] + 1} a ${sel[1] + 1} (${sel[1] - sel[0] + 1} nt): <span class="mono">${seqHTML(pre.slice(sel[0], sel[1] + 1))}</span></p>`}
+        ${msg ? `<p style="color:#ff8a80">${msg}</p>` : ''}
+        <div class="btnrow"><button class="big" data-act="cut" ${ok ? 'data-primary' : 'disabled'}>✂ Cortar com o spliceossomo</button><button class="big alt" data-act="clearSel">Limpar seleção</button></div>`);
+    }
+    function doCut() {
+      const [s, e] = sel;
+      const removed = pre.slice(s, e + 1);
+      mature = pre.slice(0, s) + pre.slice(e + 1);
+      const realIntron = toRNA(GENE.intron);
+      const realPos = pre.indexOf(realIntron);
+      let kind, text;
+      if (removed === realIntron && s === realPos) { kind = 'ok'; text = 'Splicing correto: o íntron inteiro saiu e os éxons foram unidos.'; }
+      else {
+        const diff = removed.length - realIntron.length;
+        const fs = ((mature.length - (pre.length - realIntron.length)) % 3 + 3) % 3 !== 0;
+        if (removed.length < realIntron.length) kind = 'retido';
+        else kind = 'exon';
+        text = (kind === 'retido' ? `Parte do íntron ficou no mRNA (${-diff} nt a menos removidos). ` : `Parte de um éxon foi removida junto (${diff} nt a mais). `) + (fs ? '<b>A matriz de leitura foi deslocada.</b>' : 'A diferença é múltipla de 3: <b>a matriz de leitura se mantém</b>, mas a proteína ganha ou perde aminoácidos.');
+      }
+      spliceInfo = { kind, text, s, e };
+      Sound.noise(0.06, { freq: 4000, vol: 0.25 }); Sound.arp([76, 83], 0.08, { type: 'triangle', vol: 0.15, delay: 0.08 });
+      showOverlay(`<h2>Splicing</h2>${head(2)}
+        <div class="seq">pré-mRNA&nbsp;${pre.split('').map((b, i) => `<span class="b b${b}${i >= s && i <= e ? ' intron' : ''}" style="${i >= s && i <= e ? 'text-decoration:line-through;opacity:.6' : ''}">${b}</span>`).join('')}<br>mRNA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${seqHTML(mature)}</div>
+        <p style="color:${kind === 'ok' ? '#9ccc65' : '#ffb74d'}">${text}</p>
+        <div class="btnrow"><button class="big" data-act="toTail" data-primary>Continuar: cauda poli(A) (Enter)</button><button class="big alt" data-act="redoSplice">Refazer o splicing</button></div>`);
+    }
+    function showTail() {
+      const pct = Math.min(100, tail / 350 * 100);
+      showOverlay(`<h2>Cauda poli(A)</h2>${head(3)}
+        <p>O complexo CPSF reconhece o sinal <b class="mono">AAUAAA</b> na região 3' não traduzida e corta o RNA logo depois. A <b>poli(A) polimerase</b> então adiciona dezenas de adeninas, sem molde. A cauda protege o mRNA e ajuda na tradução.</p>
+        <div class="seq">…${seqHTML(pre.slice(-6))}${seqHTML(UTR3)}<span class="b bA" id="tailSeq">${'A'.repeat(Math.min(60, Math.round(tail / 6)))}</span></div>
+        <p>Comprimento da cauda: <b id="tailN">${Math.round(tail)}</b> A · ideal entre <b>150 e 250</b></p>
+        <div class="meter"><span class="zone" style="left:${150 / 350 * 100}%;width:${100 / 350 * 100}%"></span><i id="tailBar" style="width:${pct}%"></i></div>
+        <div class="btnrow"><button class="big" data-act="pump" id="pumpBtn">Segure para adicionar As</button><button class="big alt" data-act="toExport" ${tail > 0 ? '' : 'disabled'} data-primary>Pronto: exportar o mRNA (Enter)</button></div>`);
+      const btn = document.getElementById('pumpBtn');
+      const on = e => { e.preventDefault(); pumping = true; }, off = () => { pumping = false; };
+      btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
+    }
+    function startExport() {
+      hideOverlay();
+      step = 4;
+      mx = CX; my = CY; tx = null; ty = null; integ = 100; inv = 0; tdone = false; msgT = 0;
+      exos = [0, 1, 2].map(k => ({ x: CX + Math.cos(k * 2.1) * 130, y: CY + Math.sin(k * 2.1) * 120, a: Math.random() * 6 }));
+      pores = Array.from({ length: 8 }, (_, k) => ({ a: k * Math.PI / 4 + 0.2, open: Math.random() < 0.5 }));
+      poreT = 2.5;
+      floatMsg(cap ? 'Quepe e cauda protegem o mRNA' : 'Sem proteção completa: cuidado!', CX, 70, '#80deea');
+    }
+    function finish() {
+      tdone = true;
+      const seq = UTR5 + mature + UTR3;
+      const tailOK = tail >= 150 && tail <= 250;
+      Sound.arp([72, 76, 79, 84, 88], 0.08, { type: 'square', vol: 0.13 });
+      completePhase(4, `<h2>mRNA maduro no citoplasma!</h2>
+        <p>O mRNA atravessou o <b>complexo do poro nuclear</b> e já pode ser traduzido.</p>
+        <div class="seq">m⁷G-${seqHTML(UTR5)}<span class="muted">|</span>${seqHTML(mature)}<span class="muted">|</span>${seqHTML(UTR3)}<span class="b bA">-A(${Math.round(tail)})</span></div>
+        <div class="flow">
+          <div><b>Quepe 5':</b> ${capErr ? `colocado após ${capErr} tentativa(s) fora de ordem` : 'colocado na ordem certa'} ✔</div>
+          <div><b>Splicing:</b> ${spliceInfo.text}</div>
+          <div><b>Cauda poli(A):</b> ${Math.round(tail)} adeninas ${tailOK ? '(ideal)' : tail < 150 ? '(curta: o mRNA dura menos e gera menos proteína)' : '(longa, sem problemas)'}</div>
+          <div><b>Integridade na exportação:</b> ${Math.round(integ)}%</div>
+        </div>
+        <p class="muted">Faixas separadas por | : região 5' não traduzida · sequência codificante · região 3' não traduzida (com o sinal AAUAAA).</p>`,
+        { mrna: { seq, cap: true, tail: Math.round(tail), splice: spliceInfo.kind, integ: Math.round(integ) }, protein: null, fold: null });
+    }
+
+    PHASES.push({
+      title: 'Processamento e transporte', short: 'Quepe, splicing, cauda poli(A) e saída do núcleo', needs: 'pre',
+      controls: 'Etapas 1 a 3: clique nos botões · Etapa 4: <kbd>←↑→↓</kbd> (ou toque) para guiar o mRNA até um poro aberto',
+      touch: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
+      song: { bpm: 90, play(step2, t, d) { const ch = [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 55, 59]][Math.floor(step2 / 8) % 4]; if (step2 % 8 === 0) for (const n of ch) Sound.note(midi(n), t, d * 7, 'sine', 0.14); if (step2 % 2) Sound.note(midi(ch[step2 % 3] + 12), t, d, 'triangle', 0.08); } },
+      brief: () => `<p>O transcrito primário ainda não está pronto para sair do núcleo. Em quatro etapas, você vai:</p>
+        <ol><li>colocar o <b>quepe 5'</b>;</li><li>fazer o <b>splicing</b>, removendo o íntron;</li><li>adicionar a <b>cauda poli(A)</b>;</li><li>guiar o mRNA até um <b>poro nuclear</b>, fugindo do <b>exossomo</b>, o complexo que degrada RNA.</li></ol>`,
+      start() { setup(); },
+      overlayAction(a, el) {
+        if (a === 'cap') {
+          const id = +el.dataset.v;
+          if (id < capDone) return;
+          if (id === capDone) { capDone++; Sound.tone(midi(72 + capDone * 4), 0.15, { type: 'triangle', vol: 0.2 }); if (capDone === 3) { cap = true; Sound.arp([72, 79, 84], 0.08, { type: 'square', vol: 0.12 }); } showCap(); }
+          else { capErr++; Sound.tone(160, 0.25, { type: 'square', vol: 0.12 }); showCap('Ordem errada! Pense: primeiro é preciso abrir espaço na ponta 5\', depois ligar a guanina, e só então modificá-la.'); }
+        }
+        if (a === 'toSplice') { step = 2; showSplice(); }
+        if (a === 'tile') {
+          const i = +el.dataset.i;
+          if (sel.length === 2) sel = [];
+          if (sel.length === 0) { if (pre[i] === 'G' && pre[i + 1] === 'U') { sel = [i]; Sound.tone(660, 0.06, { type: 'sine', vol: 0.1 }); showSplice(); } else showSplice('O íntron começa com GU: clique em um G seguido de U.'); }
+          else if (sel.length === 1) {
+            if (i > sel[0] + 3 && pre[i] === 'G' && pre[i - 1] === 'A') { sel = [sel[0], i]; Sound.tone(880, 0.06, { type: 'sine', vol: 0.1 }); showSplice(); }
+            else showSplice('O íntron termina com AG: clique no G de um AG depois do início escolhido.');
+          }
+        }
+        if (a === 'clearSel') { sel = []; showSplice(); }
+        if (a === 'cut' && sel.length === 2) doCut();
+        if (a === 'redoSplice') { sel = []; showSplice(); }
+        if (a === 'toTail') { step = 3; showTail(); }
+        if (a === 'toExport' && tail > 0) startExport();
+        if (a === 'retryExport') startExport();
+      },
+      overlayKey(code, down) { if (step === 3 && code === 'Space') { pumping = down; return true; } return false; },
+      pointer(x, y) { if (step === 4) { tx = x; ty = y; } },
+      update(dt) {
+        if (step === 3) {
+          if (pumping) {
+            tail = Math.min(400, tail + 130 * dt);
+            pumpTimer = (pumpTimer || 0) - dt;
+            if (pumpTimer <= 0) { pumpTimer = 0.08; Sound.tone(midi(60 + Math.min(36, tail / 10)), 0.05, { type: 'triangle', vol: 0.06 }); }
+            const n = document.getElementById('tailN'), b = document.getElementById('tailBar');
+            if (n) n.textContent = Math.round(tail);
+            const ts = document.getElementById('tailSeq'); if (ts) ts.textContent = 'A'.repeat(Math.min(60, Math.round(tail / 6)));
+            if (b) b.style.width = Math.min(100, tail / 350 * 100) + '%';
+            const go = ovCard.querySelector('[data-act=toExport]'); if (go) go.disabled = false;
+          }
+          return;
+        }
+        if (step !== 4 || tdone) return;
+        // movimento do mRNP
+        let dx = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
+        let dy = (held(['ArrowDown', 'KeyS']) ? 1 : 0) - (held(['ArrowUp', 'KeyW']) ? 1 : 0);
+        if (dx || dy) { tx = null; } else if (tx != null) { const d = Math.hypot(tx - mx, ty - my); if (d > 6) { dx = (tx - mx) / d; dy = (ty - my) / d; } }
+        const m = Math.hypot(dx, dy) || 1;
+        mx += dx / m * 150 * dt; my += dy / m * 150 * dt;
+        const dc = Math.hypot(mx - CX, my - CY);
+        if (dc > R - 12) {
+          const a = Math.atan2(my - CY, mx - CX);
+          const pore = pores.find(p => p.open && Math.abs(((a - p.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < 0.12);
+          if (pore) { Sound.noise(0.4, { freq: 600, sweep: 3000, vol: 0.2 }); finish(); return; }
+          mx = CX + Math.cos(a) * (R - 12); my = CY + Math.sin(a) * (R - 12);
+          if ((msgT -= dt) <= 0) { floatMsg('Poro fechado ou longe: procure um poro aberto (verde)', CX, 70, '#ffb74d'); msgT = 2; }
+        }
+        poreT -= dt;
+        if (poreT <= 0) { poreT = 2.5; for (const p of pores) if (Math.random() < 0.4) p.open = !p.open; if (!pores.some(p => p.open)) pick(pores).open = true; }
+        inv = Math.max(0, inv - dt);
+        if (tail < 120) integ -= 3 * dt;
+        for (const e of exos) {
+          e.a += dt;
+          const d = Math.hypot(mx - e.x, my - e.y) || 1;
+          const sp = 55 + (tail < 120 ? 15 : 0);
+          e.x += (mx - e.x) / d * sp * dt + Math.cos(e.a * 1.7) * 20 * dt; e.y += (my - e.y) / d * sp * dt + Math.sin(e.a * 1.3) * 20 * dt;
+          if (d < 26 && inv <= 0) { integ -= 25; inv = 1; Sound.noise(0.2, { freq: 400, vol: 0.25 }); Sound.tone(140, 0.3, { type: 'sawtooth', vol: 0.12, slide: 0.5 }); floatMsg('O exossomo degradou parte do mRNA!', mx, my - 30, '#ff8a80'); mx -= (e.x - mx) / d * 30; my -= (e.y - my) / d * 30; }
+        }
+        if (integ <= 0) {
+          tdone = true; Sound.arp([69, 65, 62], 0.2, { type: 'triangle', vol: 0.2 });
+          showOverlay(`<h2>mRNA degradado</h2><p>O exossomo alcançou o mRNA antes da exportação. ${tail < 120 ? 'Uma cauda poli(A) curta deixa o RNA mais vulnerável.' : ''}</p><div class="btnrow"><button class="big" data-act="retryExport" data-primary>Tentar a exportação de novo (Enter)</button></div>`);
+        }
+      },
+      render(dt) {
+        const now = performance.now();
+        ctx.fillStyle = '#1b2a3a'; ctx.fillRect(0, 0, W, H);
+        // citoplasma com ribossomos ao fundo
+        ctx.fillStyle = 'rgba(255,255,255,.06)'; for (let k = 0; k < 60; k++) { circle((k * 137) % W, (k * 71) % H, 2); ctx.fill(); }
+        // núcleo
+        ctx.fillStyle = '#2d1f4a'; circle(CX, CY, R); ctx.fill();
+        ctx.strokeStyle = '#9575cd'; ctx.lineWidth = 8; circle(CX, CY, R); ctx.stroke();
+        ctx.strokeStyle = '#7e57c2'; ctx.lineWidth = 3; circle(CX, CY, R + 8); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 5;
+        for (let k = 0; k < 5; k++) { ctx.beginPath(); for (let a = 0; a < 6.3; a += 0.3) ctx.lineTo(CX + Math.cos(a + k) * (40 + k * 28) + Math.sin(a * 3 + k) * 10, CY + Math.sin(a + k) * (30 + k * 25)); ctx.stroke(); }
+        if (step !== 4) { label('Processamento do RNA', CX, CY, { font: '700 18px system-ui', align: 'center', color: '#b39ddb' }); return; }
+        for (const p of pores) {
+          const x = CX + Math.cos(p.a) * (R + 4), y = CY + Math.sin(p.a) * (R + 4);
+          ctx.fillStyle = p.open ? '#66bb6a' : '#6d4c41'; circle(x, y, 13); ctx.fill();
+          ctx.fillStyle = p.open ? '#1b2a3a' : '#4e342e'; circle(x, y, p.open ? 6 : 4); ctx.fill();
+        }
+        for (const e of exos) {
+          ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.a);
+          ctx.fillStyle = '#ef5350'; ctx.beginPath(); for (let k = 0; k < 9; k++) { const a = k * Math.PI * 2 / 9; ctx.lineTo(Math.cos(a) * 18, Math.sin(a) * 18); } ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#2d1f4a'; circle(0, 0, 7); ctx.fill(); ctx.restore();
+          label('exossomo', e.x, e.y + 32, { font: '9px system-ui', align: 'center', color: '#ff8a80' });
+        }
+        // mRNP
+        if (!(inv > 0 && Math.floor(inv * 10) % 2)) {
+          ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 4; ctx.beginPath();
+          for (let k = 0; k < 14; k++) { const xx = mx - 26 + k * 4, yy = my + Math.sin(now / 200 + k * 0.7) * 5; if (k === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); }
+          ctx.stroke();
+          ctx.fillStyle = '#ffb300'; circle(mx - 28, my, 6); ctx.fill(); label('m⁷G', mx - 28, my - 12, { font: '700 9px system-ui', align: 'center', color: '#ffe082' });
+          ctx.fillStyle = BASE_COLOR.A; for (let k = 0; k < Math.min(6, tail / 35); k++) { circle(mx + 30 + k * 5, my + Math.sin(now / 150 + k) * 3, 2.5); ctx.fill(); }
+          ctx.fillStyle = 'rgba(128,222,234,.5)'; circle(mx - 6, my - 8, 6); ctx.fill(); circle(mx + 10, my + 8, 6); ctx.fill();
+        }
+        panel(10, 8, 250, 46);
+        label(`Integridade do mRNA: ${Math.max(0, Math.round(integ))}%`, 22, 28, { font: '700 13px system-ui' });
+        ctx.fillStyle = 'rgba(255,255,255,.1)'; rr(22, 36, 220, 8, 4); ctx.fill();
+        ctx.fillStyle = integ < 40 ? '#ef5350' : '#9ccc65'; rr(22, 36, 220 * Math.max(0, integ) / 100, 8, 4); ctx.fill();
+        label('Leve o mRNA até um poro aberto (verde)', W - 14, 28, { font: '600 12px system-ui', align: 'right', color: '#a5d6a7' });
+        drawFloats(dt);
+      },
+      debug: () => ({ step: () => step, pre: () => pre, sel: () => sel, setTail: v => { tail = v; }, mrnp: () => ({ mx, my }), setPos: (x, y) => { mx = x; my = y; }, pores: () => pores, exos: () => exos }),
+    });
+  })();
+
+  // =====================================================================
+  // FASE 6: TRADUÇÃO
+  // =====================================================================
+  (() => {
+    const RNA_COMP = { A: 'U', U: 'A', C: 'G', G: 'C' };
+    const AX = 470, PX = 400, MRNA_Y = 330, DOCK_Y = 214, CW = 70;
+    let mrna, start, codons, ci, peptide, mis, items, curT, offset, offsetT, phase, initT, done, accepted, sinceCognate, epTRNA;
+
+    const antiOf = codon => codon.split('').map(b => RNA_COMP[b]).join(''); // escrito 3'→5', alinhado ao códon
+    const RNAB = ['A', 'U', 'C', 'G'];
+    function makeItem(codon) {
+      const aaNeed = codonAA(codon);
+      const r = Math.random();
+      if (aaNeed === '*') {
+        if (r < 0.4 || sinceCognate >= 2) { sinceCognate = 0; return { rf: true }; }
       } else {
-        ctx.fillStyle = 'rgba(255,255,255,.12)';
-        for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(i * 12, Math.sin(i) * 6, 3, 0, Math.PI * 2); ctx.fill(); }
+        if (r < 0.08) return { rf: true };
+        if (r < 0.42 || sinceCognate >= 3) { sinceCognate = 0; return { anti: antiOf(codon), aa: aaNeed }; }
+      }
+      sinceCognate++;
+      let c2;
+      if (Math.random() < 0.55 && aaNeed !== '*') { // quase cognato: um nucleotídeo diferente
+        const k = rand(3); c2 = codon.split(''); c2[k] = pick(RNAB.filter(b => b !== codon[k])); c2 = c2.join('');
+      } else c2 = pick(RNAB) + pick(RNAB) + pick(RNAB);
+      if (codonAA(c2) === '*' || codonAA(c2) === aaNeed) c2 = 'GGC'.split('').map((b, k) => k === 0 ? b : pick(RNAB)).join('');
+      if (codonAA(c2) === '*') c2 = 'GCU';
+      return { anti: antiOf(c2), aa: codonAA(c2) };
+    }
+    function setup() {
+      mrna = getData.mrna();
+      start = mrna.seq.indexOf('AUG');
+      codons = [];
+      if (start >= 0) for (let i = start; i + 3 <= mrna.seq.length; i += 3) codons.push(mrna.seq.slice(i, i + 3));
+      ci = 1; peptide = start >= 0 ? ['M'] : []; mis = 0; accepted = 0; sinceCognate = 0; offset = 0; offsetT = 0; done = false; epTRNA = null;
+      phase = 'init'; initT = 2.6; curT = null;
+      if (start < 0) { phase = 'noaug'; initT = 2.5; }
+    }
+    function nextItem() {
+      if (ci >= codons.length) { finish('nonstop'); return; }
+      const it = makeItem(codons[ci]);
+      const win = 2.4 - 1.0 * Math.min(1, ci / 10);
+      curT = { ...it, x: W + 60, state: 'in', t: 0, win };
+    }
+    function accept() {
+      if (!curT || curT.state === 'out' || phase !== 'run') return;
+      if (curT.state === 'in' && curT.x > AX + 60) return;
+      const codon = codons[ci], need = codonAA(codon);
+      if (curT.rf) {
+        if (need === '*') { Sound.arp([84, 79, 72], 0.1, { type: 'triangle', vol: 0.2 }); finish('stop'); }
+        else { Sound.tone(150, 0.4, { type: 'square', vol: 0.15 }); floatMsg('Fator de liberação num códon de aminoácido: término prematuro!', W / 2, 120, '#ff8a80'); finish('premature'); }
+        return;
+      }
+      peptide.push(curT.aa); accepted++;
+      if (need === '*') { floatMsg(`Leitura através do stop: ${AA3[curT.aa]} adicionado`, W / 2, 120, '#ffb74d'); mis++; }
+      else if (curT.aa !== need) { mis++; Sound.tone(220, 0.3, { type: 'sawtooth', vol: 0.12, slide: 0.7 }); floatMsg(`Erro: ${AA3[curT.aa]} no lugar de ${AA3[need]}`, W / 2, 120, '#ff8a80'); }
+      else { Sound.tone(midi(72 + (ci % 5) * 2), 0.14, { type: 'triangle', vol: 0.22 }); Sound.tone(midi(79 + (ci % 5) * 2), 0.14, { type: 'sine', vol: 0.12, delay: 0.06 }); floatMsg(`Ligação peptídica: +${AA3[need]}`, W / 2, 120, '#9ccc65'); }
+      epTRNA = { anti: curT.anti, aa: curT.aa, t: 0 };
+      curT = null; ci++; offsetT = 0.35;
+      setTimeout(() => { if (!done && phase === 'run') nextItem(); }, 380);
+    }
+    function reject() { if (curT && curT.state !== 'out' && phase === 'run') { curT.state = 'out'; Sound.tone(300, 0.05, { type: 'sine', vol: 0.06 }); } }
+    function finish(how) {
+      if (done) return; done = true; phase = 'end';
+      const prot = peptide.join('');
+      const ideal = translateFromAUG(mrna.seq);
+      const resultData = { seq: prot, stop: how === 'stop', nonstop: how === 'nonstop', premature: how === 'premature', mis };
+      const howText = { stop: 'O fator de liberação reconheceu o códon de parada e a proteína foi liberada.', premature: 'O fator de liberação entrou num códon de aminoácido: a proteína saiu <b>truncada</b>.', nonstop: 'O ribossomo chegou ao fim do mRNA <b>sem códon de parada</b>. Na célula, a via de degradação <i>non-stop decay</i> destruiria esse produto.' }[how];
+      setTimeout(() => {
+        Sound.arp(prot === PROTEIN_OK && how === 'stop' ? [72, 76, 79, 84, 79, 84, 88] : [72, 75, 79, 78], 0.11, { type: 'square', vol: 0.14, dur: 0.2 });
+        completePhase(5, `<h2>Tradução encerrada</h2>
+          <p>${howText}</p>
+          <div class="seq">Obtida&nbsp;&nbsp;&nbsp;${protHTML(prot, PROTEIN_OK)}<br>Esperada&nbsp;${protHTML(PROTEIN_OK)}</div>
+          <div class="stats"><span>Aminoácidos <b>${prot.length}</b></span><span>Erros do ribossomo <b>${mis}</b></span><span>Proteína codificada por este mRNA <b>${ideal.protein.length ? ideal.protein.split('').map(a => AA3[a]).join('-') : '—'}</b></span></div>
+          <p class="muted">${prot === PROTEIN_OK ? 'Proteína idêntica à luciferase correta!' : 'As diferenças podem vir de mutações no DNA, erros de transcrição, splicing incorreto ou erros do ribossomo. Agora a cadeia precisa se dobrar.'}</p>`,
+          { protein: resultData, fold: null });
+      }, 700);
+    }
+
+    function drawTRNA(x, y, anti, aa, opts = {}) {
+      ctx.save(); ctx.globalAlpha = opts.alpha ?? 1;
+      ctx.fillStyle = opts.rf ? '#78909c' : '#8d6e63';
+      // corpo em "L" estilizado (folha de trevo)
+      rr(x - 30, y - 40, 60, 62, 16); ctx.fill();
+      ctx.fillStyle = opts.rf ? '#90a4ae' : '#a1887f'; circle(x - 26, y - 16, 10); ctx.fill(); circle(x + 26, y - 16, 10); ctx.fill();
+      if (opts.rf) { label('eRF1', x, y - 14, { font: '700 13px system-ui', align: 'center', base: 'middle' }); label('fator de liberação', x, y + 8, { font: '9px system-ui', align: 'center' }); }
+      else {
+        ctx.fillStyle = '#ffe082'; circle(x, y - 54, 15); ctx.fill();
+        label(AA3[aa], x, y - 53, { font: '700 11px system-ui', align: 'center', base: 'middle', color: '#3e2723' });
+        ctx.strokeStyle = '#ffe082'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y - 40); ctx.lineTo(x, y - 39); ctx.stroke();
+        label("3'", x - 38, y + 22, { font: '9px system-ui', color: '#d7ccc8' }); label("5'", x + 32, y + 22, { font: '9px system-ui', color: '#d7ccc8' });
+        anti.split('').forEach((b, k) => baseTile(x - 33 + k * 22, y + 8, 20, 22, b));
       }
       ctx.restore();
     }
-  }
 
-  function drawTiles(cx) {
-    const c0 = Math.max(0, Math.floor(cx / T)), c1 = Math.min(COLS - 1, Math.ceil((cx + W) / T));
-    for (let y = 0; y < ROWS; y++) for (let x = c0; x <= c1; x++) {
-      if (!grid[y][x]) continue;
-      const px = x * T, py = y * T;
-      const top = !solidAt(x, y - 1), bot = y < ROWS - 1 && !solidAt(x, y + 1);
-      ctx.fillStyle = '#e9c46a'; ctx.fillRect(px, py, T, T);
-      ctx.strokeStyle = '#c99d45'; ctx.lineWidth = 1.5; ctx.beginPath();
-      for (let k = 0; k < 4; k++) { const lx = px + 4 + k * 8; ctx.moveTo(lx - 1, py + 6); ctx.lineTo(lx + 1, py + T / 2); ctx.lineTo(lx - 1, py + T - 6); }
-      ctx.stroke();
-      ctx.fillStyle = '#8e5bd6';
-      for (let k = 0; k < 4; k++) {
-        if (top) { ctx.beginPath(); ctx.arc(px + 4 + k * 8, py + 4, 4, 0, Math.PI * 2); ctx.fill(); }
-        if (bot) { ctx.beginPath(); ctx.arc(px + 4 + k * 8, py + T - 4, 4, 0, Math.PI * 2); ctx.fill(); }
-      }
-    }
-  }
-
-  function drawNucleotide(n, now) {
-    const bob = Math.sin(now / 300 + n.phase) * 3;
-    const x = n.x, y = n.y + bob;
-    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = BASE_COLOR[n.base]; ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1d1230'; ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(n.base, x, y + 1);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  }
-
-  function drawPhage(e, now) {
-    const cx = e.x + e.w / 2;
-    if (e.dead) {
-      ctx.globalAlpha = Math.max(0, e.deadTimer / 0.5);
-      ctx.fillStyle = '#90a4ae'; rr(e.x - 2, e.y + e.h - 7, e.w + 4, 7, 3); ctx.fill();
-      ctx.globalAlpha = 1; return;
-    }
-    const hy = e.y + 9, hr = 9;
-    ctx.fillStyle = '#b0bec5'; ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * hr, hy + Math.sin(a) * hr); }
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#607d8b'; ctx.fillRect(cx - 2, hy + hr - 1, 4, 7);
-    ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = 2;
-    const wig = Math.sin(now / 80 + e.x) * 3;
-    ctx.beginPath();
-    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx - 9 + wig, e.y + e.h);
-    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx + 9 - wig, e.y + e.h);
-    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx - 4 - wig, e.y + e.h);
-    ctx.moveTo(cx, hy + hr + 5); ctx.lineTo(cx + 4 + wig, e.y + e.h);
-    ctx.stroke();
-    const ex = cx + e.dir * 3;
-    ctx.fillStyle = '#fff'; ctx.fillRect(ex - 5, hy - 3, 4, 5); ctx.fillRect(ex + 1, hy - 3, 4, 5);
-    ctx.fillStyle = '#263238'; ctx.fillRect(ex - 4 + (e.dir > 0 ? 1 : 0), hy - 1, 2, 3); ctx.fillRect(ex + 2 + (e.dir > 0 ? 1 : 0), hy - 1, 2, 3);
-  }
-
-  function drawROS(r, now) {
-    const spikes = 9, R = 12, rI = 6, rot = now / 400;
-    ctx.fillStyle = 'rgba(255,112,67,.25)'; ctx.beginPath(); ctx.arc(r.x, r.y, 18, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ff7043'; ctx.beginPath();
-    for (let i = 0; i < spikes * 2; i++) { const a = rot + i * Math.PI / spikes, rad = i % 2 ? rI : R; ctx.lineTo(r.x + Math.cos(a) * rad, r.y + Math.sin(a) * rad); }
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = '700 8px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('•OH', r.x, r.y + 0.5);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  }
-
-  function drawHelicase(now) {
-    if (helicase.taken) return;
-    const { x } = helicase, y = helicase.y + Math.sin(now / 250) * 3, rot = now / 600;
-    ctx.fillStyle = 'rgba(128,222,234,.25)'; ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
-    for (let i = 0; i < 6; i++) {
-      const a = rot + i * Math.PI / 3;
-      ctx.fillStyle = i % 2 ? '#4dd0e1' : '#80deea';
-      ctx.beginPath(); ctx.arc(x + Math.cos(a) * 8, y + Math.sin(a) * 8, 5, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = '#e0f7fa'; ctx.font = '600 10px system-ui, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('helicase', x, y - 20); ctx.textAlign = 'left';
-  }
-
-  function drawCheckpoint(c) {
-    ctx.fillStyle = '#d7ccc8'; ctx.fillRect(c.x + 6, c.y, 3, c.h);
-    ctx.fillStyle = c.active ? '#9ccc65' : '#7e7491';
-    ctx.beginPath(); ctx.moveTo(c.x + 9, c.y + 2); ctx.lineTo(c.x + 44, c.y + 10); ctx.lineTo(c.x + 9, c.y + 20); ctx.fill();
-    ctx.fillStyle = '#1d1230'; ctx.font = '700 9px system-ui, sans-serif'; ctx.fillText(c.label, c.x + 12, c.y + 14);
-  }
-
-  function drawGoal(now) {
-    const g = GOAL, ready = strand.length === TARGET.length;
-    ctx.globalAlpha = ready ? 1 : 0.55;
-    ctx.fillStyle = '#ab47bc'; rr(g.x + 10, g.y, g.w - 20, g.h, 20); ctx.fill();
-    ctx.fillStyle = '#ce93d8';
-    for (let i = 0; i < 5; i++) ctx.fillRect(g.x + 10, g.y + 18 + i * 22, g.w - 20, 6);
-    ctx.fillStyle = '#f3e5f5'; ctx.font = '600 8px ui-monospace, monospace'; ctx.textAlign = 'center';
-    for (let i = 0; i < 6; i++) ctx.fillText('TTAGGG', g.x + g.w / 2, g.y + 30 + i * 18);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = ready ? '#ffd54f' : '#cbb8e0'; ctx.font = '700 11px system-ui, sans-serif';
-    ctx.fillText(ready ? 'Telômero ✓' : 'Telômero', g.x + g.w / 2, g.y - 8 + Math.sin(now / 300) * 2);
-    ctx.textAlign = 'left';
-  }
-
-  function drawStrandTail() {
-    if (!strand.length || trail.length < 2) return;
-    const pts = [];
-    for (let k = 0; k < strand.length; k++) {
-      const idx = trail.length - 1 - (k + 1) * 4;
-      if (idx < 0) break;
-      pts.push({ ...trail[idx], b: strand[strand.length - 1 - k], ok: strand[strand.length - 1 - k] === TARGET[strand.length - 1 - k] });
-    }
-    ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 2; ctx.beginPath();
-    ctx.moveTo(player.x + player.w / 2, player.y + player.h * 0.6);
-    for (const p of pts) ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-    for (const p of pts) {
-      ctx.fillStyle = BASE_COLOR[p.b]; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
-      if (!p.ok) { ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2; ctx.stroke(); }
-    }
-  }
-
-  function drawPlayer() {
-    const p = player;
-    if (p.invuln > 0 && Math.floor(p.invuln * 12) % 2 === 0) return;
-    let sx = 1, sy = 1;
-    if (p.squash > 0) { sx = 1.25; sy = 0.78; } else if (!p.onGround && p.vy < -200) { sx = 0.88; sy = 1.12; }
-    const dw = p.w * sx, dh = p.h * sy, dx = p.x + (p.w - dw) / 2, dy = p.y + p.h - dh;
-    ctx.fillStyle = '#26c6da'; rr(dx, dy, dw, dh, 8); ctx.fill();
-    // "polegar" da polimerase (a mão que segura o DNA)
-    ctx.fillStyle = '#00838f';
-    const fx = p.facing > 0 ? dx + dw - 6 : dx - 2;
-    rr(fx, dy + dh * 0.45, 8, dh * 0.35, 3); ctx.fill();
-    ctx.fillStyle = '#fff';
-    const eyeX = p.facing > 0 ? dx + dw - 11 : dx + 4;
-    ctx.fillRect(eyeX, dy + 6, 7, 7);
-    ctx.fillStyle = '#102027'; ctx.fillRect(eyeX + (p.facing > 0 ? 4 : 1), dy + 8, 2, 4);
-    if (hasHelicase) { ctx.fillStyle = '#80deea'; ctx.beginPath(); ctx.arc(dx + dw / 2, dy - 4, 3, 0, Math.PI * 2); ctx.fill(); }
-  }
-
-  function drawStrandHUD(now) {
-    const cw = 24, n = TEMPLATE.length, labelW = 58, gap = 5;
-    const totalW = labelW * 2 + cw * n + gap * 3, x0 = (W - totalW) / 2, y0 = 8;
-    ctx.fillStyle = 'rgba(20,10,35,.8)'; rr(x0 - 8, y0, totalW + 16, 64, 10); ctx.fill();
-    ctx.font = '600 11px system-ui, sans-serif'; ctx.fillStyle = '#cbb8e0'; ctx.textAlign = 'right';
-    ctx.fillText("Molde 3'", x0 + labelW - 6, y0 + 22); ctx.fillText("Nova 5'", x0 + labelW - 6, y0 + 52);
-    ctx.textAlign = 'left';
-    const endX = x0 + labelW + cw * n + gap * 3 + 4;
-    ctx.fillText("5'", endX, y0 + 22); ctx.fillText("3'", endX, y0 + 52);
-    const pulse = 0.5 + 0.5 * Math.sin(now / 160);
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (let i = 0; i < n; i++) {
-      const cx = x0 + labelW + i * cw + Math.floor(i / 3) * gap;
-      const tb = TEMPLATE[i];
-      ctx.globalAlpha = 0.75; ctx.fillStyle = BASE_COLOR[tb]; rr(cx + 1, y0 + 8, cw - 2, 20, 4); ctx.fill(); ctx.globalAlpha = 1;
-      ctx.fillStyle = '#1d1230'; ctx.font = '700 12px system-ui, sans-serif'; ctx.fillText(tb, cx + cw / 2, y0 + 19);
-      if (i < strand.length) {
-        const b = strand[i], ok = b === TARGET[i];
-        ctx.fillStyle = BASE_COLOR[b]; rr(cx + 1, y0 + 38, cw - 2, 20, 4); ctx.fill();
-        if (!ok) { ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2.5; ctx.stroke(); }
-        ctx.fillStyle = '#1d1230'; ctx.fillText(b, cx + cw / 2, y0 + 49);
-        if (ok) { // pontes de hidrogênio
-          ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.beginPath();
-          const k = HBONDS[b];
-          for (let j = 0; j < k; j++) { const lx = cx + cw / 2 + (j - (k - 1) / 2) * 5; ctx.moveTo(lx, y0 + 30); ctx.lineTo(lx, y0 + 36); }
-          ctx.stroke();
-        } else { ctx.fillStyle = '#ff5252'; ctx.font = '700 10px system-ui, sans-serif'; ctx.fillText('✕', cx + cw / 2, y0 + 33); }
-      } else {
-        ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
-        rr(cx + 1.5, y0 + 38.5, cw - 3, 19, 4); ctx.stroke(); ctx.setLineDash([]);
-        if (i === strand.length) {
-          ctx.strokeStyle = `rgba(255,213,79,${0.4 + 0.6 * pulse})`; ctx.lineWidth = 2;
-          rr(cx, y0 + 7, cw, 22, 5); ctx.stroke(); rr(cx, y0 + 37, cw, 22, 5); ctx.stroke();
-          ctx.fillStyle = '#ffd54f'; ctx.font = '700 12px system-ui, sans-serif'; ctx.fillText('?', cx + cw / 2, y0 + 49);
+    PHASES.push({
+      title: 'Tradução', short: 'O ribossomo lê os códons e une aminoácidos', needs: 'mrna',
+      controls: '<kbd>Espaço</kbd>/<kbd>↓</kbd> aceitar o tRNA no sítio A · <kbd>→</kbd> recusar · toque no tRNA para aceitar',
+      touch: ['Space', 'ArrowRight'],
+      song: { bpm: 112, play(step, t, d) { const ch = [[60, 64, 67], [62, 65, 69], [57, 60, 64], [59, 62, 67]][Math.floor(step / 8) % 4]; if (step % 2 === 0) Sound.note(midi(ch[0] - 12), t, d * 1.5, 'triangle', 0.5); if (step % 8 === 0 || step % 8 === 3 || step % 8 === 6) Sound.note(midi(ch[step % 3] + 12), t, d * 1.2, 'sine', 0.16); } },
+      brief: () => `<p>No citoplasma, a subunidade menor do <b>ribossomo</b> se liga ao quepe 5' e percorre o mRNA até o primeiro <b>AUG</b>, onde o tRNA iniciador traz a metionina.</p>
+        <p>Depois disso, cada <b>tRNA</b> que chega mostra seu <b>anticódon</b> (escrito 3'→5') e o aminoácido que carrega. Aceite só o tRNA cujo anticódon <b>pareia</b> com o códon do <b>sítio A</b> (A–U, C–G). Recuse os outros.</p>
+        <p>No códon de parada (UAA, UAG ou UGA) não existe tRNA: espere o <b>fator de liberação</b> (eRF1). Aceitar o fator num códon comum encerra a proteína antes da hora.</p>`,
+      start() { setup(); },
+      key(code, down) { if (!down) return; if (code === 'Space' || code === 'ArrowDown' || code === 'KeyS') accept(); if (code === 'ArrowRight' || code === 'KeyD' || code === 'Backspace') reject(); },
+      pointer(x, y) { if (curT && Math.abs(x - curT.x) < 50 && y > DOCK_Y - 80 && y < DOCK_Y + 40) accept(); },
+      update(dt) {
+        if (phase === 'init' || phase === 'noaug') {
+          initT -= dt;
+          if (initT <= 0) { if (phase === 'noaug') { finish('nonstop'); return; } phase = 'run'; nextItem(); }
+          return;
         }
+        if (phase !== 'run' || done) return;
+        if (offsetT > 0) offsetT -= dt;
+        if (epTRNA) { epTRNA.t += dt; if (epTRNA.t > 0.9) epTRNA = null; }
+        if (!curT) return;
+        if (curT.state === 'in') { curT.x -= 650 * dt; if (curT.x <= AX) { curT.x = AX; curT.state = 'dock'; } }
+        else if (curT.state === 'dock') { curT.t += dt; if (curT.t >= curT.win) curT.state = 'out'; }
+        else if (curT.state === 'out') { curT.x -= 500 * dt; curT.y = (curT.y || 0) - 260 * dt; if (curT.x < -60) nextItem(); }
+      },
+      render(dt) {
+        const now = performance.now();
+        ctx.fillStyle = '#1b2a3a'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = 'rgba(255,255,255,.05)'; for (let k = 0; k < 50; k++) { circle((k * 151) % W, (k * 83) % H, 2.5); ctx.fill(); }
+        // mRNA
+        const shift = offsetT > 0 ? (offsetT / 0.35) * CW : 0;
+        const baseX = AX - (ci) * CW - CW / 2 + shift;
+        ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, MRNA_Y + 26); ctx.lineTo(W, MRNA_Y + 26); ctx.stroke();
+        for (let k = 0; k < codons.length; k++) {
+          const x = baseX + k * CW; if (x < -CW || x > W + CW) continue;
+          codons[k].split('').forEach((b, q) => baseTile(x + 2 + q * 22, MRNA_Y, 20, 22, b, { alpha: k < ci - 1 ? 0.5 : 1 }));
+          label(k === ci ? 'sítio A' : k === ci - 1 ? 'sítio P' : k === ci - 2 ? 'sítio E' : '', x + CW / 2, MRNA_Y + 46, { font: '600 11px system-ui', align: 'center', color: '#a99bc0' });
+        }
+        label("5'", 8, MRNA_Y + 16, { color: '#ffd54f' }); label("3'", W - 20, MRNA_Y + 16, { color: '#ffd54f' });
+        // ribossomo
+        ctx.fillStyle = 'rgba(126,87,194,.55)'; rr(PX - CW * 1.6, MRNA_Y - 150, CW * 3.3, 150, 50); ctx.fill();
+        ctx.fillStyle = 'rgba(149,117,205,.55)'; rr(PX - CW * 1.4, MRNA_Y + 34, CW * 2.9, 54, 26); ctx.fill();
+        label('ribossomo', PX - CW * 1.4 + 10, MRNA_Y + 80, { font: '600 11px system-ui', color: '#d1c4e9' });
+        ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+        rr(AX - CW / 2, MRNA_Y - 120, CW, 150, 12); ctx.stroke(); ctx.setLineDash([]);
+        // tRNA no sítio P com a cadeia
+        if (phase !== 'init' && phase !== 'noaug' && peptide.length) {
+          const pa = ci - 1 < codons.length ? codons[ci - 1] : null;
+          if (pa) drawTRNA(PX + shift, MRNA_Y - 34, antiOf(pa), peptide[peptide.length - 1], {});
+          for (let k = 1; k < peptide.length; k++) {
+            const j = peptide.length - 1 - k;
+            const x = PX + shift - 22 - k * 26, y = MRNA_Y - 104 - k * 10 + Math.sin(now / 400 + k) * 4;
+            ctx.fillStyle = isH(peptide[j]) ? '#ffb74d' : '#64b5f6'; circle(x, y, 13); ctx.fill();
+            label(peptide[j], x, y + 1, { font: '700 11px system-ui', align: 'center', base: 'middle', color: '#1d1230' });
+          }
+        }
+        if (epTRNA) drawTRNA(PX - CW + shift - epTRNA.t * 120, MRNA_Y - 34 - epTRNA.t * 60, epTRNA.anti, epTRNA.aa, { alpha: Math.max(0, 1 - epTRNA.t / 0.9) });
+        // tRNA chegando ao sítio A
+        if (curT) {
+          const y = DOCK_Y + (curT.y || 0) + 42;
+          drawTRNA(curT.x, y, curT.anti, curT.aa, { rf: curT.rf });
+          if (curT.state === 'dock') { ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(curT.x, y - 20, 48, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - curT.t / curT.win)); ctx.stroke(); }
+        }
+        // painel
+        panel(10, 8, 330, 54);
+        const codon = codons[ci];
+        label(codon ? `Sítio A: ${codon}` : 'Fim do mRNA', 22, 30, { font: '700 15px system-ui', color: '#ffd54f' });
+        label(codon ? `Precisa do anticódon 3'-${antiOf(codon)}-5'${codonAA(codon) === '*' ? ' … é um STOP!' : ''}` : '', 22, 50, { font: '600 12px system-ui', color: '#a99bc0' });
+        panel(W - 210, 8, 200, 54);
+        label(`Aminoácidos: ${peptide.length}`, W - 196, 30, { font: '700 13px system-ui' });
+        label(`Erros: ${mis}`, W - 196, 50, { font: '600 12px system-ui', color: mis ? '#ff8a80' : '#a99bc0' });
+        if (phase === 'init') { panel(W / 2 - 250, H / 2 - 120, 500, 64, 0.92); label('A subunidade menor varre o mRNA a partir do quepe...', W / 2, H / 2 - 92, { font: '700 15px system-ui', align: 'center', color: '#ffd54f' }); label('AUG encontrado! O tRNA iniciador traz a metionina (Met).', W / 2, H / 2 - 70, { font: '13px system-ui', align: 'center' }); }
+        if (phase === 'noaug') { panel(W / 2 - 220, H / 2 - 40, 440, 60, 0.92); label('Nenhum AUG encontrado: a tradução não começa.', W / 2, H / 2 - 4, { font: '700 15px system-ui', align: 'center', color: '#ff8a80' }); }
+        drawFloats(dt);
+      },
+      debug: () => ({ cur: () => curT, ci: () => ci, codons: () => codons, phase: () => phase, accept, reject, peptide: () => peptide }),
+    });
+  })();
+
+  // =====================================================================
+  // FASE 7: DOBRAMENTO (modelo HP em rede quadrada)
+  // =====================================================================
+  const DIR4 = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+  // máximo de contatos H–H por busca exaustiva de caminhos autoevitantes (n ≤ 14)
+  function hpMaxContacts(hp) {
+    const n = hp.length;
+    if (n < 3) return 0;
+    const occ = new Map(), key = (x, y) => x * 1000 + y;
+    let best = 0;
+    const xs = new Array(n), ys = new Array(n);
+    const hRemain = []; { let c = 0; for (let i = n - 1; i >= 0; i--) { hRemain[i] = c; if (hp[i]) c++; } }
+    function dfs(i, contacts, turned) {
+      if (i === n) { if (contacts > best) best = contacts; return; }
+      if (contacts + hRemain[i - 1] * 2 + 2 <= best) return; // poda simples
+      const px = xs[i - 1], py = ys[i - 1];
+      for (let d = 0; d < 4; d++) {
+        if (i === 1 && d !== 0) continue;           // simetria: primeiro passo para a direita
+        if (!turned && d === 3) continue;           // simetria: primeira curva só para cima
+        const x = px + DIR4[d][0], y = py + DIR4[d][1], k = key(x, y);
+        if (occ.has(k)) continue;
+        let c = 0;
+        if (hp[i]) for (const [dx, dy] of DIR4) { const j = occ.get(key(x + dx, y + dy)); if (j !== undefined && j !== i - 1 && hp[j]) c++; }
+        xs[i] = x; ys[i] = y; occ.set(k, i);
+        dfs(i + 1, contacts + c, turned || d === 1);
+        occ.delete(k);
       }
     }
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    xs[0] = 0; ys[0] = 0; occ.set(key(0, 0), 0);
+    dfs(1, 0, false);
+    return best;
   }
 
-  function drawStats() {
-    const txt = `Erros: ${mutations}   Revisões: ${corrected}   Danos: ${hits}${hasHelicase ? '   Helicase ✓' : ''}`;
-    ctx.font = '600 12px system-ui, sans-serif';
-    const w = ctx.measureText(txt).width + 20;
-    ctx.fillStyle = 'rgba(20,10,35,.75)'; rr(10, H - 34, w, 24, 6); ctx.fill();
-    ctx.fillStyle = '#efe9f7'; ctx.fillText(txt, 20, H - 18);
+  (() => {
+    const GW = 15, GH = 9, CS = 40, OX = (W - GW * CS) / 2, OY = 62;
+    let seq, hp, path, maxC, note, finished, msgT;
+    function setup() {
+      const pr = getData.protein();
+      seq = (pr.seq || '').slice(0, 14);
+      note = (pr.seq || '').length > 14 ? `A cadeia tem ${pr.seq.length} aminoácidos; o quebra-cabeça usa os 14 primeiros.` : '';
+      hp = seq.split('').map(isH);
+      maxC = hpMaxContacts(hp);
+      path = seq.length ? [[7, 4]] : [];
+      finished = false; msgT = 0;
+    }
+    const occupied = (x, y) => path.findIndex(p => p[0] === x && p[1] === y);
+    function contacts() {
+      let c = 0; const pairs = [];
+      for (let i = 0; i < path.length; i++) for (let j = i + 2; j < path.length; j++) {
+        if (hp[i] && hp[j] && Math.abs(path[i][0] - path[j][0]) + Math.abs(path[i][1] - path[j][1]) === 1) { c++; pairs.push([i, j]); }
+      }
+      return { c, pairs };
+    }
+    function place(dx, dy) {
+      if (finished || path.length >= seq.length) return;
+      const [lx, ly] = path[path.length - 1], x = lx + dx, y = ly + dy;
+      if (x < 0 || y < 0 || x >= GW || y >= GH || occupied(x, y) >= 0) { Sound.tone(160, 0.08, { vol: 0.08 }); return; }
+      const before = contacts().c;
+      path.push([x, y]);
+      const after = contacts().c;
+      if (after > before) Sound.arp([76, 83], 0.05, { type: 'sine', vol: 0.18 }); else Sound.tone(midi(64 + path.length), 0.06, { type: 'triangle', vol: 0.12 });
+      if (path.length === seq.length) Sound.arp([72, 76, 79], 0.07, { type: 'square', vol: 0.1, delay: 0.1 });
+    }
+    function undo() { if (path.length > 1 && !finished) { path.pop(); Sound.tone(300, 0.06, { type: 'sine', vol: 0.08 }); } }
+    function reset() { if (!finished && seq.length) { path = [[7, 4]]; Sound.noise(0.2, { freq: 800, vol: 0.12 }); floatMsg('Chaperona Hsp70: cadeia desdobrada para tentar de novo', W / 2, 52, '#80deea'); } }
+    function submit() {
+      if (finished) return;
+      if (seq.length && path.length < seq.length) { floatMsg('Posicione todos os aminoácidos antes de concluir', W / 2, 52, '#ffb74d'); return; }
+      finished = true;
+      const c = seq.length ? contacts().c : 0;
+      const quality = !seq.length ? 'sem proteína' : c === maxC ? 'nativa' : (c >= maxC - 1 && maxC >= 2) ? 'estável' : 'mal dobrada';
+      const exposed = path.reduce((s, p, i) => s + (hp[i] ? DIR4.filter(([dx, dy]) => occupied(p[0] + dx, p[1] + dy) < 0).length : 0), 0);
+      Sound.arp(quality === 'nativa' ? [72, 76, 79, 84, 88] : [72, 75, 79], 0.1, { type: 'square', vol: 0.13 });
+      const text = {
+        nativa: 'A proteína atingiu o <b>estado nativo</b>: o máximo de contatos hidrofóbicos possível para esta sequência. É a conformação de menor energia.',
+        'estável': 'A proteína está <b>quase</b> no estado nativo. Funciona, mas com estabilidade e eficiência menores.',
+        'mal dobrada': 'A proteína ficou <b>mal dobrada</b>: resíduos hidrofóbicos expostos à água. Na célula, proteínas assim tendem a se agregar ou são degradadas pelo proteassomo.',
+        'sem proteína': 'Não há cadeia para dobrar.',
+      }[quality];
+      completePhase(6, `<h2>Dobramento: ${quality}</h2>
+        <p>${text}</p>
+        <div class="stats"><span>Contatos hidrofóbicos <b>${c}</b> de <b>${maxC}</b> possíveis</span><span>Faces hidrofóbicas expostas <b>${exposed}</b></span><span>Resíduos <b>${seq.length}</b></span></div>
+        ${note ? `<p class="muted">${note}</p>` : ''}
+        <p class="muted">No modelo HP, cada aminoácido é hidrofóbico (H, laranja) ou polar (P, azul). O efeito hidrofóbico empurra os H para dentro, longe da água: é a principal força que dobra as proteínas reais. ${seq === PROTEIN_OK ? '' : 'Como a sequência mudou, o melhor dobramento possível também mudou.'}</p>`,
+        { fold: { contacts: c, max: maxC, quality } });
+    }
+    PHASES.push({
+      title: 'Dobramento', short: 'Esconda os aminoácidos hidrofóbicos no núcleo', needs: 'protein',
+      controls: '<kbd>←↑→↓</kbd> posicionar o próximo aminoácido (ou toque numa casa vizinha) · <kbd>Backspace</kbd> desfazer · <kbd>R</kbd> chaperona (recomeçar) · <kbd>Enter</kbd> concluir',
+      touch: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Backspace', 'Space'],
+      song: { bpm: 76, play(step, t, d) { const ch = [[60, 67, 72], [57, 64, 69], [53, 60, 65], [55, 62, 67]][Math.floor(step / 8) % 4]; if (step % 8 === 0) for (const n of ch) Sound.note(midi(n), t, d * 7.5, 'sine', 0.13); if (step % 4 === 2) Sound.note(midi(ch[(step >> 2) % 3] + 12), t, d * 2, 'triangle', 0.07); } },
+      brief: () => `<p>A cadeia que saiu do ribossomo precisa se <b>dobrar</b> na forma tridimensional certa para funcionar. Aqui usamos o <b>modelo HP</b>, uma simplificação clássica da biofísica: a cadeia ocupa casas de uma grade, e cada aminoácido é <b style="color:#ffb74d">hidrofóbico (H)</b> ou <b style="color:#64b5f6">polar (P)</b>.</p>
+        <p>Posicione os aminoácidos, um a um, sem cruzar a cadeia. Cada par de H vizinhos que <b>não</b> são consecutivos na sequência forma um <b>contato hidrofóbico</b>. Quanto mais contatos, mais estável. Tente alcançar o máximo possível, que aparece no painel.</p>`,
+      start() { setup(); },
+      key(code, down) {
+        if (!down) return;
+        const m = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyD: [1, 0], KeyA: [-1, 0], KeyW: [0, -1], KeyS: [0, 1] }[code];
+        if (m) place(...m);
+        if (code === 'Backspace') undo();
+        if (code === 'KeyR') reset();
+        if (code === 'Enter' || code === 'Space') submit();
+      },
+      pointer(x, y) {
+        const gx = Math.floor((x - OX) / CS), gy = Math.floor((y - OY) / CS);
+        if (!path.length) return;
+        const [lx, ly] = path[path.length - 1];
+        if (gx === lx && gy === ly) { undo(); return; }
+        if (Math.abs(gx - lx) + Math.abs(gy - ly) === 1) place(gx - lx, gy - ly);
+      },
+      update(dt) { if (!seq.length && !finished) submit(); },
+      render(dt) {
+        const now = performance.now();
+        const g = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 480); g.addColorStop(0, '#12385a'); g.addColorStop(1, '#0a1a2e');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        for (let k = 0; k < 40; k++) { ctx.fillStyle = 'rgba(129,212,250,.08)'; circle((k * 97 + now / 40) % W, (k * 61) % H, 3); ctx.fill(); }
+        ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
+        for (let x = 0; x <= GW; x++) { ctx.beginPath(); ctx.moveTo(OX + x * CS, OY); ctx.lineTo(OX + x * CS, OY + GH * CS); ctx.stroke(); }
+        for (let y = 0; y <= GH; y++) { ctx.beginPath(); ctx.moveTo(OX, OY + y * CS); ctx.lineTo(OX + GW * CS, OY + y * CS); ctx.stroke(); }
+        const cpos = ([x, y]) => [OX + x * CS + CS / 2, OY + y * CS + CS / 2];
+        // casas possíveis para o próximo
+        if (path.length && path.length < seq.length && !finished) {
+          const [lx, ly] = path[path.length - 1];
+          for (const [dx, dy] of DIR4) { const x = lx + dx, y = ly + dy; if (x >= 0 && y >= 0 && x < GW && y < GH && occupied(x, y) < 0) { ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(OX + x * CS + 4, OY + y * CS + 4, CS - 8, CS - 8, 8); ctx.fill(); } }
+        }
+        const { c, pairs } = contacts();
+        ctx.strokeStyle = '#9ccc65'; ctx.lineWidth = 3; ctx.setLineDash([4, 4]);
+        for (const [i, j] of pairs) { const [x1, y1] = cpos(path[i]), [x2, y2] = cpos(path[j]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+        ctx.setLineDash([]);
+        ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 6; ctx.beginPath();
+        path.forEach((p, i) => { const [x, y] = cpos(p); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke();
+        path.forEach((p, i) => {
+          const [x, y] = cpos(p);
+          ctx.fillStyle = hp[i] ? '#ffb74d' : '#64b5f6'; circle(x, y, 15); ctx.fill();
+          if (i === path.length - 1 && path.length < seq.length) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; circle(x, y, 18 + Math.sin(now / 200) * 2); ctx.stroke(); }
+          label(seq[i], x, y + 1, { font: '800 14px system-ui', align: 'center', base: 'middle', color: '#1d1230' });
+          if (i === 0) label('N', x - 20, y - 14, { font: '700 10px system-ui', color: '#a99bc0' });
+        });
+        // painel
+        panel(10, 8, W - 20, 46);
+        label(`Contatos hidrofóbicos: ${c} / máximo possível ${maxC}`, 22, 30, { font: '700 14px system-ui', color: c === maxC && path.length === seq.length ? '#9ccc65' : '#efe9f7' });
+        label(`Posicionados: ${path.length}/${seq.length}`, 22, 47, { font: '600 12px system-ui', color: '#a99bc0' });
+        const nextAA = seq[path.length];
+        if (nextAA) label(`Próximo: ${AA3[nextAA]} (${isH(nextAA) ? 'hidrofóbico' : 'polar'})`, W - 22, 30, { font: '700 13px system-ui', align: 'right', color: isH(nextAA) ? '#ffb74d' : '#64b5f6' });
+        else if (seq.length) label('Cadeia completa! Enter para concluir', W - 22, 30, { font: '700 13px system-ui', align: 'right', color: '#ffd54f' });
+        label('sequência: ' + seq.split('').map((a, i) => a).join(' '), W - 22, 47, { font: '600 12px ui-monospace, monospace', align: 'right', color: '#a99bc0' });
+        drawFloats(dt);
+      },
+      debug: () => ({ seq: () => seq, maxC: () => maxC, place, submit, path: () => path, contacts }),
+    });
+  })();
+
+  // =====================================================================
+  // FASE 8: FUNÇÃO (a luciferase faz o vaga-lume brilhar) + RESUMO FINAL
+  // =====================================================================
+  function activityReport() {
+    const pr = getData.protein(), fold = getData.fold(), m = getData.mrna();
+    const seq = pr.seq || '';
+    const notes = [];
+    let act = 1;
+    if (!seq.length) { act = 0; notes.push('Nenhuma proteína foi produzida.'); }
+    else {
+      let miss = 0, drastic = 0, cons = 0;
+      for (let i = 0; i < PROTEIN_OK.length; i++) {
+        if (seq[i] === undefined) miss++;
+        else if (seq[i] !== PROTEIN_OK[i]) { if (isH(seq[i]) !== isH(PROTEIN_OK[i])) drastic++; else cons++; }
+      }
+      const extra = Math.max(0, seq.length - PROTEIN_OK.length);
+      act *= Math.pow(0.55, drastic) * Math.pow(0.85, cons) * Math.pow(0.6, miss) * Math.pow(0.9, extra);
+      if (drastic) notes.push(`${drastic} troca(s) entre aminoácido hidrofóbico e polar (mudança drástica)`);
+      if (cons) notes.push(`${cons} troca(s) conservativa(s) (mesmo tipo de aminoácido)`);
+      if (miss) notes.push(`${miss} aminoácido(s) a menos (proteína truncada)`);
+      if (extra) notes.push(`${extra} aminoácido(s) a mais`);
+      if (pr.nonstop) { act *= 0.3; notes.push('sem códon de parada: boa parte das cópias é degradada (non-stop decay)'); }
+      const fq = { nativa: 1, 'estável': 0.75, 'mal dobrada': 0.35, 'sem proteína': 0 }[fold.quality] ?? 1;
+      act *= fq;
+      if (fold.quality !== 'nativa') notes.push({ 'estável': 'proteína estável, mas fora do estado nativo', 'mal dobrada': 'proteína mal dobrada', 'sem proteína': 'nenhuma cadeia para dobrar' }[fold.quality] || `dobramento: ${fold.quality}`);
+    }
+    act = Math.max(0, Math.min(1, act));
+    let copies = 2;
+    if (m.tail < 150 || (m.integ ?? 100) < 60) copies = 1;
+    if (m.tail < 100) copies = 0;
+    if (!notes.length) notes.push('sequência idêntica à luciferase correta e dobramento nativo');
+    return { act, copies, notes, seq };
   }
 
-  function render() {
+  (() => {
+    const GOAL = 12, TIME = 60;
+    let rep, P, helpers, mols, light, timeLeft, flashes, done, spawnT, stunMsgT;
+    function setup() {
+      rep = activityReport();
+      const a = Math.max(0.12, rep.act);
+      P = { x: W / 2, y: H / 2 + 30, lf: false, atp: false, busy: 0, stun: 0, a };
+      helpers = Array.from({ length: rep.copies }, (_, k) => ({ x: 200 + k * 400, y: 300, lf: false, atp: false, busy: 0, stun: 0, a, ai: true }));
+      mols = []; light = 0; timeLeft = TIME; flashes = []; done = false; spawnT = 0; stunMsgT = 0;
+      for (let k = 0; k < 10; k++) spawn();
+    }
+    function spawn() {
+      const r = Math.random();
+      const type = r < 0.42 ? 'lf' : r < 0.84 ? 'atp' : 'inib';
+      mols.push({ type, x: 30 + Math.random() * (W - 60), y: 90 + Math.random() * (H - 130), vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40, t: Math.random() * 6 });
+    }
+    function react(E) {
+      E.busy = 0.6 / E.a; E.lf = false; E.atp = false;
+      setTimeout(() => {
+        if (done) return;
+        light++; flashes.push({ x: E.x, y: E.y, t: 0 });
+        Sound.arp([84, 88, 91], 0.05, { type: 'sine', vol: 0.18 });
+        if (light >= GOAL) finish(true);
+      }, E.busy * 1000);
+    }
+    function moveEnzyme(E, dx, dy, dt) {
+      const sp = 170 * (0.45 + 0.55 * E.a) * (E.ai ? 0.6 : 1);
+      const m = Math.hypot(dx, dy) || 1;
+      E.x = clamp(E.x + dx / m * sp * dt, 20, W - 20); E.y = clamp(E.y + dy / m * sp * dt, 80, H - 20);
+    }
+    function bindCheck(E) {
+      const rad = 16 + 12 * E.a;
+      for (const mo of mols) {
+        if (mo.dead) continue;
+        if (Math.hypot(mo.x - E.x, mo.y - E.y) > rad) continue;
+        if (mo.type === 'inib') { mo.dead = true; E.stun = 1.6; if (!E.ai) { Sound.tone(140, 0.35, { type: 'square', vol: 0.12 }); floatMsg('Inibidor competitivo ocupou o sítio ativo!', E.x, E.y - 30, '#ff8a80'); } continue; }
+        if (mo.type === 'lf' && !E.lf) { mo.dead = true; E.lf = true; if (!E.ai) Sound.tone(660, 0.08, { type: 'triangle', vol: 0.15 }); }
+        if (mo.type === 'atp' && !E.atp) { mo.dead = true; E.atp = true; if (!E.ai) Sound.tone(520, 0.08, { type: 'triangle', vol: 0.15 }); }
+      }
+      if (E.lf && E.atp && E.busy <= 0) react(E);
+    }
+    function finish(win) {
+      if (done) return; done = true;
+      setTimeout(() => {
+        Sound.arp(win ? [72, 76, 79, 84, 79, 84, 88, 91] : [69, 65, 62, 57], 0.12, { type: win ? 'square' : 'triangle', vol: 0.14, dur: 0.25 });
+        completePhase(7, finalSummary(win), {});
+      }, 600);
+    }
+    function finalSummary(win) {
+      const d2 = getData.dna2(), dna3 = getData.dna3(), pre = getData.pre(), m = getData.mrna(), pr = getData.protein(), fold = getData.fold();
+      const subs = d2.filter(s => !s.ins).filter((s, k) => s.b !== CODING[k]).length, ins = d2.filter(s => s.ins).length;
+      const dnaMut = dna3.length !== CODING.length ? 'com inserção' : dna3.split('').filter((b, k) => b !== CODING[k]).length;
+      const trErr = pre.split('').filter((b, k) => b !== toRNA(dna3)[k]).length;
+      const box = (ok, title, txt) => `<div>${ok ? '✅' : '⚠️'} <b>${title}:</b> ${txt}</div>`;
+      return `<h2>${win ? '✨ O vaga-lume brilhou!' : 'O vaga-lume quase não brilhou'}</h2>
+        <p>${win ? 'A luciferase que você produziu catalisou a oxidação da <b>luciferina</b> usando <b>ATP</b> e <b>O₂</b>, e a energia liberada saiu como luz.' : `A luciferase atingiu ${Math.round(light / GOAL * 100)}% do brilho necessário.`} Atividade da enzima: <b>${Math.round(rep.act * 100)}%</b>.</p>
+        <h3>Do gene à função</h3>
+        <div class="flow">
+          ${box(subs + ins === 0, 'Replicação', subs + ins ? `${subs} substituição(ões) e ${ins} inserção(ões) na fita nova` : 'cópia sem erros')}
+          ${box(dnaMut === 0, 'Reparo do DNA', dnaMut === 0 ? 'DNA final idêntico ao gene original' : `DNA final ${typeof dnaMut === 'number' ? `com ${dnaMut} mutação(ões)` : dnaMut}`)}
+          ${box(trErr === 0, 'Transcrição', trErr ? `${trErr} erro(s) no pré-mRNA` : 'pré-mRNA fiel ao DNA')}
+          ${box(m.splice === 'ok' && m.tail >= 150, 'Processamento', `splicing ${m.splice === 'ok' ? 'correto' : m.splice === 'retido' ? 'reteve parte do íntron' : 'removeu parte de um éxon'} · cauda poli(A) de ${m.tail} A`)}
+          ${box(pr.seq === PROTEIN_OK && pr.stop, 'Tradução', `${protHTML(pr.seq || '', PROTEIN_OK)}${pr.stop ? '' : pr.premature ? ' (truncada)' : ' (sem códon de parada)'}`)}
+          ${box(fold.quality === 'nativa', 'Dobramento', `${fold.quality}${fold.max != null ? ` (${fold.contacts}/${fold.max} contatos hidrofóbicos)` : ''}`)}
+          ${box(win, 'Função', `atividade de ${Math.round(rep.act * 100)}% · ${light}/${GOAL} reações de luz${rep.copies ? ` · ${rep.copies} cópia(s) extra(s) da enzima ajudando` : ''}`)}
+        </div>
+        <p class="muted">Fatores que afetaram a atividade: ${rep.notes.join('; ')}.</p>
+        <p>Cada etapa, do DNA à proteína, tem mecanismos de correção. Mesmo assim, um único erro pode atravessar todas elas e mudar a função de uma proteína: é assim que surgem muitas doenças genéticas e também a variação sobre a qual a evolução age.</p>`;
+    }
+
+    PHASES.push({
+      title: 'Função', short: 'A luciferase acende o vaga-lume', needs: 'protein',
+      controls: '<kbd>←↑→↓</kbd> mover a enzima (ou toque para onde ir) · junte <b>luciferina</b> + <b>ATP</b> para produzir luz · evite os inibidores',
+      touch: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
+      song: { bpm: 120, play(step, t, d) { const ch = [[64, 68, 71], [61, 64, 68], [57, 61, 64], [59, 63, 66]][Math.floor(step / 8) % 4]; if (step % 2 === 0) Sound.note(midi(ch[0] - 12), t, d * 1.6, 'triangle', 0.5); Sound.note(midi(ch[step % 3] + 12 + (step % 8 > 4 ? 12 : 0)), t, d * 0.8, 'sine', 0.12); } },
+      brief: () => { const r = activityReport(); return `<p>Chegou a hora da verdade: a proteína funciona? A <b>luciferase</b> catalisa a reação <b>luciferina + ATP + O₂ → oxiluciferina + luz</b>. É assim que o vaga-lume brilha.</p>
+        <p>Controle a enzima: capture uma <b style="color:#ffd54f">luciferina</b> e um <b style="color:#ef5350">ATP</b> (o O₂ está por toda parte) para produzir um flash de luz. Faça <b>${GOAL} reações</b> em ${TIME} s. Os <b style="color:#9e9e9e">inibidores competitivos</b> ocupam o sítio ativo e travam a enzima por um tempo.</p>
+        <div class="flow"><div><b>Atividade da sua luciferase: ${Math.round(r.act * 100)}%</b> ${r.act >= 0.95 ? '(perfeita)' : '(afeta velocidade e alcance)'}</div><div>${r.notes.join(' · ')}</div><div>Cópias extras da enzima ajudando: <b>${r.copies}</b> (dependem da cauda poli(A) e da integridade do mRNA)</div></div>`; },
+      start() { setup(); },
+      pointer(x, y) { P.tx = x; P.ty = y; },
+      update(dt) {
+        if (done) return;
+        timeLeft -= dt;
+        if (timeLeft <= 0) { finish(false); return; }
+        spawnT -= dt; if (spawnT <= 0 && mols.filter(m => !m.dead).length < 16) { spawnT = 0.5; spawn(); }
+        for (const m of mols) { m.t += dt; m.x += (m.vx + Math.sin(m.t) * 15) * dt; m.y += (m.vy + Math.cos(m.t * 1.3) * 15) * dt; if (m.x < 20 || m.x > W - 20) m.vx *= -1; if (m.y < 80 || m.y > H - 20) m.vy *= -1; }
+        mols = mols.filter(m => !m.dead);
+        for (const E of [P, ...helpers]) {
+          E.stun = Math.max(0, E.stun - dt); E.busy = Math.max(0, E.busy - dt);
+          if (E.stun > 0 || E.busy > 0) continue;
+          let dx = 0, dy = 0;
+          if (E.ai) {
+            const want = mols.filter(m => (m.type === 'lf' && !E.lf) || (m.type === 'atp' && !E.atp));
+            let best = null, bd = 1e9; for (const m of want) { const d = Math.hypot(m.x - E.x, m.y - E.y); if (d < bd) { bd = d; best = m; } }
+            if (best) { dx = best.x - E.x; dy = best.y - E.y; }
+          } else {
+            dx = (held(['ArrowRight', 'KeyD']) ? 1 : 0) - (held(['ArrowLeft', 'KeyA']) ? 1 : 0);
+            dy = (held(['ArrowDown', 'KeyS']) ? 1 : 0) - (held(['ArrowUp', 'KeyW']) ? 1 : 0);
+            if (dx || dy) E.tx = null; else if (E.tx != null) { const d = Math.hypot(E.tx - E.x, E.ty - E.y); if (d > 6) { dx = E.tx - E.x; dy = E.ty - E.y; } }
+          }
+          if (dx || dy) moveEnzyme(E, dx, dy, dt);
+          bindCheck(E);
+        }
+        for (const f of flashes) f.t += dt;
+        flashes = flashes.filter(f => f.t < 1);
+      },
+      render(dt) {
+        const now = performance.now(), glow = light / GOAL;
+        const g = ctx.createRadialGradient(W - 90, 70, 10, W - 90, 70, 500);
+        g.addColorStop(0, `rgba(${Math.round(60 + 160 * glow)},${Math.round(70 + 160 * glow)},40,1)`); g.addColorStop(0.35, '#16263a'); g.addColorStop(1, '#0b1422');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        // vaga-lume
+        const fx = W - 90, fy = 70;
+        ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.ellipse(fx - 24, fy, 26, 14, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(220,255,120,${0.25 + 0.75 * glow})`; ctx.beginPath(); ctx.ellipse(fx + 16, fy + 2, 22, 13, 0, 0, Math.PI * 2); ctx.fill();
+        if (glow > 0.05) { ctx.fillStyle = `rgba(230,255,140,${0.25 * glow})`; circle(fx + 16, fy + 2, 40 + 40 * glow); ctx.fill(); }
+        ctx.fillStyle = 'rgba(200,230,255,.35)'; ctx.beginPath(); ctx.ellipse(fx - 30, fy - 16, 18, 8, -0.4, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(fx - 14, fy - 18, 18, 8, 0.3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#212121'; circle(fx - 50, fy - 2, 8); ctx.fill();
+        for (const m of mols) {
+          if (m.type === 'lf') { ctx.fillStyle = '#ffd54f'; ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + m.t * 0.3; ctx.lineTo(m.x + Math.cos(a) * 9, m.y + Math.sin(a) * 9); } ctx.closePath(); ctx.fill(); label('Lf', m.x, m.y + 1, { font: '700 8px system-ui', align: 'center', base: 'middle', color: '#3e2723' }); }
+          else if (m.type === 'atp') { ctx.fillStyle = '#ef5350'; for (let k = 0; k < 3; k++) { circle(m.x - 8 + k * 8, m.y, 4.5); ctx.fill(); } label('ATP', m.x, m.y + 13, { font: '700 8px system-ui', align: 'center', color: '#ffcdd2' }); }
+          else { ctx.fillStyle = '#9e9e9e'; rr(m.x - 8, m.y - 8, 16, 16, 4); ctx.fill(); label('✕', m.x, m.y + 1, { font: '700 10px system-ui', align: 'center', base: 'middle', color: '#424242' }); }
+        }
+        for (const f of flashes) { ctx.fillStyle = `rgba(230,255,140,${1 - f.t})`; circle(f.x, f.y, 10 + f.t * 60); ctx.fill(); }
+        for (const E of [P, ...helpers]) {
+          const s = E.ai ? 0.7 : 1;
+          ctx.save(); ctx.translate(E.x, E.y); ctx.scale(s, s);
+          ctx.fillStyle = E.stun > 0 ? '#9e9e9e' : '#4dd0e1'; ctx.beginPath(); ctx.arc(0, 0, 22, 0.6, Math.PI * 2 - 0.6); ctx.lineTo(4, 0); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#00838f'; for (let k = 0; k < 5; k++) { circle(-10 + (k % 3) * 8, -8 + Math.floor(k / 3) * 12, 3); ctx.fill(); }
+          if (E.lf) { ctx.fillStyle = '#ffd54f'; circle(14, -4, 5); ctx.fill(); }
+          if (E.atp) { ctx.fillStyle = '#ef5350'; circle(14, 6, 5); ctx.fill(); }
+          if (E.busy > 0) { ctx.strokeStyle = '#e6ff8c'; ctx.lineWidth = 3; circle(0, 0, 27 + Math.sin(now / 60) * 2); ctx.stroke(); }
+          ctx.restore();
+          if (!E.ai) label('você', E.x, E.y + 36, { font: '600 10px system-ui', align: 'center', color: '#80deea' });
+        }
+        panel(10, 8, 330, 56);
+        label(`Luz: ${light}/${GOAL} reações`, 22, 30, { font: '700 14px system-ui', color: '#e6ff8c' });
+        ctx.fillStyle = 'rgba(255,255,255,.1)'; rr(22, 40, 300, 10, 5); ctx.fill();
+        ctx.fillStyle = '#e6ff8c'; rr(22, 40, 300 * glow, 10, 5); ctx.fill();
+        panel(350, 8, 260, 56);
+        label(`Tempo: ${Math.max(0, Math.ceil(timeLeft))} s`, 362, 30, { font: '700 14px system-ui' });
+        label(`Atividade da enzima: ${Math.round(rep.act * 100)}%`, 362, 50, { font: '600 12px system-ui', color: rep.act > 0.7 ? '#9ccc65' : '#ffb74d' });
+        drawFloats(dt);
+      },
+      debug: () => ({ P: () => P, mols: () => mols, light: () => light, setLight: v => { light = v; }, rep: () => rep }),
+    });
+  })();
+
+  // =====================================================================
+  // LAÇO PRINCIPAL
+  // =====================================================================
+  function drawIdle() {
     const now = performance.now();
-    drawBackground();
-    const sx = shake > 0 ? (Math.random() - 0.5) * 8 : 0, sy = shake > 0 ? (Math.random() - 0.5) * 6 : 0;
-    const cx = Math.round(camX);
-    ctx.save(); ctx.translate(-cx + sx, sy);
-    drawTiles(cx);
-    for (const c of checkpoints) drawCheckpoint(c);
-    drawGoal(now);
-    for (const n of nucs) if (n.active) drawNucleotide(n, now);
-    drawHelicase(now);
-    for (const e of phages) drawPhage(e, now);
-    for (const r of ros) drawROS(r, now);
-    drawStrandTail();
-    drawPlayer();
-    for (const t of texts) {
-      ctx.globalAlpha = Math.max(0, 1 - t.t / 1.6);
-      ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(20,10,35,.7)'; const tw = ctx.measureText(t.text).width;
-      rr(t.x - tw / 2 - 6, t.y - 14, tw + 12, 20, 6); ctx.fill();
-      ctx.fillStyle = t.color; ctx.fillText(t.text, t.x, t.y);
-      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1f1238'); g.addColorStop(1, '#3a1a48');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for (let s = 0; s < 2; s++) {
+      ctx.strokeStyle = s ? 'rgba(66,165,245,.35)' : 'rgba(239,83,80,.35)'; ctx.lineWidth = 4; ctx.beginPath();
+      for (let x = 0; x <= W; x += 8) ctx.lineTo(x, H / 2 + Math.sin(x / 50 + now / 900 + s * Math.PI) * 60);
+      ctx.stroke();
     }
-    if (showDebug) {
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#00e5ff'; ctx.strokeRect(player.x + 0.5, player.y + 0.5, player.w, player.h);
-      for (const e of phages) {
-        if (e.dead) continue;
-        ctx.strokeStyle = '#ff2fd6'; ctx.strokeRect(e.x + 0.5, e.y + 0.5, e.w, e.h);
-        const pr = edgeProbe(e); ctx.fillStyle = groundAhead(e) ? '#00ff6a' : '#ff3b3b'; ctx.fillRect(pr.x - 2, pr.y - 2, 4, 4);
-      }
-      ctx.strokeStyle = '#ff9800'; for (const r of ros) { const b = boxAt(r.x, r.y, 10); ctx.strokeRect(b.x, b.y, b.w, b.h); }
+    for (let x = 0; x <= W; x += 25) {
+      const y1 = H / 2 + Math.sin(x / 50 + now / 900) * 60, y2 = H / 2 + Math.sin(x / 50 + now / 900 + Math.PI) * 60;
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
     }
-    ctx.restore();
-    drawStrandHUD(now);
-    drawStats();
   }
-
-  // ================= Loop (passo fixo) =================
-  reset();
-  let last = performance.now(), acc = 0;
+  let lastT = performance.now();
   function frame(now) {
-    acc += Math.min(0.1, (now - last) / 1000); last = now;
-    while (acc >= STEP) { update(STEP); acc -= STEP; }
-    render();
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    try {
+      if (cur) { const c = cur; c.update(dt); if (cur === c) c.render(dt); }
+      else drawIdle();
+    } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
+  showMenu();
   requestAnimationFrame(frame);
-  canvas.addEventListener('pointerdown', () => canvas.focus());
+  window.__FM = { PHASES, get C() { return C; }, startPhase, getData, cur: () => cur, hpMaxContacts, activityReport, showMenu };
+
+
 })();
 </script>
 </body>
