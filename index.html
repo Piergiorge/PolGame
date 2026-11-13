@@ -3,130 +3,1017 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PolGame — jogos de genética e biologia</title>
-<meta name="description" content="Jogos de genética e biologia que rodam no navegador">
+<title>Locus Astra — genética de criaturas alienígenas</title>
 <style>
-  :root { --bg:#120a1f; --card:#1d1430; --card2:#251a3c; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
+  :root {
+    --bg:#070b18; --panel:#101731; --panel2:#16204a; --line:#25305c; --text:#e8ecff; --muted:#93a0c8;
+    --accent:#7ee0ff; --gold:#ffd54f; --good:#9ccc65; --bad:#ff7a7a; --pink:#f48fb1;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; background:radial-gradient(1200px 600px at 50% -200px, #2b1748 0%, var(--bg) 60%); color:var(--text); font:15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
-  main { max-width:1040px; margin:0 auto; padding:48px 20px 40px; }
-  header { text-align:center; margin-bottom:36px; }
-  .helix { display:block; margin:0 auto 10px; }
-  h1 { margin:0; font-size:clamp(30px, 5vw, 44px); letter-spacing:-.01em; }
-  h1 span { background:linear-gradient(90deg, var(--A), var(--C), var(--G), var(--T)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  header p { color:var(--muted); margin:8px auto 0; max-width:560px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:20px; }
-  .card { background:var(--card); border:1px solid #2f2347; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:transform .15s ease, border-color .15s ease; }
-  .card:hover { transform:translateY(-3px); border-color:#4a3870; }
-  .art { height:150px; display:block; width:100%; background:var(--card2); }
-  .body { padding:16px 18px 18px; display:flex; flex-direction:column; gap:8px; flex:1; }
-  .card h2 { margin:0; font-size:22px; }
-  .genre { color:var(--muted); font-size:13px; margin-top:-4px; }
-  .card p { margin:0; color:#d9d1e6; font-size:14px; }
-  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
-  .tags span { background:#2c2240; color:#cbbfe0; border-radius:999px; padding:2px 9px; font-size:12px; }
-  .play { margin-top:auto; align-self:flex-start; display:inline-block; background:#ffca28; color:#1d1230; text-decoration:none; font-weight:700; border-radius:9px; padding:9px 18px; }
-  .play:hover { filter:brightness(1.08); }
-  .card:nth-child(2) .play { background:#42a5f5; }
-  .card:nth-child(3) .play { background:#81d4fa; color:#0d1b2a; }
-  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:40px; line-height:1.8; }
-  footer a { color:#cbbfe0; }
+  html, body { margin:0; }
+  body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(1px 1px at 10% 20%, #fff8 50%, transparent 51%), radial-gradient(1px 1px at 30% 70%, #fff6 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 55% 30%, #fffa 50%, transparent 51%), radial-gradient(1px 1px at 75% 85%, #fff7 50%, transparent 51%),
+      radial-gradient(1px 1px at 88% 15%, #fff8 50%, transparent 51%), radial-gradient(1.5px 1.5px at 42% 92%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 65% 55%, #fff5 50%, transparent 51%), radial-gradient(1px 1px at 20% 45%, #fff6 50%, transparent 51%),
+      radial-gradient(900px 500px at 85% -10%, #2a1b5c55, transparent 70%), radial-gradient(700px 500px at -10% 110%, #0f4a6a44, transparent 70%);
+    background-size: 300px 300px, 260px 260px, 340px 340px, 280px 280px, 320px 320px, 360px 360px, 240px 240px, 310px 310px, 100% 100%, 100% 100%; }
+  button { font:inherit; cursor:pointer; }
+  .wrap { max-width:1100px; margin:0 auto; padding:14px 14px 40px; }
+  header.top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; margin-bottom:12px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font-size:22px; letter-spacing:.04em; }
+  .brand h1 span { color:var(--accent); }
+  .brand small { color:var(--muted); display:block; font-size:12px; margin-top:-2px; }
+  .res { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .pill { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:4px 11px; font-size:13px; white-space:nowrap; }
+  .pill b { color:var(--gold); }
+  .pill.r b { color:var(--accent); }
+  .ghost { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 10px; font-size:12px; }
+  .ghost:hover { color:var(--text); border-color:#3a4a85; }
+  nav.tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  nav.tabs button { background:var(--panel); border:1px solid var(--line); color:var(--muted); border-radius:10px; padding:8px 13px; font-weight:600; }
+  nav.tabs button.on { background:var(--panel2); color:var(--text); border-color:var(--accent); }
+  nav.tabs button .n { background:var(--accent); color:#071; color:#04121a; border-radius:999px; padding:0 6px; font-size:11px; margin-left:4px; }
+  h2 { margin:4px 0 4px; font-size:20px; }
+  .sub { color:var(--muted); margin:0 0 14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px; position:relative; }
+  .card.sel { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
+  .card .head { display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+  .card .name { font-weight:700; font-size:15px; }
+  .sex { font-weight:800; }
+  .sex.F { color:#ff8fb8; } .sex.M { color:#7ec8ff; }
+  .meta { color:var(--muted); font-size:12px; }
+  .artbox { display:flex; justify-content:center; background:radial-gradient(circle at 50% 60%, #1d2a5c, #0c1230 70%); border-radius:12px; padding:4px; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; }
+  .chip { background:#1d2750; border-radius:6px; padding:1px 7px; font-size:12px; }
+  .chip.rare { background:#3b2f0a; color:var(--gold); }
+  .geno { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; display:grid; grid-template-columns:auto 1fr; gap:1px 10px; background:#0b1230; border-radius:8px; padding:6px 8px; }
+  .geno span:nth-child(odd) { color:var(--muted); font-family:system-ui, sans-serif; }
+  .geno .q { color:#ffb74d; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; margin-top:auto; }
+  .btn { background:var(--panel2); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:5px 10px; font-size:12.5px; font-weight:600; }
+  .btn:hover:not(:disabled) { border-color:var(--accent); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); color:#04121a; border-color:var(--accent); }
+  .btn.gold { background:var(--gold); color:#2a1d00; border-color:var(--gold); }
+  .btn.danger { color:var(--bad); }
+  .badge { position:absolute; top:10px; right:10px; font-size:11px; background:#26345f; border-radius:6px; padding:1px 6px; color:var(--accent); }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .two > * { min-width:0; }
+  @media (max-width:760px) { .two { grid-template-columns:1fr; } }
+  .picker { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; }
+  .mini { flex:0 0 auto; width:96px; background:#0e1533; border:1px solid var(--line); border-radius:10px; padding:4px; text-align:center; font-size:12px; color:var(--text); }
+  .mini.sel { border-color:var(--accent); background:#152150; }
+  .mini .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .loci { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:12px; }
+  .locus { background:#0d1434; border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .locus h4 { margin:0; font-size:14px; }
+  .locus .mech { color:var(--accent); font-size:11.5px; margin-bottom:6px; }
+  table.pq { border-collapse:collapse; margin:6px 0; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12.5px; }
+  table.pq td, table.pq th { border:1px solid #2b3769; padding:3px 7px; text-align:center; }
+  table.pq th { color:var(--muted); font-weight:600; background:#121b44; }
+  .prob { font-size:12.5px; }
+  .prob b { color:var(--gold); }
+  .warn { color:#ffb74d; font-size:12.5px; }
+  .planet { display:flex; gap:12px; align-items:center; }
+  .planet .orb { width:58px; height:58px; border-radius:50%; flex:0 0 58px; box-shadow:inset -10px -8px 18px #0008; }
+  .req { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .req::before { content:"◆"; color:var(--accent); font-size:10px; }
+  .eligible { display:flex; flex-wrap:wrap; gap:6px; }
+  .toast-box { position:fixed; right:14px; bottom:14px; display:flex; flex-direction:column; gap:8px; z-index:50; max-width:min(380px, 92vw); }
+  .toast { background:#18245a; border:1px solid var(--accent); border-radius:10px; padding:9px 12px; font-size:13px; box-shadow:0 6px 20px #0008; animation:tin .25s ease; }
+  .toast.gold { border-color:var(--gold); }
+  @keyframes tin { from { transform:translateY(10px); opacity:0; } }
+  .modal-bg { position:fixed; inset:0; background:#02040bcc; display:flex; align-items:center; justify-content:center; padding:16px; z-index:40; }
+  .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; width:min(720px, 100%); max-height:90vh; overflow:auto; }
+  .modal h3 { margin:0 0 8px; font-size:20px; color:var(--accent); }
+  .modal p { margin:6px 0; }
+  .eggs { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin:10px 0; }
+  .egg { background:#0d1434; border:1px solid var(--line); border-radius:12px; padding:8px; text-align:center; font-size:12.5px; }
+  .egg.dead { opacity:.7; border-style:dashed; }
+  .battle { display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; }
+  @media (max-width:640px) { .battle { grid-template-columns:1fr; } .battle .vs { display:none; } }
+  .fighter { background:#0d1434; border:1px solid var(--line); border-radius:14px; padding:10px; text-align:center; }
+  .hpbar { height:12px; background:#1b2550; border-radius:6px; overflow:hidden; margin:6px 0 2px; }
+  .hpbar i { display:block; height:100%; background:linear-gradient(90deg, #66bb6a, #9ccc65); transition:width .3s; }
+  .hpbar i.low { background:linear-gradient(90deg, #ef5350, #ff8a65); }
+  .vs { font-size:28px; font-weight:800; color:var(--muted); }
+  .blog { text-align:left; background:#0b1230; border-radius:10px; padding:8px 10px; height:150px; overflow:auto; font-size:13px; margin-top:10px; }
+  .blog p { margin:2px 0; }
+  .status { font-size:11.5px; color:var(--accent); min-height:16px; }
+  .dex { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
+  .dexi { background:#0d1434; border:1px solid var(--line); border-radius:10px; padding:8px; font-size:13px; }
+  .dexi.off { color:#4b5784; }
+  .dexi b { display:block; }
+  .guide h4 { margin:14px 0 4px; color:var(--accent); }
+  .guide p { margin:4px 0; }
+  .muted { color:var(--muted); }
+  .mono { font-family:ui-monospace, Menlo, Consolas, monospace; }
+  .glowtxt { color:#ccff90; text-shadow:0 0 6px #b2ff59; }
+  .kbd { background:#1d2750; border-radius:4px; padding:0 5px; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; }
+  .backlink:hover { color:var(--text); }
+  .backlink[hidden] { display:none; }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <svg class="helix" width="180" height="40" viewBox="0 0 180 40" aria-hidden="true">
-      <g stroke-width="3" fill="none" stroke-linecap="round">
-        <path d="M0 20 C 22.5 -5, 22.5 45, 45 20 S 67.5 -5, 90 20 S 112.5 45, 135 20 S 157.5 -5, 180 20" stroke="#ef5350"/>
-        <path d="M0 20 C 22.5 45, 22.5 -5, 45 20 S 67.5 45, 90 20 S 112.5 -5, 135 20 S 157.5 45, 180 20" stroke="#42a5f5"/>
-      </g>
-      <g stroke-width="3" stroke-linecap="round">
-        <line x1="11" y1="10" x2="11" y2="30" stroke="#4caf50"/><line x1="34" y1="10" x2="34" y2="30" stroke="#ffca28"/>
-        <line x1="56" y1="10" x2="56" y2="30" stroke="#4caf50"/><line x1="79" y1="10" x2="79" y2="30" stroke="#ffca28"/>
-        <line x1="101" y1="10" x2="101" y2="30" stroke="#ffca28"/><line x1="124" y1="10" x2="124" y2="30" stroke="#4caf50"/>
-        <line x1="146" y1="10" x2="146" y2="30" stroke="#ffca28"/><line x1="169" y1="10" x2="169" y2="30" stroke="#4caf50"/>
-      </g>
-    </svg>
-    <h1>Pol<span>Game</span></h1>
-    <p>Jogos de genética e biologia. Rodam direto no navegador, no computador ou no celular, sem instalar nada.</p>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="#7ee0ff" stroke-width="1.5" opacity=".5"/>
+        <ellipse cx="20" cy="20" rx="19" ry="6" fill="none" stroke="#ffd54f" stroke-width="1.5" transform="rotate(-25 20 20)"/>
+        <circle cx="20" cy="20" r="7" fill="#7ee0ff"/>
+        <circle cx="33" cy="12" r="2.4" fill="#ffd54f"/>
+      </svg>
+      <div><h1>LOCUS <span>ASTRA</span></h1><small>estação de genética xenobiológica</small></div>
+    </div>
+    <div class="res" id="res"></div>
   </header>
+  <nav class="tabs" id="tabs"></nav>
+  <main id="main"></main>
+</div>
+<div class="toast-box" id="toasts"></div>
+<div id="modalRoot"></div>
 
-  <section class="grid">
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#2a1440"/>
-        <rect x="0" y="118" width="320" height="32" fill="#e9c46a"/>
-        <g fill="#8e5bd6"><circle cx="8" cy="122" r="4"/><circle cx="24" cy="122" r="4"/><circle cx="40" cy="122" r="4"/><circle cx="56" cy="122" r="4"/><circle cx="72" cy="122" r="4"/><circle cx="88" cy="122" r="4"/><circle cx="104" cy="122" r="4"/><circle cx="120" cy="122" r="4"/><circle cx="136" cy="122" r="4"/><circle cx="152" cy="122" r="4"/><circle cx="168" cy="122" r="4"/><circle cx="184" cy="122" r="4"/><circle cx="200" cy="122" r="4"/><circle cx="216" cy="122" r="4"/><circle cx="232" cy="122" r="4"/><circle cx="248" cy="122" r="4"/><circle cx="264" cy="122" r="4"/><circle cx="280" cy="122" r="4"/><circle cx="296" cy="122" r="4"/><circle cx="312" cy="122" r="4"/></g>
-        <rect x="200" y="78" width="80" height="12" rx="6" fill="#e9c46a"/>
-        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle" fill="#1d1230">
-          <circle cx="150" cy="58" r="11" fill="#4caf50"/><text x="150" y="63">A</text>
-          <circle cx="235" cy="50" r="11" fill="#ffca28"/><text x="235" y="55">G</text>
-          <circle cx="290" cy="40" r="11" fill="#42a5f5"/><text x="290" y="45">C</text>
-        </g>
-        <path d="M58 98 L 40 96 L 26 100 L 12 96" stroke="rgba(255,255,255,.4)" stroke-width="2" fill="none"/>
-        <circle cx="40" cy="96" r="5" fill="#ef5350"/><circle cx="26" cy="100" r="5" fill="#4caf50"/><circle cx="12" cy="96" r="5" fill="#ffca28"/>
-        <rect x="58" y="86" width="24" height="32" rx="8" fill="#26c6da"/>
-        <rect x="76" y="100" width="8" height="11" rx="3" fill="#00838f"/>
-        <rect x="71" y="93" width="7" height="7" fill="#fff"/><rect x="75" y="95" width="2" height="4" fill="#102027"/>
-        <g transform="translate(115 104)"><polygon points="0,-9 8,-4 8,4 0,9 -8,4 -8,-4" fill="#b0bec5" stroke="#eceff1"/><rect x="-2" y="8" width="4" height="6" fill="#607d8b"/><path d="M0 14 L-9 14 M0 14 L9 14" stroke="#cfd8dc" stroke-width="2"/></g>
-      </svg>
-      <div class="body">
-        <h2>Fita Molde</h2>
-        <div class="genre">Plataforma · replicação do DNA</div>
-        <p>Você é a DNA polimerase. Colete os nucleotídeos complementares para copiar a fita molde, corrija mutações com a revisão 3'→5' e descubra o efeito de cada erro na proteína.</p>
-        <div class="tags"><span>pareamento de bases</span><span>mutações</span><span>código genético</span></div>
-        <a class="play" href="fita-molde/">Jogar</a>
+<script>
+(() => {
+  // =====================================================================
+  // GENÉTICA
+  // =====================================================================
+  const LOCI = ['cor', 'padrao', 'olhos', 'cristal', 'albino', 'elem', 'tam', 'lum'];
+  const AUTO = ['cor', 'padrao', 'olhos', 'cristal', 'albino', 'elem', 'm', 'n']; // loci autossômicos (m e n = tamanho)
+  const ORDER = { cor: 'RBD', padrao: 'Ss', olhos: 'Oo', cristal: 'Kk', albino: 'Cc', elem: 'PGn', m: 'Mm', n: 'Nn', x: 'Ll' };
+  const LOCUS_INFO = {
+    cor:     { nome: 'Cor', mech: 'Dominância incompleta + alelos múltiplos',
+               how: 'R (vermelho) e B (azul) têm dominância incompleta entre si: RB é roxo. O alelo D (dourado), raro, é recessivo aos dois: só DD é dourado.' },
+    padrao:  { nome: 'Padrão', mech: 'Dominância completa',
+               how: 'S (manchas) é dominante sobre s (liso). SS e Ss têm manchas; só ss é liso.' },
+    olhos:   { nome: 'Olhos', mech: 'Dominância completa (recessivo: ciclope)',
+               how: 'O (dois olhos) domina o (um olho). Só oo é ciclope. Ciclopes têm mais chance de golpe crítico.' },
+    cristal: { nome: 'Cristais', mech: 'Alelo letal em homozigose',
+               how: 'Kk tem cristais nas costas; kk não tem. KK é letal: o ovo não eclode. Por isso Kk × Kk dá 2 com cristais para 1 sem (2:1), não 3:1.' },
+    albino:  { nome: 'Albinismo', mech: 'Epistasia recessiva',
+               how: 'cc impede a produção de pigmento e esconde qualquer genótipo do gene da cor. Um albino pode carregar alelos de cor que você não vê.' },
+    elem:    { nome: 'Elemento', mech: 'Alelos múltiplos e codominância',
+               how: 'P (plasma) e G (gelo) são codominantes: PG é Tempestade. Ambos dominam n (neutro), como no sistema ABO.' },
+    tam:     { nome: 'Tamanho', mech: 'Herança poligênica (2 genes aditivos)',
+               how: 'Dois genes, M/m e N/n, somam efeitos: cada alelo maiúsculo aumenta o tamanho. 0 a 4 alelos dão 5 classes, e o meio é o mais comum.' },
+    lum:     { nome: 'Bioluminescência', mech: 'Ligada ao X (recessiva)',
+               how: 'O gene fica no cromossomo X. Xˡ brilha e é recessivo. Machos (XY) têm um X só: basta um Xˡ. Fêmeas precisam de dois; XᴸXˡ é portadora e não brilha.' },
+  };
+  const COR_NOME = { vermelho: 'vermelho', azul: 'azul', roxo: 'roxo', dourado: 'dourado', albino: 'albino' };
+  const SIZE_NOME = ['minúsculo', 'pequeno', 'médio', 'grande', 'colossal'];
+
+  const sortG = (locus, a, b) => ORDER[locus].indexOf(a) <= ORDER[locus].indexOf(b) ? a + b : b + a;
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // fenótipo de um locus a partir de um genótipo (string de 2 letras)
+  function corFromG(g) {
+    const has = x => g.includes(x);
+    if (has('R') && has('B')) return 'roxo';
+    if (has('R')) return 'vermelho';
+    if (has('B')) return 'azul';
+    return 'dourado';
+  }
+  function elemFromG(g) {
+    const p = g.includes('P'), gg = g.includes('G');
+    if (p && gg) return 'Tempestade';
+    if (p) return 'Plasma';
+    if (gg) return 'Gelo';
+    return 'Neutro';
+  }
+  const LPH = {
+    cor: corFromG,
+    padrao: g => g.includes('S') ? 'manchas' : 'liso',
+    olhos: g => g.includes('O') ? 'dois' : 'ciclope',
+    cristal: g => g === 'KK' ? 'letal' : g.includes('K') ? 'com' : 'sem',
+    albino: g => g.includes('C') ? 'pigmentado' : 'albino',
+    elem: elemFromG,
+  };
+  const GSPACE = {
+    cor: ['RR', 'RB', 'RD', 'BB', 'BD', 'DD'], padrao: ['SS', 'Ss', 'ss'], olhos: ['OO', 'Oo', 'oo'],
+    cristal: ['Kk', 'kk'], albino: ['CC', 'Cc', 'cc'], elem: ['PP', 'PG', 'Pn', 'GG', 'Gn', 'nn'],
+  };
+
+  function ph(c) {
+    const g = c.g;
+    const alb = LPH.albino(g.albino) === 'albino';
+    const size = (g.m + g.n).split('').filter(a => a === 'M' || a === 'N').length;
+    const lum = c.sex === 'M' ? g.x === 'l' : g.x === 'll';
+    return {
+      cor: alb ? 'albino' : corFromG(g.cor), corG: corFromG(g.cor), albino: alb,
+      padrao: LPH.padrao(g.padrao), olhos: LPH.olhos(g.olhos), cristal: LPH.cristal(g.cristal) === 'com',
+      elem: elemFromG(g.elem), size, lum,
+    };
+  }
+  // fenótipo observável por locus (para dedução)
+  function obsLocus(c, locus) {
+    const p = ph(c);
+    if (locus === 'cor') return p.albino ? null : p.corG; // albino esconde a cor (epistasia)
+    if (locus === 'padrao') return p.padrao;
+    if (locus === 'olhos') return p.olhos;
+    if (locus === 'cristal') return p.cristal ? 'com' : 'sem';
+    if (locus === 'albino') return p.albino ? 'albino' : 'pigmentado';
+    if (locus === 'elem') return p.elem;
+    return null;
+  }
+
+  // genótipos candidatos (o que o cientista sabe)
+  function cands(c, locus) {
+    if (locus === 'lum') {
+      if (c.sex === 'M' || c.seq || (c.known && c.known.lum)) return [c.g.x];
+      return ph(c).lum ? ['ll'] : ['LL', 'Ll'];
+    }
+    if (locus === 'tam') {
+      if (c.seq) return [c.g.m + c.g.n];
+      const s = ph(c).size;
+      if (s === 0) return ['mmnn'];
+      if (s === 4) return ['MMNN'];
+      return null; // indeterminado sem sequenciar
+    }
+    if (c.seq || (c.known && c.known[locus])) return [c.g[locus]];
+    const o = obsLocus(c, locus);
+    return GSPACE[locus].filter(g => o === null || LPH[locus](g) === o);
+  }
+  function gDisplay(c, locus) {
+    if (locus === 'tam') {
+      const cs = cands(c, 'tam');
+      if (cs) return cs[0].slice(0, 2) + ' ' + cs[0].slice(2);
+      return `?? ?? (${ph(c).size} maiúsc.)`;
+    }
+    const cs = cands(c, locus);
+    if (locus === 'lum') {
+      const f = s => s.split('').map(a => a === 'L' ? 'Xᴸ' : 'Xˡ').join('');
+      if (c.sex === 'M') return f(c.g.x) + 'Y';
+      return cs.length === 1 ? f(cs[0]) : 'Xᴸ X?';
+    }
+    if (cs.length === 1) return cs[0];
+    const common = ORDER[locus].split('').filter(a => cs.every(g => g.includes(a)));
+    return common.length ? common[0] + '?' : '??';
+  }
+  const isKnown = (c, locus) => { const cs = cands(c, locus); return !!cs && cs.length === 1; };
+
+  // gametas e cruzamento
+  function cross(mom, dad) {
+    const kid = { g: {} };
+    for (const l of AUTO) kid.g[l] = sortG(l, pick(mom.g[l].split('')), pick(dad.g[l].split('')));
+    const mx = pick(mom.g.x.split(''));
+    if (Math.random() < 0.5) { kid.sex = 'F'; kid.g.x = sortG('x', mx, dad.g.x); }
+    else { kid.sex = 'M'; kid.g.x = mx; }
+    if (Math.random() < 0.015) { // mutação espontânea
+      const l = pick(['cor', 'padrao', 'olhos', 'albino', 'elem']);
+      const alleles = kid.g[l].split(''), i = rand(2), opts = ORDER[l].split('').filter(a => a !== alleles[i]);
+      alleles[i] = pick(opts); kid.g[l] = sortG(l, alleles[0], alleles[1]); kid.mutant = l;
+    }
+    return kid;
+  }
+
+  // dedução tipo "cruzamento-teste": elimina genótipos dos pais incompatíveis com a prole
+  function deduce(mom, dad, kids) {
+    const msgs = [];
+    const pairs = [[mom, dad], [dad, mom]];
+    kids = kids.filter(k => !k.mutant); // mutações raras não entram na dedução
+    for (const l of ['cor', 'padrao', 'olhos', 'albino', 'elem']) {
+      for (const [P, Q] of pairs) {
+        const cp = cands(P, l), cq = cands(Q, l);
+        if (cp.length <= 1) continue;
+        const ok = cp.filter(gp => kids.every(k => {
+          const o = obsLocus(k, l);
+          if (o === null) return true;
+          return cq.some(gq => gp.split('').some(a => gq.split('').some(b => LPH[l](sortG(l, a, b)) === o)));
+        }));
+        if (ok.length === 1) { P.known = P.known || {}; P.known[l] = ok[0]; msgs.push(`${P.name}: ${LOCUS_INFO[l].nome} = ${ok[0]}`); }
+      }
+      // filhotes de pais conhecidos
+      const cm = cands(mom, l), cd = cands(dad, l);
+      if (cm.length === 1 && cd.length === 1) for (const k of kids) {
+        if (isKnown(k, l)) continue;
+        const poss = new Set();
+        for (const a of cm[0]) for (const b of cd[0]) { const g = sortG(l, a, b); const o = obsLocus(k, l); if (o === null || LPH[l](g) === o) poss.add(g); }
+        if (poss.size === 1 && !k.mutant) { k.known = k.known || {}; k.known[l] = [...poss][0]; }
+      }
+    }
+    // ligado ao X: a mãe
+    if (!isKnown(mom, 'lum')) {
+      const ok = cands(mom, 'lum').filter(gm => kids.every(k => {
+        const kl = ph(k).lum;
+        if (k.sex === 'M') return gm.split('').some(a => (a === 'l') === kl);
+        return gm.split('').some(a => ((a === 'l') && dad.g.x === 'l') === kl);
+      }));
+      if (ok.length === 1) { mom.known = mom.known || {}; mom.known.lum = ok[0]; msgs.push(`${mom.name}: Bioluminescência = ${ok[0].split('').map(a => a === 'L' ? 'Xᴸ' : 'Xˡ').join('')}`); }
+    }
+    // filhas: X do pai + um X da mãe
+    const cm = cands(mom, 'lum');
+    if (cm.length === 1) for (const k of kids) if (k.sex === 'F' && !isKnown(k, 'lum')) {
+      const poss = new Set(cm[0].split('').map(a => sortG('x', a, dad.g.x)).filter(g => (g === 'll') === ph(k).lum));
+      if (poss.size === 1) { k.known = k.known || {}; k.known.lum = [...poss][0]; }
+    }
+    return msgs;
+  }
+
+  // =====================================================================
+  // ESTADO
+  // =====================================================================
+  const SAVE_KEY = 'locus-astra-save-v1';
+  const CAP = 16;
+  let S;
+  const SYL1 = ['Zor', 'Qui', 'Vel', 'Nyx', 'Ora', 'Tal', 'Ixo', 'Mur', 'Sel', 'Kae', 'Lio', 'Fen', 'Ula', 'Dra', 'Yum', 'Bex', 'Rho', 'Cai', 'Ept', 'Gaz'];
+  const SYL2 = ['ri', 'lon', 'vi', 'xa', 'mu', 'tel', 'quo', 'sa', 'ne', 'bel', 'dor', 'ki', 'ra', 'zu', 'pho', 'lis', 'mo', 'tar'];
+  const newName = () => pick(SYL1) + pick(SYL2);
+
+  function mk(sex, g, extra = {}) {
+    const c = { id: S.nextId++, name: newName(), sex, g, seq: false, known: {}, gen: 0, origin: 'Kepler-Rubra', ...extra };
+    return c;
+  }
+
+  function newGame() {
+    S = { v: 1, credits: 100, research: 3, day: 1, nextId: 1, creatures: [], planets: { rubra: true }, contracts: [], contractsDone: 0,
+          arena: 0, dex: {}, tab: 'viveiro', breed: { f: null, m: null }, exp: null, battle: null, stats: { bred: 0, caught: 0, wins: 0, crosses: 0 }, intro: false };
+    S.creatures.push(mk('F', { cor: 'RB', padrao: 'Ss', olhos: 'Oo', cristal: 'kk', albino: 'Cc', elem: 'Pn', m: 'Mm', n: 'Nn', x: 'Ll' }, { name: 'Vega' }));
+    S.creatures.push(mk('M', { cor: 'RD', padrao: 'ss', olhos: 'Oo', cristal: 'Kk', albino: 'CC', elem: 'Gn', m: 'mm', n: 'Nn', x: 'l' }, { name: 'Órion' }));
+    S.creatures.push(mk('F', { cor: 'BB', padrao: 'SS', olhos: 'oo', cristal: 'kk', albino: 'Cc', elem: 'nn', m: 'Mm', n: 'nn', x: 'LL' }, { name: 'Lyra' }));
+    S.creatures.push(mk('M', { cor: 'BD', padrao: 'Ss', olhos: 'OO', cristal: 'kk', albino: 'Cc', elem: 'PG', m: 'MM', n: 'nn', x: 'L' }, { name: 'Rigel' }));
+    S.contracts = [
+      { id: 1, client: 'Museu de Titã', text: 'quer um exemplar para a ala de pigmentação.', reqs: [{ t: 'ph', l: 'cor', v: 'roxo' }], reward: { cr: 45, rp: 1 } },
+      { id: 2, client: 'Colônia Vesta', text: 'estuda a visão dos astrídeos de um olho só.', reqs: [{ t: 'ph', l: 'olhos', v: 'ciclope' }], reward: { cr: 45, rp: 1 } },
+      { id: 3, client: 'Dra. Yara Okonkwo', text: 'precisa de um astrídeo que brilhe no escuro.', reqs: [{ t: 'ph', l: 'lum', v: true }], reward: { cr: 55, rp: 1 } },
+    ];
+    S.nextContract = 4;
+    for (const c of S.creatures) discover(c, true);
+    save();
+  }
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() {
+    try { const t = localStorage.getItem(SAVE_KEY); if (t) { S = JSON.parse(t); S.battle = null; return true; } } catch (e) {}
+    return false;
+  }
+  const byId = id => S.creatures.find(c => c.id === id);
+
+  // =====================================================================
+  // XENODEX
+  // =====================================================================
+  const DEX = [
+    ['cor', 'vermelho', 'Cor vermelha'], ['cor', 'roxo', 'Cor roxa'], ['cor', 'azul', 'Cor azul'], ['cor', 'dourado', 'Cor dourada'], ['cor', 'albino', 'Albino'],
+    ['padrao', 'manchas', 'Com manchas'], ['padrao', 'liso', 'Liso'],
+    ['olhos', 'dois', 'Dois olhos'], ['olhos', 'ciclope', 'Ciclope'],
+    ['cristal', 'com', 'Com cristais'], ['cristal', 'sem', 'Sem cristais'], ['cristal', 'letal', 'Ovo inviável (KK)'],
+    ['elem', 'Plasma', 'Plasma'], ['elem', 'Gelo', 'Gelo'], ['elem', 'Tempestade', 'Tempestade'], ['elem', 'Neutro', 'Neutro'],
+    ['tam', 0, 'Minúsculo'], ['tam', 1, 'Pequeno'], ['tam', 2, 'Médio'], ['tam', 3, 'Grande'], ['tam', 4, 'Colossal'],
+    ['lum', 'sim', 'Bioluminescente'], ['lum', 'nao', 'Sem brilho'],
+  ];
+  function discover(c, silent) {
+    const p = ph(c);
+    const keys = [`cor:${p.cor}`, `padrao:${p.padrao}`, `olhos:${p.olhos}`, `cristal:${p.cristal ? 'com' : 'sem'}`, `elem:${p.elem}`, `tam:${p.size}`, `lum:${p.lum ? 'sim' : 'nao'}`];
+    for (const k of keys) discoverKey(k, silent);
+  }
+  function discoverKey(k, silent) {
+    if (S.dex[k]) return;
+    S.dex[k] = true;
+    if (!silent) {
+      S.research++;
+      const e = DEX.find(d => `${d[0]}:${d[1]}` === k);
+      toast(`📘 Xenodex: <b>${e ? e[2] : k}</b> registrado! +1 pesquisa`, 'gold');
+    }
+  }
+
+  // =====================================================================
+  // ARTE (SVG gerado pelo fenótipo)
+  // =====================================================================
+  let artN = 0;
+  const PAL = { vermelho: ['#ff6f61', '#b3261e'], azul: ['#4fc3f7', '#1a4fa0'], roxo: ['#b57bea', '#5e2a9e'], dourado: ['#ffe082', '#d48806'], albino: ['#fbfbfb', '#c9c9d2'] };
+  function art(c, px = 120) {
+    const p = ph(c), id = 'a' + (artN++);
+    const s = 0.7 + p.size * 0.085;
+    const [main, dark] = PAL[p.cor];
+    const eyeP = p.albino ? '#e5397a' : '#101420';
+    let aura = '';
+    if (p.elem === 'Plasma') aura = `<circle cx="60" cy="66" r="${52 * s}" fill="url(#${id}pl)"/>` + [0, 1, 2, 3, 4, 5].map(i => { const a = i * 1.05 + 0.3, r = 48 * s; return `<path d="M${60 + Math.cos(a) * r} ${66 + Math.sin(a) * r} l${Math.cos(a) * 6} ${Math.sin(a) * 6}" stroke="#ffb74d" stroke-width="2.5" stroke-linecap="round"/>`; }).join('');
+    if (p.elem === 'Gelo') aura = `<circle cx="60" cy="66" r="${52 * s}" fill="url(#${id}ic)"/>` + [0, 1, 2, 3, 4].map(i => { const a = i * 1.26 + 0.5, r = 50 * s, x = 60 + Math.cos(a) * r, y = 66 + Math.sin(a) * r; return `<g stroke="#e1f5fe" stroke-width="1.6"><path d="M${x - 4} ${y}h8M${x} ${y - 4}v8M${x - 3} ${y - 3}l6 6M${x + 3} ${y - 3}l-6 6"/></g>`; }).join('');
+    if (p.elem === 'Tempestade') aura = `<circle cx="60" cy="66" r="${52 * s}" fill="url(#${id}st)"/>` + [0, 1, 2].map(i => { const a = i * 2.1 + 0.9, r = 46 * s, x = 60 + Math.cos(a) * r, y = 66 + Math.sin(a) * r; return `<path d="M${x} ${y - 8} l-4 7 h5 l-4 8" stroke="#e1bee7" stroke-width="2" fill="none" stroke-linejoin="round"/>`; }).join('');
+    const spots = p.padrao === 'manchas' ? [[-14, -2, 5], [12, 4, 6], [0, 12, 4], [-20, 10, 3.5], [20, -6, 3.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${p.albino ? '#d9d9e3' : dark}" opacity=".55"/>`).join('') : '';
+    const crystals = p.cristal ? `<g fill="#9ff0ff" stroke="#ffffff" stroke-width="1" opacity=".95">
+        <polygon points="-18,-20 -12,-40 -6,-21"/><polygon points="-4,-26 2,-50 8,-26"/><polygon points="10,-22 17,-40 22,-18"/></g>` : '';
+    const lumDots = p.lum ? [[-22, 2], [-8, 16], [8, 16], [22, 2], [0, 4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="#ccff90" filter="url(#${id}gl)"/>`).join('') : '';
+    const eyes = p.olhos === 'ciclope'
+      ? `<circle cx="0" cy="-8" r="10" fill="#fff"/><circle cx="2" cy="-7" r="5" fill="${eyeP}"/><circle cx="4" cy="-9" r="1.6" fill="#fff"/>`
+      : `<circle cx="-11" cy="-8" r="6.5" fill="#fff"/><circle cx="11" cy="-8" r="6.5" fill="#fff"/><circle cx="-10" cy="-7" r="3.3" fill="${eyeP}"/><circle cx="12" cy="-7" r="3.3" fill="${eyeP}"/><circle cx="-9" cy="-8.5" r="1.1" fill="#fff"/><circle cx="13" cy="-8.5" r="1.1" fill="#fff"/>`;
+    const knob = p.lum ? `fill="#ccff90" filter="url(#${id}gl)"` : `fill="${dark}"`;
+    const label = `${COR_NOME[p.cor]}, ${p.padrao}, ${p.olhos === 'ciclope' ? 'ciclope' : 'dois olhos'}${p.cristal ? ', com cristais' : ''}, ${p.elem}, ${SIZE_NOME[p.size]}${p.lum ? ', bioluminescente' : ''}`;
+    return `<svg viewBox="0 0 120 120" width="${px}" height="${px}" role="img" aria-label="Astrídeo ${label}">
+      <defs>
+        <radialGradient id="${id}b" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="${main}"/><stop offset="1" stop-color="${dark}"/></radialGradient>
+        <radialGradient id="${id}pl"><stop offset=".55" stop-color="#ff7043" stop-opacity="0"/><stop offset=".85" stop-color="#ff7043" stop-opacity=".35"/><stop offset="1" stop-color="#ff7043" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}ic"><stop offset=".55" stop-color="#81d4fa" stop-opacity="0"/><stop offset=".85" stop-color="#81d4fa" stop-opacity=".35"/><stop offset="1" stop-color="#81d4fa" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}st"><stop offset=".55" stop-color="#ba68c8" stop-opacity="0"/><stop offset=".85" stop-color="#ba68c8" stop-opacity=".4"/><stop offset="1" stop-color="#ba68c8" stop-opacity="0"/></radialGradient>
+        <filter id="${id}gl" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      ${aura}
+      <g transform="translate(60 70) scale(${s})">
+        <ellipse cx="0" cy="32" rx="30" ry="5" fill="#000" opacity=".25"/>
+        <g fill="${dark}"><ellipse cx="-18" cy="24" rx="6" ry="8"/><ellipse cx="18" cy="24" rx="6" ry="8"/><ellipse cx="-6" cy="27" rx="5" ry="6"/><ellipse cx="6" cy="27" rx="5" ry="6"/></g>
+        <path d="M28 8 C 44 6, 46 -12, 38 -18" stroke="${dark}" stroke-width="6" fill="none" stroke-linecap="round"/>
+        ${crystals}
+        <path d="M-12 -22 C -16 -36, -24 -38, -26 -44" stroke="${dark}" stroke-width="2.4" fill="none"/><circle cx="-26" cy="-45" r="3.6" ${knob}/>
+        <path d="M12 -22 C 16 -36, 24 -38, 26 -44" stroke="${dark}" stroke-width="2.4" fill="none"/><circle cx="26" cy="-45" r="3.6" ${knob}/>
+        <ellipse cx="0" cy="0" rx="34" ry="29" fill="url(#${id}b)" ${p.lum ? `filter="url(#${id}gl)"` : ''}/>
+        <ellipse cx="0" cy="11" rx="20" ry="13" fill="#ffffff" opacity="${p.albino ? '.35' : '.18'}"/>
+        ${spots}${lumDots}${eyes}
+        <path d="M-7 8 Q 0 13, 7 8" stroke="#1b1b2a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>`;
+  }
+
+  // =====================================================================
+  // UTILITÁRIOS DE INTERFACE
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  function toast(html, kind) {
+    const el = document.createElement('div'); el.className = 'toast' + (kind ? ' ' + kind : ''); el.innerHTML = html;
+    $('#toasts').appendChild(el);
+    setTimeout(() => el.remove(), 4200);
+  }
+  function modal(html) { $('#modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; }
+  function closeModal() { $('#modalRoot').innerHTML = ''; }
+  const sexSym = s => `<span class="sex ${s}" title="${s === 'F' ? 'fêmea (XX)' : 'macho (XY)'}">${s === 'F' ? '♀' : '♂'}</span>`;
+
+  function rarity(c) {
+    const p = ph(c); let r = 0;
+    if (p.cor === 'dourado') r += 15; if (p.albino) r += 10; if (p.olhos === 'ciclope') r += 5; if (p.lum) r += 8;
+    if (p.elem === 'Tempestade') r += 6; if (p.size === 4 || p.size === 0) r += 6; if (p.cristal) r += 4;
+    return r;
+  }
+  const sellValue = c => 10 + rarity(c) * 2;
+
+  function phChips(c) {
+    const p = ph(c);
+    const ch = [];
+    ch.push(`<span class="chip ${p.cor === 'dourado' || p.albino ? 'rare' : ''}">${COR_NOME[p.cor]}</span>`);
+    ch.push(`<span class="chip">${p.padrao}</span>`);
+    if (p.olhos === 'ciclope') ch.push(`<span class="chip rare">ciclope</span>`);
+    if (p.cristal) ch.push(`<span class="chip">cristais</span>`);
+    ch.push(`<span class="chip ${p.elem === 'Tempestade' ? 'rare' : ''}">${p.elem}</span>`);
+    ch.push(`<span class="chip ${p.size === 0 || p.size === 4 ? 'rare' : ''}">${SIZE_NOME[p.size]}</span>`);
+    if (p.lum) ch.push(`<span class="chip glowtxt">bioluminescente</span>`);
+    return `<div class="chips">${ch.join('')}</div>`;
+  }
+  function genoBlock(c) {
+    const row = (l, label) => { const d = gDisplay(c, l); return `<span>${label}</span><span class="${d.includes('?') ? 'q' : ''}">${d}</span>`; };
+    return `<div class="geno" title="? = alelo ainda desconhecido">${row('cor', 'Cor')}${row('padrao', 'Padrão')}${row('olhos', 'Olhos')}${row('cristal', 'Cristais')}${row('albino', 'Albino')}${row('elem', 'Elemento')}${row('tam', 'Tamanho')}${row('lum', 'Cromos. X')}</div>`;
+  }
+
+  function stats(c) {
+    const p = ph(c);
+    const atkC = { vermelho: 5, roxo: 3, azul: 1, dourado: 4, albino: 2 }[p.cor];
+    const defC = { vermelho: 1, roxo: 3, azul: 5, dourado: 4, albino: 0 }[p.cor];
+    return {
+      hp: 40 + p.size * 12 + (p.elem === 'Neutro' ? 8 : 0),
+      atk: 12 + p.size * 2 + atkC,
+      def: 8 + p.size + defC + (p.cristal ? 6 : 0),
+      spd: Math.round(15 - p.size * 1.5 + (p.padrao === 'liso' ? 4 : 0)),
+      eva: p.padrao === 'manchas' ? 0.12 : 0.04,
+      crit: p.olhos === 'ciclope' ? 0.25 : 0.08,
+    };
+  }
+
+  // =====================================================================
+  // RENDER GERAL
+  // =====================================================================
+  const TABS = [['viveiro', '🧫 Viveiro'], ['cruzar', '🧬 Cruzamento'], ['exped', '🚀 Expedição'], ['contratos', '📜 Contratos'], ['arena', '⚔️ Arena'], ['dex', '📘 Xenodex']];
+  function render() {
+    $('#res').innerHTML = `
+      <span class="pill">💰 <b>${S.credits}</b> créditos</span>
+      <span class="pill r">🔬 <b>${S.research}</b> pesquisa</span>
+      <span class="pill">🧫 ${S.creatures.length}/${CAP}</span>
+      <span class="pill">📅 dia ${S.day}</span>
+      <button class="ghost" data-act="guide">Guia de genética</button>
+      <button class="ghost" data-act="reset">Novo jogo</button>`;
+    $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="${S.tab === k ? 'on' : ''}" data-act="tab" data-v="${k}">${n}${k === 'contratos' && eligibleCount() ? `<span class="n">${eligibleCount()}</span>` : ''}</button>`).join('');
+    const R = { viveiro: rViveiro, cruzar: rCruzar, exped: rExped, contratos: rContratos, arena: rArena, dex: rDex }[S.tab];
+    $('#main').innerHTML = R();
+    save();
+  }
+
+  // ---------------- VIVEIRO ----------------
+  function card(c, actions = true) {
+    return `<div class="card">
+      ${c.seq ? '<span class="badge" title="genoma sequenciado">🧬 sequenciado</span>' : ''}
+      <div class="head"><span class="name">${esc(c.name)} ${sexSym(c.sex)}</span></div>
+      <div class="meta">${c.gen ? `Geração F${c.gen} · ${esc(c.origin)}` : `Selvagem · ${esc(c.origin)}`}${c.mutant ? ' · <span style="color:var(--pink)">★ mutação</span>' : ''}</div>
+      <div class="artbox">${art(c, 120)}</div>
+      ${phChips(c)}
+      ${genoBlock(c)}
+      ${actions ? `<div class="btns">
+        <button class="btn" data-act="seq" data-id="${c.id}" ${c.seq || S.research < 1 ? 'disabled' : ''} title="Revela o genótipo completo">${c.seq ? 'Sequenciado' : 'Sequenciar (1 🔬)'}</button>
+        <button class="btn" data-act="tobreed" data-id="${c.id}">Cruzar</button>
+        <button class="btn danger" data-act="sell" data-id="${c.id}" title="Transferir para outra estação">Transferir (+${sellValue(c)})</button>
+      </div>` : ''}
+    </div>`;
+  }
+  function rViveiro() {
+    return `<h2>Viveiro</h2>
+      <p class="sub">Seus astrídeos. O fenótipo você vê; o genótipo aparece com <span class="q mono" style="color:#ffb74d">?</span> onde o alelo ainda é desconhecido. Para descobrir, <b>sequencie</b> (custa pesquisa) ou <b>deduza</b> pelos filhotes de um cruzamento-teste.</p>
+      <div class="grid">${S.creatures.map(c => card(c)).join('') || '<p class="muted">Viveiro vazio. Faça uma expedição!</p>'}</div>`;
+  }
+
+  // ---------------- CRUZAMENTO ----------------
+  function punnettAuto(l, gm, gd) {
+    const a = gm.split(''), b = gd.split('');
+    const cells = a.map(x => b.map(y => sortG(l, x, y)));
+    const counts = {};
+    for (const row of cells) for (const g of row) { const ph_ = l === 'cristal' ? LPH[l](g) : LPH[l](g); counts[ph_] = (counts[ph_] || 0) + 1; }
+    let alive = 4;
+    if (l === 'cristal' && counts.letal) alive -= counts.letal;
+    const table = `<table class="pq"><tr><th>♀ \\ ♂</th>${b.map(y => `<th>${y}</th>`).join('')}</tr>${a.map((x, i) => `<tr><th>${x}</th>${cells[i].map(g => `<td style="${LPH[l](g) === 'letal' ? 'color:#ff7a7a;text-decoration:line-through' : ''}">${g}</td>`).join('')}</tr>`).join('')}</table>`;
+    const lbl = { com: 'com cristais', sem: 'sem cristais', dois: 'dois olhos', ciclope: 'ciclope', pigmentado: 'pigmentado', albino: 'albino' };
+    const probs = Object.entries(counts).filter(([k]) => k !== 'letal').map(([k, n]) => `${lbl[k] || k} <b>${Math.round(n / alive * 100)}%</b>`).join(' · ');
+    const extra = counts.letal ? `<div class="warn">${counts.letal}/4 dos ovos são KK e não eclodem.</div>` : '';
+    return table + `<div class="prob">${probs}</div>` + extra;
+  }
+  function punnettX(gm, dx) {
+    const a = gm.split(''), cols = [dx, 'Y'];
+    const f = x => x === 'L' ? 'Xᴸ' : x === 'l' ? 'Xˡ' : 'Y';
+    const cell = (x, y) => y === 'Y' ? f(x) + 'Y' : f(sortG('x', x, y)[0]) + f(sortG('x', x, y)[1]);
+    const table = `<table class="pq"><tr><th>♀ \\ ♂</th>${cols.map(y => `<th>${f(y)}</th>`).join('')}</tr>${a.map(x => `<tr><th>${f(x)}</th>${cols.map(y => `<td>${cell(x, y)}</td>`).join('')}</tr>`).join('')}</table>`;
+    const fem = a.filter(x => x === 'l' && dx === 'l').length / 2, mac = a.filter(x => x === 'l').length / 2;
+    return table + `<div class="prob">Filhas brilhantes <b>${Math.round(fem * 100)}%</b> · Filhos brilhantes <b>${Math.round(mac * 100)}%</b></div>`;
+  }
+  function sizeDist(gm, gd) {
+    const dist = [0, 0, 0, 0, 0];
+    for (const a of gm[0] + gm[1]) for (const b of gd[0] + gd[1]) for (const c2 of gm[2] + gm[3]) for (const d of gd[2] + gd[3]) {
+      const s = [a, b, c2, d].filter(x => x === 'M' || x === 'N').length; dist[s]++;
+    }
+    // gm = "MmNn" -> gene m alelos 0..1, gene n alelos 2..3
+    return `<div class="prob">${dist.map((n, i) => n ? `${SIZE_NOME[i]} <b>${Math.round(n / 16 * 100)}%</b>` : '').filter(Boolean).join(' · ')}</div>
+      <div style="display:flex;gap:3px;align-items:flex-end;height:46px;margin-top:6px">${dist.map((n, i) => `<div title="${SIZE_NOME[i]}" style="flex:1;background:#7ee0ff;opacity:.8;border-radius:3px 3px 0 0;height:${Math.max(2, n / 16 * 100 * 0.45)}px"></div>`).join('')}</div>
+      <div class="meta" style="display:flex;justify-content:space-between"><span>0</span><span>alelos maiúsculos</span><span>4</span></div>`;
+  }
+
+  function rCruzar() {
+    const fem = S.creatures.filter(c => c.sex === 'F'), mac = S.creatures.filter(c => c.sex === 'M');
+    const f = byId(S.breed.f), m = byId(S.breed.m);
+    const pickRow = (list, slot) => `<div class="picker">${list.map(c => `<button class="mini ${S.breed[slot] === c.id ? 'sel' : ''}" data-act="pick" data-slot="${slot}" data-id="${c.id}">${art(c, 70)}<div class="nm">${esc(c.name)}</div></button>`).join('') || '<span class="muted">Nenhum disponível.</span>'}</div>`;
+    let loci = '';
+    if (f && m) {
+      const box = (l, inner) => `<div class="locus"><h4>${LOCUS_INFO[l].nome}</h4><div class="mech">${LOCUS_INFO[l].mech}</div>${inner}</div>`;
+      const unknown = (l) => `<div class="warn">Genótipo incompleto (♀ ${gDisplay(f, l)} × ♂ ${gDisplay(m, l)}). Sequencie ou deduza pelos filhotes de um cruzamento-teste.</div>`;
+      for (const l of ['cor', 'padrao', 'olhos', 'cristal', 'albino', 'elem']) {
+        const cf = cands(f, l), cm = cands(m, l);
+        let inner = cf.length === 1 && cm.length === 1 ? punnettAuto(l, cf[0], cm[0]) : unknown(l);
+        if (l === 'cor') inner += `<div class="meta">Vale só para filhotes não albinos (o albinismo é epistático).</div>`;
+        loci += box(l, inner);
+      }
+      const tf = cands(f, 'tam'), tm = cands(m, 'tam');
+      loci += box('tam', tf && tm ? sizeDist(tf[0], tm[0]) : `<div class="warn">Tamanho poligênico: os genótipos de M/m e N/n só aparecem com sequenciamento (exceto minúsculo e colossal).</div>`);
+      const lf = cands(f, 'lum');
+      loci += box('lum', lf.length === 1 ? punnettX(lf[0], m.g.x) : `<div class="warn">A fêmea pode ser XᴸXᴸ ou XᴸXˡ (portadora). Sequencie ou observe os filhos machos: metade brilha se ela for portadora.</div>`);
+    }
+    const free = CAP - S.creatures.length;
+    return `<h2>Laboratório de cruzamento</h2>
+      <p class="sub">Escolha uma fêmea e um macho. Para cada locus com genótipo conhecido aparece o quadro de Punnett e a probabilidade de cada fenótipo. Cada cruzamento custa <b>15 créditos</b> e gera de 2 a 4 ovos.</p>
+      <div class="two">
+        <div class="panel"><b>♀ Fêmea</b>${pickRow(fem, 'f')}</div>
+        <div class="panel"><b>♂ Macho</b>${pickRow(mac, 'm')}</div>
       </div>
-    </article>
+      ${f && m ? `<div class="panel" style="margin-top:12px">
+        <div class="row" style="align-items:center;justify-content:center">
+          <div style="text-align:center">${art(f, 110)}<div>${esc(f.name)} ${sexSym('F')}</div></div>
+          <div style="font-size:26px;color:var(--muted)">×</div>
+          <div style="text-align:center">${art(m, 110)}<div>${esc(m.name)} ${sexSym('M')}</div></div>
+        </div>
+        <div style="text-align:center;margin-top:8px">
+          <button class="btn primary" data-act="breed" ${S.credits < 15 || free < 1 ? 'disabled' : ''}>Cruzar (15 💰)</button>
+          ${free < 1 ? '<div class="warn">Viveiro cheio: transfira algum astrídeo antes.</div>' : free < 4 ? `<div class="meta">Só há ${free} vaga(s): filhotes extras serão transferidos automaticamente.</div>` : ''}
+        </div>
+        <div class="loci">${loci}</div>
+      </div>` : `<p class="muted" style="margin-top:12px">Selecione os dois pais para ver as previsões.</p>`}`;
+  }
 
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#140a24"/>
-        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle">
-          <g fill="#4caf50"><rect x="88" y="120" width="26" height="26" rx="5"/><rect x="114" y="120" width="26" height="26" rx="5"/><rect x="140" y="120" width="26" height="26" rx="5"/><rect x="140" y="94" width="26" height="26" rx="5"/></g>
-          <g fill="#ef5350"><rect x="166" y="120" width="26" height="26" rx="5"/><rect x="192" y="120" width="26" height="26" rx="5"/><rect x="166" y="94" width="26" height="26" rx="5"/><rect x="192" y="94" width="26" height="26" rx="5"/></g>
-          <g fill="#42a5f5"><rect x="218" y="120" width="26" height="26" rx="5"/><rect x="218" y="94" width="26" height="26" rx="5"/><rect x="218" y="68" width="26" height="26" rx="5"/><rect x="244" y="120" width="26" height="26" rx="5"/></g>
-          <g fill="#ffca28"><rect x="140" y="14" width="26" height="26" rx="5"/><rect x="166" y="14" width="26" height="26" rx="5"/><rect x="166" y="40" width="26" height="26" rx="5"/><rect x="192" y="40" width="26" height="26" rx="5"/></g>
-          <g fill="#1d1230"><text x="101" y="138">A</text><text x="127" y="138">A</text><text x="153" y="138">A</text><text x="153" y="112">A</text><text x="179" y="138">T</text><text x="205" y="138">T</text><text x="179" y="112">T</text><text x="205" y="112">T</text><text x="231" y="138">C</text><text x="231" y="112">C</text><text x="231" y="86">C</text><text x="257" y="138">C</text><text x="153" y="32">G</text><text x="179" y="32">G</text><text x="179" y="58">G</text><text x="205" y="58">G</text></g>
-        </g>
-        <g stroke="#fff" stroke-width="1.6" opacity=".8"><line x1="162" y1="128" x2="170" y2="128"/><line x1="162" y1="134" x2="170" y2="134"/><line x1="162" y1="102" x2="170" y2="102"/><line x1="162" y1="108" x2="170" y2="108"/></g>
-      </svg>
-      <div class="body">
-        <h2>GenoBlocos</h2>
-        <div class="genre">Quebra-cabeça de blocos · pareamento e mutagênese</div>
-        <p>Cada peça é um nucleotídeo. Encaixe bases complementares lado a lado para ganhar pontes de hidrogênio, use enzimas como power-ups e sobreviva à radiação UV, ao cigarro, aos vírus e ao raio-X.</p>
-        <div class="tags"><span>A–T e C–G</span><span>CRISPR</span><span>reparo do DNA</span></div>
-        <a class="play" href="genoblocos/">Jogar</a>
+  function doBreed() {
+    const f = byId(S.breed.f), m = byId(S.breed.m);
+    if (!f || !m || S.credits < 15) return;
+    S.credits -= 15; S.day++; S.stats.crosses++;
+    const n = 2 + rand(3);
+    const kids = [], dead = [];
+    for (let i = 0; i < n; i++) {
+      const k = cross(f, m);
+      if (k.g.cristal === 'KK') { dead.push(k); continue; }
+      kids.push(k);
+    }
+    const gen = Math.max(f.gen, m.gen) + 1;
+    const born = kids.map(k => ({ id: S.nextId++, name: newName(), sex: k.sex, g: k.g, seq: false, known: {}, gen, origin: `${f.name} × ${m.name}`, mutant: k.mutant || null, parents: [f.id, m.id] }));
+    const msgs = deduce(f, m, born);
+    if (dead.length) discoverKey('cristal:letal');
+    let kept = [], auto = 0, autoCr = 0;
+    for (const b of born) {
+      if (S.creatures.length < CAP) { S.creatures.push(b); kept.push(b); discover(b); }
+      else { auto++; autoCr += sellValue(b); }
+    }
+    S.credits += autoCr; S.stats.bred += born.length;
+    const html = `<h3>Ovos eclodiram! 🥚</h3>
+      <p>${esc(f.name)} ♀ × ${esc(m.name)} ♂ geraram ${n} ovo(s).</p>
+      <div class="eggs">
+        ${kept.map(b => `<div class="egg">${art(b, 100)}<div><b>${esc(b.name)}</b> ${sexSym(b.sex)}</div>${phChips(b)}${b.mutant ? `<div style="color:var(--pink)">★ mutação espontânea!</div>` : ''}</div>`).join('')}
+        ${dead.map(() => `<div class="egg dead"><div style="font-size:42px">🥚</div><b>Ovo inviável</b><div class="meta">genótipo KK (letal)</div></div>`).join('')}
       </div>
-    </article>
+      ${auto ? `<p class="muted">${auto} filhote(s) não couberam no viveiro e foram transferidos (+${autoCr} créditos).</p>` : ''}
+      ${msgs.length ? `<div class="panel" style="margin-top:8px"><b>🔎 Dedução pelos filhotes (cruzamento-teste):</b><br>${msgs.map(esc).join('<br>')}</div>` : ''}
+      <p class="meta">Dica: compare as proporções com o quadro de Punnett. Com poucos filhotes, o acaso pesa muito!</p>
+      <button class="btn primary" data-act="close">Continuar</button>`;
+    modal(html);
+    render();
+  }
 
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#3b1f27"/>
-        <g fill="#c98b7a"><rect x="0" y="0" width="320" height="22"/><rect x="0" y="128" width="320" height="22"/></g>
-        <g fill="#a86e60"><circle cx="20" cy="11" r="4"/><circle cx="70" cy="9" r="4"/><circle cx="130" cy="12" r="4"/><circle cx="200" cy="10" r="4"/><circle cx="270" cy="12" r="4"/><circle cx="40" cy="139" r="4"/><circle cx="110" cy="137" r="4"/><circle cx="180" cy="140" r="4"/><circle cx="250" cy="138" r="4"/><circle cx="305" cy="139" r="4"/></g>
-        <circle cx="120" cy="75" r="44" fill="rgba(129,212,250,.18)"/>
-        <path d="M120 47 C 140 45, 150 58, 172 66 C 182 70, 182 82, 170 86 C 150 92, 142 104, 120 103 C 98 104, 90 92, 92 75 C 90 58, 100 49, 120 47 Z" fill="#b3e5fc" stroke="#e1f5fe" stroke-width="2"/>
-        <ellipse cx="116" cy="77" rx="12" ry="9" fill="#4fc3f7" transform="rotate(20 116 77)"/>
-        <g fill="#ffd54f"><circle cx="198" cy="72" r="7"/><circle cx="211" cy="72" r="7"/><circle cx="204" cy="84" r="7"/><circle cx="192" cy="84" r="7"/><circle cx="216" cy="84" r="7"/></g>
-        <g transform="translate(262 52) rotate(25)"><rect x="-18" y="-6" width="36" height="12" rx="6" fill="#81c784"/><path d="M-18 0 q -8 -6 -16 0 t -14 0" stroke="#a5d6a7" fill="none" stroke-width="1.5"/></g>
-        <g transform="translate(270 104)"><g stroke="#ef9a9a" stroke-width="2"><line x1="-12" y1="0" x2="12" y2="0"/><line x1="0" y1="-12" x2="0" y2="12"/><line x1="-8" y1="-8" x2="8" y2="8"/><line x1="-8" y1="8" x2="8" y2="-8"/></g><circle r="7" fill="#ef5350"/></g>
-      </svg>
-      <div class="body">
-        <h2>GULP!</h2>
-        <div class="genre">Roguelike · imunidade inata</div>
-        <p>Você é um macrófago, o "grande comedor". Atravesse cinco tecidos fagocitando bactérias, vírus e fungos, evolua com mecanismos reais da imunidade inata e enfrente a superbactéria MRSA.</p>
-        <div class="tags"><span>fagocitose</span><span>patógenos</span><span>citocinas</span></div>
-        <a class="play" href="gulp/">Jogar</a>
-      </div>
-    </article>
-  </section>
+  // ---------------- EXPEDIÇÃO ----------------
+  const PLANETS = [
+    { id: 'rubra', nome: 'Kepler-Rubra', desc: 'Planeta vulcânico. Populações com muitos alelos R (vermelho) e P (plasma).', cost: 0, trip: 15, col: 'radial-gradient(circle at 35% 35%, #ff8a65, #8e1b0e)',
+      fr: { cor: { R: .6, B: .4, D: 0 }, padrao: .5, olhos: .2, cristal: .1, albino: .12, elem: { P: .5, G: .1, n: .4 }, m: .4, n: .4, lum: .12 } },
+    { id: 'glacies', nome: 'Glacies', desc: 'Mundo gelado. Alelos B (azul) e G (gelo) são comuns.', cost: 60, trip: 20, col: 'radial-gradient(circle at 35% 35%, #e1f5fe, #1565c0)',
+      fr: { cor: { R: .2, B: .8, D: 0 }, padrao: .3, olhos: .25, cristal: .12, albino: .15, elem: { P: .05, G: .6, n: .35 }, m: .5, n: .5, lum: .12 } },
+    { id: 'nebulosa', nome: 'Nebulosa Lúmen', desc: 'Lua escura dentro de uma nebulosa: muitos bioluminescentes, ciclopes e albinos.', cost: 120, trip: 30, col: 'radial-gradient(circle at 35% 35%, #ccff90, #4a148c)',
+      fr: { cor: { R: .5, B: .5, D: 0 }, padrao: .5, olhos: .55, cristal: .15, albino: .4, elem: { P: .3, G: .3, n: .4 }, m: .3, n: .3, lum: .6 } },
+    { id: 'aurum', nome: 'Asteroide Aurum', desc: 'Rochas douradas e cristalinas. Único lugar com o alelo D (dourado).', cost: 220, trip: 40, col: 'radial-gradient(circle at 35% 35%, #fff59d, #a0700a)',
+      fr: { cor: { R: .3, B: .3, D: .4 }, padrao: .6, olhos: .3, cristal: .4, albino: .1, elem: { P: .35, G: .35, n: .3 }, m: .7, n: .7, lum: .2 } },
+  ];
+  function wild(pl) {
+    const fr = pl.fr;
+    const draw = obj => { let r = Math.random(); for (const [k, v] of Object.entries(obj)) { r -= v; if (r <= 0) return k; } return Object.keys(obj)[0]; };
+    const bi = (p, dom, rec) => Math.random() < p ? rec : dom; // p = frequência do alelo indicado
+    const g = {};
+    g.cor = sortG('cor', draw(fr.cor), draw(fr.cor));
+    g.padrao = sortG('padrao', bi(fr.padrao, 's', 'S'), bi(fr.padrao, 's', 'S'));
+    g.olhos = sortG('olhos', bi(fr.olhos, 'O', 'o'), bi(fr.olhos, 'O', 'o'));
+    g.cristal = Math.random() < fr.cristal * 2 ? 'Kk' : 'kk';
+    g.albino = sortG('albino', bi(fr.albino, 'C', 'c'), bi(fr.albino, 'C', 'c'));
+    g.elem = sortG('elem', draw(fr.elem), draw(fr.elem));
+    g.m = sortG('m', bi(fr.m, 'm', 'M'), bi(fr.m, 'm', 'M'));
+    g.n = sortG('n', bi(fr.n, 'n', 'N'), bi(fr.n, 'n', 'N'));
+    const sex = Math.random() < 0.5 ? 'F' : 'M';
+    g.x = sex === 'M' ? bi(fr.lum, 'L', 'l') : sortG('x', bi(fr.lum, 'L', 'l'), bi(fr.lum, 'L', 'l'));
+    return { id: -1 - rand(1e6), name: newName(), sex, g, seq: false, known: {}, gen: 0, origin: pl.nome };
+  }
+  function rExped() {
+    if (S.exp) {
+      const pl = PLANETS.find(p => p.id === S.exp.planet);
+      return `<h2>Expedição a ${pl.nome}</h2>
+        <p class="sub">Três astrídeos selvagens foram avistados. Você só consegue trazer <b>um</b> para a estação. Os genótipos ainda são desconhecidos.</p>
+        <div class="grid">${S.exp.wild.map((c, i) => `<div class="card">
+          <div class="head"><span class="name">${esc(c.name)} ${sexSym(c.sex)}</span></div>
+          <div class="artbox">${art(c, 120)}</div>${phChips(c)}${genoBlock(c)}
+          <div class="btns"><button class="btn primary" data-act="capture" data-i="${i}" ${S.creatures.length >= CAP ? 'disabled' : ''}>Capturar</button></div>
+        </div>`).join('')}</div>
+        ${S.creatures.length >= CAP ? '<p class="warn">Viveiro cheio: transfira alguém antes de capturar.</p>' : ''}
+        <p><button class="btn" data-act="leave">Voltar à estação sem capturar</button></p>`;
+    }
+    return `<h2>Expedição</h2>
+      <p class="sub">Cada planeta tem <b>frequências alélicas</b> diferentes, como populações isoladas na Terra. Escolha onde buscar novos alelos.</p>
+      <div class="grid">${PLANETS.map(pl => {
+        const open = S.planets[pl.id];
+        return `<div class="card"><div class="planet"><div class="orb" style="background:${pl.col}"></div><div><b>${pl.nome}</b><div class="meta">${open ? `viagem: ${pl.trip} 💰` : `desbloquear: ${pl.cost} 💰`}</div></div></div>
+          <p style="margin:0">${pl.desc}</p>
+          <div class="btns">${open
+            ? `<button class="btn primary" data-act="trip" data-v="${pl.id}" ${S.credits < pl.trip ? 'disabled' : ''}>Partir (${pl.trip} 💰)</button>`
+            : `<button class="btn gold" data-act="unlock" data-v="${pl.id}" ${S.credits < pl.cost ? 'disabled' : ''}>Comprar rota (${pl.cost} 💰)</button>`}</div></div>`;
+      }).join('')}</div>`;
+  }
 
-  <footer>
-    Feito por Rafael Piergiorge · <a href="https://github.com/Piergiorge/PolGame">código no GitHub</a><br>
-    Todos os jogos têm som (tecla <b>M</b> liga e desliga) e controles na tela para celular.
-  </footer>
-</main>
+  // ---------------- CONTRATOS ----------------
+  const CLIENTS = [
+    ['Museu de Titã', 'quer um exemplar para a nova exposição.'], ['Colônia Vesta', 'busca astrídeos para o programa de reprodução.'],
+    ['Dra. Yara Okonkwo', 'estuda a herança desse traço.'], ['Zoológico Orbital de Ganimedes', 'quer completar o recinto.'],
+    ['Prof. Ilan Moreau', 'precisa de um modelo para a aula de genética.'], ['Consórcio Helix', 'paga bem por genomas bem documentados.'],
+    ['Estação Ceres-9', 'quer repovoar um habitat.'], ['Instituto de Xenobiologia de Europa', 'pediu um exemplar para estudo.'],
+  ];
+  function reqLabel(r) {
+    if (r.t === 'sex') return r.v === 'F' ? 'fêmea ♀' : 'macho ♂';
+    if (r.t === 'geno') return r.label;
+    if (r.l === 'cor') return r.v === 'albino' ? 'albino' : `cor ${r.v}`;
+    if (r.l === 'padrao') return r.v === 'manchas' ? 'com manchas' : 'liso (sem manchas)';
+    if (r.l === 'olhos') return r.v === 'ciclope' ? 'ciclope' : 'dois olhos';
+    if (r.l === 'cristal') return r.v ? 'com cristais' : 'sem cristais';
+    if (r.l === 'elem') return `elemento ${r.v}`;
+    if (r.l === 'tam') return r.v === 'g' ? 'grande ou colossal' : r.v === 'p' ? 'minúsculo ou pequeno' : SIZE_NOME[r.v];
+    if (r.l === 'lum') return 'bioluminescente';
+    return '?';
+  }
+  function meets(c, r) {
+    const p = ph(c);
+    if (r.t === 'sex') return c.sex === r.v;
+    if (r.t === 'geno') {
+      if (r.l === 'lum') return c.sex === 'F' && isKnown(c, 'lum') && c.g.x === r.v;
+      return isKnown(c, r.l) && c.g[r.l] === r.v;
+    }
+    if (r.l === 'cor') return p.cor === r.v;
+    if (r.l === 'padrao') return p.padrao === r.v;
+    if (r.l === 'olhos') return p.olhos === r.v;
+    if (r.l === 'cristal') return p.cristal === r.v;
+    if (r.l === 'elem') return p.elem === r.v;
+    if (r.l === 'tam') return r.v === 'g' ? p.size >= 3 : r.v === 'p' ? p.size <= 1 : p.size === r.v;
+    if (r.l === 'lum') return p.lum === r.v;
+    return false;
+  }
+  const eligible = ct => S.creatures.filter(c => ct.reqs.every(r => meets(c, r)));
+  const eligibleCount = () => S.contracts.filter(ct => eligible(ct).length).length;
+
+  function genContract() {
+    const tier = Math.min(4, 1 + Math.floor(S.contractsDone / 2));
+    const pool = [
+      () => ({ t: 'ph', l: 'cor', v: pick(['vermelho', 'azul', 'roxo']) }),
+      () => ({ t: 'ph', l: 'padrao', v: pick(['manchas', 'liso']) }),
+      () => ({ t: 'ph', l: 'olhos', v: 'ciclope' }),
+      () => ({ t: 'ph', l: 'cristal', v: true }),
+      () => ({ t: 'ph', l: 'elem', v: pick(['Plasma', 'Gelo', 'Tempestade', 'Neutro']) }),
+      () => ({ t: 'ph', l: 'lum', v: true }),
+      () => ({ t: 'ph', l: 'tam', v: pick(['g', 'p']) }),
+    ];
+    if (tier >= 2) pool.push(() => ({ t: 'ph', l: 'cor', v: 'albino' }));
+    if (tier >= 3) pool.push(() => ({ t: 'ph', l: 'tam', v: pick([0, 4]) }));
+    if (S.planets.aurum || S.creatures.some(c => c.g.cor.includes('D'))) pool.push(() => ({ t: 'ph', l: 'cor', v: 'dourado' }));
+    const genoPool = [
+      { t: 'geno', l: 'padrao', v: 'Ss', label: 'heterozigoto confirmado Ss (padrão)' },
+      { t: 'geno', l: 'olhos', v: 'Oo', label: 'portador confirmado Oo (olhos)' },
+      { t: 'geno', l: 'albino', v: 'Cc', label: 'portador de albinismo confirmado (Cc)' },
+      { t: 'geno', l: 'lum', v: 'Ll', label: 'fêmea portadora confirmada (XᴸXˡ)' },
+      { t: 'geno', l: 'elem', v: 'PP', label: 'Plasma homozigoto confirmado (PP)' },
+    ];
+    const reqs = [], used = new Set();
+    let tries = 0;
+    const nTraits = Math.max(1, tier - (Math.random() < 0.3 ? 1 : 0));
+    while (reqs.length < nTraits && tries++ < 50) {
+      const r = pick(pool)();
+      if (used.has(r.l)) continue;
+      used.add(r.l); reqs.push(r);
+    }
+    let geno = false;
+    if (S.contractsDone >= 3 && Math.random() < 0.45) {
+      const gq = pick(genoPool.filter(g => !used.has(g.l)));
+      if (gq) { reqs.push(gq); geno = true; if (gq.l === 'lum') reqs.push({ t: 'sex', v: 'F' }); }
+    }
+    if (!reqs.some(r => r.t === 'sex') && Math.random() < 0.25) reqs.push({ t: 'sex', v: pick(['F', 'M']) });
+    const hard = reqs.filter(r => r.t === 'ph').length;
+    const rare = reqs.some(r => (r.l === 'cor' && (r.v === 'dourado' || r.v === 'albino')) || (r.l === 'tam' && (r.v === 0 || r.v === 4)));
+    const [client, text] = pick(CLIENTS);
+    return { id: S.nextContract++, client, text, reqs, reward: { cr: 25 + hard * 25 + (geno ? 45 : 0) + (rare ? 40 : 0), rp: 1 + (geno ? 2 : 0) + (rare ? 1 : 0) } };
+  }
+
+  function rContratos() {
+    return `<h2>Contratos</h2>
+      <p class="sub">Clientes de outras estações pagam por astrídeos com características específicas. Contratos marcados com 🧬 exigem genótipo <b>confirmado</b> (sequenciado ou deduzido). Dica: não entregue seus melhores reprodutores. Cruze antes!</p>
+      <div class="grid">${S.contracts.map(ct => {
+        const el = eligible(ct);
+        return `<div class="card">
+          <div><b>${esc(ct.client)}</b> <span class="meta">${esc(ct.text)}</span></div>
+          <div>${ct.reqs.map(r => `<div class="req">${r.t === 'geno' ? '🧬 ' : ''}${reqLabel(r)}</div>`).join('')}</div>
+          <div class="meta">Recompensa: <b style="color:var(--gold)">${ct.reward.cr} 💰</b> + <b style="color:var(--accent)">${ct.reward.rp} 🔬</b></div>
+          <div class="eligible">${el.length ? el.map(c => `<button class="mini" data-act="deliver" data-c="${ct.id}" data-id="${c.id}" title="Entregar ${esc(c.name)}">${art(c, 60)}<div class="nm">${esc(c.name)} ${c.sex === 'F' ? '♀' : '♂'}</div></button>`).join('') : '<span class="muted" style="font-size:12.5px">Nenhum astrídeo atende ainda.</span>'}</div>
+          <div class="btns"><button class="btn danger" data-act="drop" data-c="${ct.id}">Recusar contrato</button></div>
+        </div>`;
+      }).join('')}</div>
+      <p class="meta">Contratos concluídos: ${S.contractsDone}. Novos contratos ficam mais exigentes.</p>`;
+  }
+
+  // ---------------- ARENA ----------------
+  const RIVALS = ['Cadete Nilo', 'Técnica Sora', 'Eng. Bastos', 'Dra. Kalinda', 'Capitã Vex', 'Prof. Hadrian', 'Almirante Quorra', 'Mestra Ilíade'];
+  const TYPE_ADV = { Plasma: 'Gelo', Gelo: 'Tempestade', Tempestade: 'Plasma' };
+  const typeMult = (a, d) => TYPE_ADV[a] === d ? 1.5 : TYPE_ADV[d] === a ? 0.75 : 1;
+  function rivalCreature(rank) {
+    const k = rank / 7;
+    const bi = (p, a, b) => Math.random() < p ? a : b;
+    const g = {
+      cor: sortG('cor', pick('RBR'), pick('RBB')), padrao: sortG('padrao', pick('Ss'), pick('Ss')), olhos: sortG('olhos', bi(.2 + k * .5, 'o', 'O'), bi(.2 + k * .5, 'o', 'O')),
+      cristal: Math.random() < .2 + k * .6 ? 'Kk' : 'kk', albino: 'CC', elem: sortG('elem', pick('PGPGn'), pick('PGn')),
+      m: sortG('m', bi(.3 + k * .6, 'M', 'm'), bi(.3 + k * .6, 'M', 'm')), n: sortG('n', bi(.3 + k * .6, 'N', 'n'), bi(.3 + k * .6, 'N', 'n')),
+    };
+    const sex = pick(['F', 'M']);
+    g.x = sex === 'M' ? bi(.2 + k * .3, 'l', 'L') : sortG('x', 'L', bi(.3, 'l', 'L'));
+    return { id: 9000 + rank, name: newName(), sex, g, seq: true, known: {}, gen: 3, origin: RIVALS[rank] };
+  }
+  const rivalMult = rank => 0.75 + rank * 0.06; // rivais iniciais mais fracos, finais mais fortes
+  const SPECIAL = { Plasma: ['Rajada de plasma', 'dano forte (×1,5)', 2], Gelo: ['Armadura de gelo', 'reduz o dano recebido pela metade por 2 turnos', 3],
+                    Tempestade: ['Descarga elétrica', 'dano e 35% de chance de paralisar', 2], Neutro: ['Regeneração', 'recupera 30% da vida', 3] };
+
+  function rArena() {
+    if (S.battle) return rBattle();
+    const rank = Math.min(S.arena, RIVALS.length - 1);
+    if (!S.rival || S.rival.rank !== rank) S.rival = { rank, c: rivalCreature(rank) };
+    const rc = S.rival.c, st = { ...stats(rc) }; st.hp = Math.round(st.hp * rivalMult(rank)); st.atk = Math.round(st.atk * rivalMult(rank));
+    const done = S.arena >= RIVALS.length;
+    return `<h2>Arena Astra</h2>
+      <p class="sub">Batalhas de simulação contra cientistas de outras estações. Os atributos vêm <b>dos genes</b>: tamanho (vida e ataque), cor (ataque/defesa), cristais (defesa), manchas (esquiva), liso (velocidade), ciclope (crítico), elemento (habilidade especial e vantagem de tipo) e bioluminescência (Clarão, que ofusca o oponente).</p>
+      <p class="meta">Vantagens: Plasma &gt; Gelo &gt; Tempestade &gt; Plasma (×1,5). Neutro não tem vantagem, mas tem mais vida.</p>
+      ${done ? `<div class="panel" style="border-color:var(--gold)"><b style="color:var(--gold)">🏆 Você é campeã(o) da Arena Astra!</b> Ainda dá para treinar contra a Mestra Ilíade.</div>` : ''}
+      <div class="two" style="margin-top:10px">
+        <div class="panel"><b>Rival ${Math.min(S.arena + 1, RIVALS.length)}/${RIVALS.length}: ${RIVALS[rank]}</b>
+          <div class="row" style="align-items:center;margin-top:6px"><div class="artbox">${art(rc, 120)}</div>
+          <div>${esc(rc.name)} ${sexSym(rc.sex)}${phChips(rc)}<div class="meta mono" style="margin-top:6px">PV ${st.hp} · ATQ ${st.atk} · DEF ${st.def} · VEL ${st.spd}</div></div></div>
+          <div class="meta">Prêmio: ${40 + rank * 25} 💰 + 1 🔬</div>
+        </div>
+        <div class="panel"><b>Escolha seu astrídeo</b>
+          <div class="picker" style="margin-top:6px">${S.creatures.map(c => { const s2 = stats(c); return `<button class="mini" data-act="fight" data-id="${c.id}" title="PV ${s2.hp} ATQ ${s2.atk} DEF ${s2.def} VEL ${s2.spd}">${art(c, 70)}<div class="nm">${esc(c.name)}</div><div class="meta mono">${ph(c).elem.slice(0, 4)} · ${s2.hp}PV</div></button>`; }).join('')}</div>
+        </div>
+      </div>`;
+  }
+  function fighter(c, mult = 1) { const st = { ...stats(c) }; st.hp = Math.round(st.hp * mult); st.atk = Math.round(st.atk * mult); return { c, st, hp: st.hp, cd: 0, flash: !ph(c).lum, shield: 0, blind: 0, stun: false }; }
+  function startBattle(id) {
+    const c = byId(id); if (!c) return;
+    S.battle = { rank: S.rival.rank, you: fighter(c), foe: fighter(S.rival.c, rivalMult(S.rival.rank)), log: [`A simulação começou: ${c.name} contra ${S.rival.c.name}!`], over: false };
+    render();
+  }
+  function rBattle() {
+    const B = S.battle;
+    const side = (F, who) => {
+      const p = ph(F.c), pct = Math.max(0, F.hp / F.st.hp * 100);
+      const stt = [F.shield ? '🛡 gelo' : '', F.blind ? '😵 ofuscado' : '', F.stun ? '⚡ paralisado' : ''].filter(Boolean).join(' ');
+      return `<div class="fighter"><div class="meta">${who}</div><div class="artbox">${art(F.c, 130)}</div>
+        <b>${esc(F.c.name)}</b> ${sexSym(F.c.sex)} <span class="meta">${p.elem}</span>
+        <div class="hpbar"><i class="${pct < 30 ? 'low' : ''}" style="width:${pct}%"></i></div>
+        <div class="meta mono">${Math.max(0, F.hp)}/${F.st.hp} PV</div><div class="status">${stt}</div></div>`;
+    };
+    const Y = B.you, sp = SPECIAL[ph(Y.c).elem];
+    return `<h2>Arena Astra: ${RIVALS[B.rank]}</h2>
+      <div class="battle">${side(Y, 'Você')}<div class="vs">VS</div>${side(B.foe, 'Rival')}</div>
+      <div class="panel" style="margin-top:12px;text-align:center">
+        ${B.over ? `<button class="btn primary" data-act="endbattle">Voltar à arena</button>` : `
+        <button class="btn primary" data-act="move" data-v="atk">Atacar</button>
+        <button class="btn" data-act="move" data-v="sp" ${Y.cd ? 'disabled' : ''} title="${sp[1]}">${sp[0]}${Y.cd ? ` (${Y.cd})` : ''}</button>
+        ${ph(Y.c).lum ? `<button class="btn" data-act="move" data-v="flash" ${Y.flash ? 'disabled' : ''} title="Ofusca o rival: 60% de chance de errar no próximo turno">✨ Clarão${Y.flash ? ' (usado)' : ''}</button>` : ''}
+        <button class="btn danger" data-act="flee">Desistir</button>`}
+        <div class="blog" id="blog">${B.log.map(l => `<p>${l}</p>`).join('')}</div>
+      </div>`;
+  }
+  function act(A, D, move, L) {
+    const pa = ph(A.c), pd = ph(D.c);
+    if (A.stun) { A.stun = false; L.push(`${A.c.name} está paralisado e não age!`); return; }
+    if (move === 'flash') { A.flash = true; D.blind = 1; L.push(`✨ ${A.c.name} solta um Clarão bioluminescente! ${D.c.name} fica ofuscado.`); return; }
+    if (move === 'sp' && pa.elem === 'Gelo') { A.shield = 2; A.cd = SPECIAL.Gelo[2]; L.push(`🛡 ${A.c.name} se cobre de cristais de gelo.`); return; }
+    if (move === 'sp' && pa.elem === 'Neutro') { const h = Math.round(A.st.hp * 0.3); A.hp = Math.min(A.st.hp, A.hp + h); A.cd = SPECIAL.Neutro[2]; L.push(`💚 ${A.c.name} se regenera (+${h} PV).`); return; }
+    const miss = D.st.eva + (A.blind ? 0.6 : 0);
+    if (A.blind) A.blind = 0;
+    if (move === 'sp') A.cd = SPECIAL[pa.elem][2];
+    const name = move === 'sp' ? SPECIAL[pa.elem][0] : 'ataque';
+    if (Math.random() < miss) { L.push(`${A.c.name} usa ${name}, mas erra!`); return; }
+    const power = move === 'sp' ? (pa.elem === 'Plasma' ? 1.5 : 1.2) : 1;
+    const crit = Math.random() < A.st.crit;
+    const tm = typeMult(pa.elem, pd.elem);
+    let dmg = (A.st.atk * power - D.st.def * 0.45) * tm * (0.85 + Math.random() * 0.3) * (crit ? 1.6 : 1);
+    if (D.shield) dmg *= 0.5;
+    dmg = Math.max(2, Math.round(dmg));
+    D.hp -= dmg;
+    L.push(`${A.c.name} usa ${name}: <b>${dmg}</b> de dano${crit ? ' (crítico! 👁)' : ''}${tm > 1 ? ' (super eficaz!)' : tm < 1 ? ' (pouco eficaz)' : ''}.`);
+    if (move === 'sp' && pa.elem === 'Tempestade' && Math.random() < 0.35) { D.stun = true; L.push(`⚡ ${D.c.name} ficou paralisado!`); }
+  }
+  function foeMove(F) {
+    if (!F.flash && Math.random() < 0.35) return 'flash';
+    if (!F.cd && Math.random() < 0.55) { const e = ph(F.c).elem; if (e === 'Neutro' && F.hp > F.st.hp * 0.6) return 'atk'; return 'sp'; }
+    return 'atk';
+  }
+  function turn(move) {
+    const B = S.battle; if (!B || B.over) return;
+    const Y = B.you, F = B.foe, L = [];
+    const fm = foeMove(F);
+    const order = Y.st.spd > F.st.spd || (Y.st.spd === F.st.spd && Math.random() < 0.5) ? [[Y, F, move], [F, Y, fm]] : [[F, Y, fm], [Y, F, move]];
+    for (const [A, D, mv] of order) { if (A.hp <= 0 || D.hp <= 0) continue; act(A, D, mv, L); }
+    for (const X of [Y, F]) { if (X.cd) X.cd--; if (X.shield) X.shield--; }
+    B.log.push(...L);
+    if (F.hp <= 0 || Y.hp <= 0) {
+      B.over = true;
+      if (F.hp <= 0) {
+        const rank = B.rank, prize = 40 + rank * 25;
+        S.credits += prize; S.research += 1; S.stats.wins++;
+        if (S.arena === rank && S.arena < RIVALS.length) S.arena++;
+        S.rival = null;
+        B.log.push(`<b style="color:var(--good)">Vitória! +${prize} 💰 +1 🔬</b>`);
+        toast(`⚔️ Vitória contra ${RIVALS[rank]}!`, 'gold');
+      } else B.log.push(`<b style="color:var(--bad)">${Y.c.name} perdeu a simulação.</b> Tente outro astrídeo ou cruze um mais forte.`);
+    }
+    render();
+    const bl = $('#blog'); if (bl) bl.scrollTop = bl.scrollHeight;
+  }
+
+  // ---------------- XENODEX ----------------
+  function rDex() {
+    const got = DEX.filter(d => S.dex[`${d[0]}:${d[1]}`]).length;
+    const groups = {};
+    for (const d of DEX) (groups[d[0]] = groups[d[0]] || []).push(d);
+    return `<h2>Xenodex</h2>
+      <p class="sub">Cada fenótipo novo que aparece no seu viveiro é registrado e rende 1 de pesquisa. Registrados: <b>${got}/${DEX.length}</b>.</p>
+      ${Object.entries(groups).map(([l, arr]) => `<div class="panel" style="margin-bottom:10px">
+        <b>${LOCUS_INFO[l].nome}</b> <span class="meta">· ${LOCUS_INFO[l].mech}</span>
+        <p class="meta" style="margin:4px 0 8px">${LOCUS_INFO[l].how}</p>
+        <div class="dex">${arr.map(d => { const on = S.dex[`${d[0]}:${d[1]}`]; return `<div class="dexi ${on ? '' : 'off'}"><b>${on ? d[2] : '???'}</b>${on ? '✔ registrado' : 'não encontrado'}</div>`; }).join('')}</div>
+      </div>`).join('')}`;
+  }
+
+  // ---------------- GUIA ----------------
+  function guide() {
+    modal(`<div class="guide"><h3>Guia de genética da estação</h3>
+      <p>Cada astrídeo é <b>diploide</b>: tem dois alelos de cada gene, um vindo da mãe e outro do pai. O <b>locus</b> é a posição do gene no cromossomo, daí o nome da estação. No cruzamento, cada pai passa um alelo de cada gene ao acaso (1ª lei de Mendel), e genes diferentes se separam de forma independente (2ª lei).</p>
+      ${LOCI.map(l => `<h4>${LOCUS_INFO[l].nome}: ${LOCUS_INFO[l].mech}</h4><p>${LOCUS_INFO[l].how}</p>`).join('')}
+      <h4>Genótipo × fenótipo</h4><p>Você sempre vê o fenótipo. O genótipo aparece com <b>?</b> quando há mais de uma possibilidade: um astrídeo com manchas pode ser SS ou Ss (aparece "S?").</p>
+      <h4>Como descobrir um genótipo</h4>
+      <p><b>Sequenciamento:</b> revela tudo, mas custa pesquisa.</p>
+      <p><b>Cruzamento-teste:</b> cruze o indivíduo com um homozigoto recessivo (ex.: com manchas × liso). Se aparecer algum filhote liso, o pai com manchas só pode ser Ss. O laboratório faz essas deduções automaticamente depois de cada cruzamento.</p>
+      <h4>Mutações</h4><p>Raramente (cerca de 1,5% dos filhotes) um alelo muda espontaneamente. Os filhotes com mutação aparecem marcados com ★.</p>
+      <p style="margin-top:12px"><button class="btn primary" data-act="close">Entendi</button></p></div>`);
+  }
+
+  // =====================================================================
+  // AÇÕES
+  // =====================================================================
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]'); if (!el) return;
+    const a = el.dataset.act, id = el.dataset.id ? +el.dataset.id : null;
+    switch (a) {
+      case 'tab': S.tab = el.dataset.v; render(); window.scrollTo({ top: 0 }); break;
+      case 'close': closeModal(); render(); break;
+      case 'guide': guide(); break;
+      case 'reset':
+        modal(`<h3>Começar um novo jogo?</h3><p>Todo o progresso desta estação será apagado.</p><div class="btns"><button class="btn danger" data-act="reset2">Apagar e recomeçar</button><button class="btn" data-act="close">Cancelar</button></div>`); break;
+      case 'reset2': newGame(); closeModal(); intro(); render(); break;
+      case 'start': S.intro = true; closeModal(); render(); break;
+      case 'seq': {
+        const c = byId(id); if (!c || c.seq || S.research < 1) break;
+        S.research--; c.seq = true; toast(`🧬 Genoma de <b>${esc(c.name)}</b> sequenciado.`); render(); break;
+      }
+      case 'sell': {
+        const c = byId(id); if (!c) break;
+        modal(`<h3>Transferir ${esc(c.name)}?</h3><div style="text-align:center">${art(c, 110)}</div><p>Ele vai para outra estação de pesquisa, e você recebe <b>${sellValue(c)} créditos</b>.</p><div class="btns"><button class="btn danger" data-act="sell2" data-id="${c.id}">Transferir</button><button class="btn" data-act="close">Cancelar</button></div>`); break;
+      }
+      case 'sell2': {
+        const c = byId(id); if (!c) break;
+        S.credits += sellValue(c); S.creatures = S.creatures.filter(x => x !== c);
+        if (S.breed.f === c.id) S.breed.f = null; if (S.breed.m === c.id) S.breed.m = null;
+        closeModal(); render(); break;
+      }
+      case 'tobreed': { const c = byId(id); if (!c) break; S.breed[c.sex === 'F' ? 'f' : 'm'] = c.id; S.tab = 'cruzar'; render(); window.scrollTo({ top: 0 }); break; }
+      case 'pick': S.breed[el.dataset.slot] = id; render(); break;
+      case 'breed': doBreed(); break;
+      case 'unlock': {
+        const pl = PLANETS.find(p => p.id === el.dataset.v); if (!pl || S.credits < pl.cost) break;
+        S.credits -= pl.cost; S.planets[pl.id] = true; toast(`🚀 Rota para <b>${pl.nome}</b> liberada!`, 'gold'); render(); break;
+      }
+      case 'trip': {
+        const pl = PLANETS.find(p => p.id === el.dataset.v); if (!pl || S.credits < pl.trip) break;
+        S.credits -= pl.trip; S.day++; S.exp = { planet: pl.id, wild: [wild(pl), wild(pl), wild(pl)] }; render(); break;
+      }
+      case 'capture': {
+        const w = S.exp && S.exp.wild[+el.dataset.i]; if (!w || S.creatures.length >= CAP) break;
+        w.id = S.nextId++; S.creatures.push(w); S.stats.caught++; S.exp = null;
+        toast(`🛸 <b>${esc(w.name)}</b> chegou ao viveiro!`); discover(w); render(); break;
+      }
+      case 'leave': S.exp = null; render(); break;
+      case 'deliver': {
+        const ct = S.contracts.find(x => x.id === +el.dataset.c), c = byId(id); if (!ct || !c) break;
+        modal(`<h3>Entregar ${esc(c.name)}?</h3><div style="text-align:center">${art(c, 110)}</div><p>Para <b>${esc(ct.client)}</b>, por <b>${ct.reward.cr} 💰</b> e <b>${ct.reward.rp} 🔬</b>. O astrídeo deixa a estação.</p><div class="btns"><button class="btn primary" data-act="deliver2" data-c="${ct.id}" data-id="${c.id}">Entregar</button><button class="btn" data-act="close">Cancelar</button></div>`); break;
+      }
+      case 'deliver2': {
+        const ct = S.contracts.find(x => x.id === +el.dataset.c), c = byId(id); if (!ct || !c || !ct.reqs.every(r => meets(c, r))) { closeModal(); break; }
+        S.credits += ct.reward.cr; S.research += ct.reward.rp; S.contractsDone++;
+        S.creatures = S.creatures.filter(x => x !== c);
+        if (S.breed.f === c.id) S.breed.f = null; if (S.breed.m === c.id) S.breed.m = null;
+        S.contracts = S.contracts.map(x => x === ct ? genContract() : x);
+        closeModal(); toast(`📜 Contrato concluído! +${ct.reward.cr} 💰 +${ct.reward.rp} 🔬`, 'gold'); render(); break;
+      }
+      case 'drop': { const i = S.contracts.findIndex(x => x.id === +el.dataset.c); if (i >= 0) { S.contracts[i] = genContract(); render(); } break; }
+      case 'fight': startBattle(id); break;
+      case 'move': turn(el.dataset.v); break;
+      case 'flee': S.battle.over = true; S.battle.log.push('Você encerrou a simulação.'); render(); break;
+      case 'endbattle': S.battle = null; render(); break;
+    }
+  });
+
+  function intro() {
+    modal(`<h3>Bem-vinda(o) à Locus Astra</h3>
+      <p>Ano 2187. A estação <b>Locus Astra</b> orbita uma nebulosa cheia de planetas habitados por <b>astrídeos</b>, criaturas cuja herança segue as mesmas regras descobertas por Mendel.</p>
+      <p>Você é a nova geneticista da estação. Sua missão:</p>
+      <ul>
+        <li><b>Viveiro:</b> conheça seus astrídeos e sequencie genomas.</li>
+        <li><b>Cruzamento:</b> preveja os filhotes com quadros de Punnett e descubra genótipos por cruzamento-teste.</li>
+        <li><b>Expedição:</b> capture astrídeos selvagens em planetas com frequências alélicas diferentes.</li>
+        <li><b>Contratos:</b> entregue exemplares com as características pedidas para ganhar créditos e pesquisa.</li>
+        <li><b>Arena:</b> enfrente rivais com astrídeos cujos atributos vêm dos genes.</li>
+        <li><b>Xenodex:</b> registre todos os fenótipos e aprenda como cada um é herdado.</li>
+      </ul>
+      <p class="muted">Você começa com 4 astrídeos de Kepler-Rubra. O progresso é salvo automaticamente neste navegador.</p>
+      <button class="btn primary" data-act="start">Assumir o laboratório</button>`);
+  }
+
+  if (/github\.io$/.test(location.hostname)) $('#backlink').hidden = false; // link só aparece no site publicado
+  if (!load()) newGame();
+  render();
+  if (!S.intro) intro();
+  window.__LA = { get S() { return S; }, cross, deduce, cands, gDisplay, ph, stats, wild: () => wild(PLANETS[0]), render, genContract, meets };
+})();
+</script>
 </body>
 </html>

@@ -9,8 +9,9 @@ Jogos que rodam direto no navegador, no computador ou no celular. Não precisa i
 | 🧬 **Fita Molde** | Plataforma | Replicação do DNA, pareamento de bases, mutações e código genético | [▶️ Jogar](https://piergiorge.github.io/PolGame/fita-molde/) |
 | 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/PolGame/genoblocos/) |
 | 🦠 **GULP!** | Roguelike | Imunidade inata: fagocitose, patógenos, citocinas e anticorpos | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
+| 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/PolGame/locus-astra/) |
 
-Todos os jogos têm som (a tecla **M** liga e desliga) e controles na tela para celular.
+Fita Molde, GenoBlocos e GULP! têm som (a tecla **M** liga e desliga). Todos funcionam no celular.
 
 ---
 
@@ -101,15 +102,36 @@ Em grego, *macrófago* quer dizer "grande comedor". Você é um macrófago e atr
 
 ---
 
+# 🪐 Locus Astra
+
+Ano 2187. Você é geneticista na estação **Locus Astra** e cuida dos **astrídeos**, criaturas alienígenas cuja herança segue as regras de Mendel. Capture exemplares em planetas com frequências alélicas diferentes, sequencie genomas, preveja os filhotes com quadros de Punnett, cumpra contratos e dispute a arena com criaturas cujos atributos vêm dos genes. O progresso fica salvo no navegador.
+
+| Característica | Mecanismo de herança |
+|---|---|
+| Cor | Dominância incompleta (vermelho × azul = roxo) e alelos múltiplos (dourado recessivo) |
+| Padrão e olhos | Dominância completa (liso e ciclope são recessivos) |
+| Cristais | Alelo letal em homozigose (KK não eclode: proporção 2:1) |
+| Albinismo | Epistasia recessiva (cc esconde o gene da cor) |
+| Elemento | Alelos múltiplos e codominância, como no sistema ABO |
+| Tamanho | Herança poligênica (2 genes aditivos, 5 classes) |
+| Bioluminescência | Ligada ao X e recessiva (portadoras não brilham) |
+
+O genótipo aparece com **?** onde ainda é desconhecido: dá para **sequenciar** (custa pesquisa) ou **deduzir por cruzamento-teste**, e o laboratório faz as deduções automaticamente a partir dos filhotes.
+
+### ▶️ [Jogar o Locus Astra](https://piergiorge.github.io/PolGame/locus-astra/)
+
+---
+
 ## Detalhes técnicos
 
-Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API).
+Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API). Os gráficos do Locus Astra são SVG gerados a partir do fenótipo de cada criatura.
 
 ```
 index.html             menu com os jogos
 fita-molde/index.html
 genoblocos/index.html
 gulp/index.html
+locus-astra/index.html
 ```
 
 No Fita Molde:
