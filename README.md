@@ -1,12 +1,24 @@
-# PolGame — Fita Molde
+# PolGame — jogos de genética e imunologia
+
+Jogos educativos gratuitos que rodam direto no navegador, no computador ou no celular. Não precisa instalar nada.
+
+### ▶️ [Abrir o menu de jogos](https://piergiorge.github.io/PolGame/)
+
+| Jogo | Gênero | Tema | Link |
+|---|---|---|---|
+| 🧬 **Fita Molde** | Plataforma | Replicação do DNA, pareamento de bases, mutações e código genético | [▶️ Jogar](https://piergiorge.github.io/PolGame/fita-molde/) |
+| 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/PolGame/genoblocos/) |
+| 🦠 **GULP!** | Roguelike | Imunidade inata: fagocitose, patógenos, citocinas e anticorpos | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
+
+Todos os jogos têm som (a tecla **M** liga e desliga) e controles na tela para celular.
+
+---
+
+# 🧬 Fita Molde
 
 **Um platformer 2D sobre replicação do DNA.** Você é a DNA polimerase: atravesse a célula coletando nucleotídeos complementares para copiar a fita molde, corrija seus erros com a revisão 3'→5' e chegue ao telômero.
 
-### ▶️ [Jogar agora](https://piergiorge.github.io/PolGame/)
-
-Roda direto no navegador, no computador ou no celular. Não precisa instalar nada.
-
----
+### ▶️ [Jogar o Fita Molde](https://piergiorge.github.io/PolGame/fita-molde/)
 
 ## Como jogar
 
@@ -71,16 +83,43 @@ O jogo também mostra a **fidelidade** da cópia, quantos erros foram incorporad
 
 ---
 
+---
+
+# 🧱 GenoBlocos
+
+Cada peça é um nucleotídeo. Complete linhas para eliminá-las e encaixe **bases complementares lado a lado**: cada par vale pontes de hidrogênio extras (A–T = 2, C–G = 3). Quatro linhas de uma vez formam uma **Tétrade**. Use enzimas como power-ups (helicase, CRISPR-Cas9, DNA ligase, telomerase e reparo NER) e sobreviva à radiação UV, à fumaça de cigarro, aos retrovírus e ao raio-X.
+
+### ▶️ [Jogar o GenoBlocos](https://piergiorge.github.io/PolGame/genoblocos/)
+
+---
+
+# 🦠 GULP!
+
+Em grego, *macrófago* quer dizer "grande comedor". Você é um macrófago e atravessa cinco tecidos fagocitando bactérias, vírus e fungos, evolui com mecanismos reais da imunidade inata e enfrenta a superbactéria **MRSA**. Os mapas mudam a cada partida e a morte é permanente.
+
+### ▶️ [Jogar o GULP!](https://piergiorge.github.io/PolGame/gulp/)
+
+---
+
 ## Detalhes técnicos
 
-- Um único arquivo `index.html` com HTML, CSS e JavaScript puro, sem bibliotecas nem dependências externas.
+Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API).
+
+```
+index.html             menu com os jogos
+fita-molde/index.html
+genoblocos/index.html
+gulp/index.html
+```
+
+No Fita Molde:
 - Renderização em `<canvas>` com física em passo fixo (120 Hz), o que mantém o pulo igual em qualquer taxa de quadros.
 - Pulo com tempo de tolerância na borda (*coyote time*), buffer de pulo e altura variável.
 - Inimigos com detecção de bordas e paredes para patrulhar sem cair das plataformas.
 
-Para jogar sem internet, baixe o `index.html` e abra no navegador.
+Para jogar sem internet, baixe o `index.html` do jogo e abra no navegador.
 
-## Próximas fases (ideias)
+## Próximas fases do Fita Molde (ideias)
 
 - Fita descontínua: fragmentos de Okazaki, primase e DNA ligase
 - Transcrição: RNA polimerase, uracila no lugar de timina
