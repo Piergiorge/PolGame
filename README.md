@@ -10,8 +10,9 @@ Jogos que rodam direto no navegador, no computador ou no celular. Não precisa i
 | 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/PolGame/genoblocos/) |
 | 🦠 **GULP!** | Roguelike | Imunidade inata: fagocitose, patógenos, citocinas e anticorpos | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
 | 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/PolGame/locus-astra/) |
+| 🩺 **Surto** | RPG investigativo | Heredogramas humanos: modos de herança, consanguinidade, penetrância incompleta, início tardio e fenocópias | [▶️ Jogar](https://piergiorge.github.io/PolGame/surto/) |
 
-Fita Molde, GenoBlocos e GULP! têm som (a tecla **M** liga e desliga). Todos funcionam no celular.
+Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** liga e desliga) e funcionam no celular.
 
 ---
 
@@ -122,6 +123,28 @@ O genótipo aparece com **?** onde ainda é desconhecido: dá para **sequenciar*
 
 ---
 
+# 🩺 Surto
+
+Você acaba de assumir o Serviço de Genética do **Vale do Sereno**, uma região onde famílias inteiras adoecem sem explicação. Cada caso é uma família: clique nas pessoas do heredograma para **entrevistar** os vivos, **consultar prontuários** dos falecidos e **sequenciar** amostras, sempre contra o relógio (as horas de investigação são limitadas). A Dra. Helena, que está se aposentando, ajuda a avaliar as hipóteses. No fim, você assina um **laudo** com o modo de herança e responde a uma pergunta de aconselhamento genético.
+
+| Caso | O que ensina |
+|---|---|
+| 1. Família Siqueira | Autossômica recessiva (pais portadores, risco de 1/4) |
+| 2. Família Lacerda | Autossômica dominante (transmissão pai → filho) |
+| 3. Família Tavares | Recessiva ligada ao X (mães portadoras) |
+| 4. Família Nogueira | Consanguinidade (primos compartilham 1/8 dos genes) |
+| 5. Família Coutinho | Dominante ligada ao X (pai afetado → todas as filhas) |
+| 6. Família Esteves | Herança mitocondrial (só pela mãe) |
+| 7. Família Rezende | Início tardio e teste preditivo |
+| 8. Família Barros | Penetrância incompleta |
+| 9. Família Duarte | Fenocópia ambiental (não é genética!) |
+
+As famílias são geradas aleatoriamente a cada partida, sempre com um heredograma que permite chegar à resposta. As doenças têm nomes fictícios, e o laudo revela o equivalente real (albinismo, Marfan, hemofilia A, fenilcetonúria, raquitismo hipofosfatêmico, MELAS, Huntington, polidactilia e intoxicação por chumbo). Depois da campanha, os **plantões** trazem famílias aleatórias com todos os modos de herança possíveis. Você sobe de nível e escolhe habilidades (mais horas, sequenciamento mais barato, consultas extras…).
+
+### ▶️ [Jogar o Surto](https://piergiorge.github.io/PolGame/surto/)
+
+---
+
 ## Detalhes técnicos
 
 Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API). Os gráficos do Locus Astra são SVG gerados a partir do fenótipo de cada criatura.
@@ -132,6 +155,7 @@ fita-molde/index.html
 genoblocos/index.html
 gulp/index.html
 locus-astra/index.html
+surto/index.html
 ```
 
 No Fita Molde:
