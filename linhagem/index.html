@@ -1,1 +1,1038 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linhagem — um RPG de gerações e genética</title>
+<style>
+  :root {
+    --bg:#1b1410; --panel:#f3e9d2; --panel2:#e9dcbd; --ink:#2b2018; --muted:#7a6a55; --line:#cdb98f;
+    --gold:#b8860b; --red:#a8402a; --green:#4f7a3a; --blue:#3b6688; --dark:#2a1f17;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:radial-gradient(1100px 600px at 80% -10%, #3a2a1c, transparent 70%), var(--bg); color:var(--ink); font:14.5px/1.5 Georgia, 'Iowan Old Style', 'Times New Roman', serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; }
+  .wrap { max-width:1200px; margin:0 auto; padding:14px 14px 40px; }
+  header.top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px; margin-bottom:12px; color:#f3e9d2; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font-size:26px; letter-spacing:.14em; font-variant:small-caps; color:#f3e9d2; }
+  .brand small { display:block; color:#c9b48a; font-size:12px; letter-spacing:.04em; }
+  .res { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .pill { background:#2f241b; border:1px solid #5a4632; border-radius:999px; padding:3px 11px; font-size:13px; color:#f3e9d2; white-space:nowrap; font-family:system-ui, sans-serif; }
+  .pill b { color:#f0c75e; }
+  .ghost, .soundbtn { background:transparent; border:1px solid #5a4632; color:#c9b48a; border-radius:8px; padding:4px 10px; font-size:12px; font-family:system-ui, sans-serif; }
+  .ghost:hover, .soundbtn:hover { color:#fff; border-color:#8a6d4a; }
+  .page { background:var(--panel); border-radius:14px; padding:16px; box-shadow:0 10px 30px #0008, inset 0 0 0 1px #fff6, inset 0 0 60px #c9b48a55; }
+  h2 { margin:0 0 4px; font-size:23px; }
+  h3 { margin:0 0 6px; font-size:18px; }
+  .sub { color:var(--muted); margin:0 0 12px; }
+  .meta { color:var(--muted); font-size:12.5px; }
+  .era { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:6px; border-bottom:2px solid var(--line); padding-bottom:8px; margin-bottom:12px; }
+  .era .yr { font-size:30px; font-weight:700; color:var(--red); letter-spacing:.05em; }
+  .btn { background:var(--panel2); border:1px solid #b9a172; color:var(--ink); border-radius:8px; padding:6px 12px; font-size:14px; font-weight:700; }
+  .btn:hover:not(:disabled) { border-color:var(--red); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--red); color:#fff7e8; border-color:var(--red); }
+  .btn.gold { background:#d9a520; border-color:#b8860b; color:#2b1a00; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; }
+  .layout { display:grid; grid-template-columns:minmax(0, 1fr) 300px; gap:14px; align-items:start; }
+  @media (max-width:880px) { .layout { grid-template-columns:1fr; } }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:10px; }
+  .card { background:#fbf5e6; border:1px solid var(--line); border-radius:12px; padding:10px; position:relative; }
+  .card.pick { cursor:pointer; }
+  .card.pick:hover { border-color:var(--red); box-shadow:0 0 0 2px #a8402a33; }
+  .card.dead { opacity:.6; }
+  .card.done { opacity:.55; }
+  .card.ok { border-color:var(--green); }
+  .card.bad { border-color:var(--red); }
+  .who { display:flex; gap:10px; align-items:center; }
+  .who .nm { font-size:17px; font-weight:700; line-height:1.15; }
+  .stats { display:grid; grid-template-columns:auto 1fr; gap:1px 8px; font-size:13px; margin:6px 0; font-family:system-ui, sans-serif; }
+  .pips { letter-spacing:1px; color:var(--red); }
+  .pips i { color:#cdbb95; font-style:normal; }
+  .tags { display:flex; flex-wrap:wrap; gap:4px; margin:4px 0; }
+  .tag { font-family:system-ui, sans-serif; font-size:11.5px; background:#eadcb8; border-radius:6px; padding:1px 7px; }
+  .tag.red { background:#f1c7b7; color:#7a2414; }
+  .tag.cond { background:#3a2a20; color:#ffd9c9; }
+  .tag.blue { background:#cfe0ec; color:#21445e; }
+  .tag.green { background:#d6e8c9; color:#2e4d1f; }
+  .tag.gold { background:#f3dc95; color:#5a4200; }
+  .note { font-style:italic; color:#5a4a38; font-size:13px; margin:3px 0; }
+  .chance { font-family:system-ui, sans-serif; font-weight:700; }
+  .side { display:flex; flex-direction:column; gap:10px; }
+  .box { background:#fbf5e6; border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .log { max-height:210px; overflow:auto; font-size:13px; }
+  .log p { margin:3px 0; padding-left:8px; border-left:2px solid var(--line); }
+  .amb { font-size:13px; margin:3px 0; }
+  .amb b { color:var(--red); }
+  .risk { font-family:system-ui, sans-serif; font-size:12px; background:#f6ead0; border-radius:8px; padding:5px 8px; margin-top:6px; }
+  .risk b { color:var(--red); }
+  /* árvore */
+  .treewrap { background:#fbf5e6; border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:70vh; }
+  svg.tree { display:block; }
+  svg.tree text { text-anchor:middle; fill:var(--ink); font-family:system-ui, sans-serif; }
+  svg.tree .nm { font-size:11px; font-weight:600; }
+  svg.tree .yr { font-size:9.5px; fill:#7a6a55; }
+  svg.tree .gen { font:700 13px Georgia, serif; fill:#a8402a; text-anchor:start; }
+  svg.tree .ln { stroke:var(--ink); stroke-width:1.5; fill:none; }
+  svg.tree .dash { stroke:#a8402a; stroke-width:1.4; stroke-dasharray:4 3; fill:none; }
+  svg.tree .sym { stroke:var(--ink); stroke-width:1.8; }
+  svg.tree .heir { fill:none; stroke:#d9a520; stroke-width:3; }
+  .trsel { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 8px; }
+  .trsel .btn { font-size:12.5px; padding:3px 9px; }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 12px; font:12px system-ui, sans-serif; color:var(--muted); margin-top:6px; }
+  .legend span { display:inline-flex; gap:4px; align-items:center; }
+  /* título */
+  .title { text-align:center; color:#f3e9d2; padding:22px 8px; }
+  .title h2 { font-size:52px; letter-spacing:.22em; font-variant:small-caps; margin:0; color:#f3e9d2; }
+  .title .tl { color:#c9b48a; font-size:17px; margin:2px 0 18px; font-style:italic; }
+  .title .page { max-width:640px; margin:0 auto; text-align:left; color:var(--ink); }
+  input.txt { background:#fffaf0; border:1px solid #b9a172; border-radius:8px; padding:7px 10px; font:inherit; font-size:16px; width:100%; }
+  .seg { display:flex; gap:6px; }
+  .seg .btn.on { background:var(--red); color:#fff; border-color:var(--red); }
+  /* modal e toast */
+  .modal-bg { position:fixed; inset:0; background:#120c08cc; display:flex; align-items:center; justify-content:center; padding:14px; z-index:40; }
+  .modal { background:var(--panel); border-radius:14px; padding:18px; width:min(700px, 100%); max-height:90vh; overflow:auto; box-shadow:0 20px 60px #000c, inset 0 0 50px #c9b48a66; }
+  .modal.wide { width:min(1100px, 100%); }
+  .modal h3 { color:var(--red); font-size:22px; }
+  .modal p { margin:6px 0; }
+  .lesson { border-left:4px solid var(--red); background:#fbf5e6; border-radius:8px; padding:8px 12px; margin:8px 0; }
+  .toast-box { position:fixed; right:14px; bottom:14px; display:flex; flex-direction:column; gap:8px; z-index:50; max-width:min(380px, 92vw); }
+  .toast { background:#2f241b; color:#f3e9d2; border:1px solid #b8860b; border-radius:10px; padding:8px 12px; font-size:13.5px; box-shadow:0 6px 20px #000a; animation:tin .25s ease; }
+  @keyframes tin { from { transform:translateY(10px); opacity:0; } }
+  .backlink { color:#c9b48a; text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; font-family:system-ui, sans-serif; }
+  .backlink:hover { color:#fff; }
+  .backlink[hidden] { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M20 37V20M20 20C20 12 12 9 6 9M20 20C20 12 28 9 34 9M20 27C14 27 9 24 7 19M20 27C26 27 31 24 33 19" stroke="#c9b48a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <circle cx="6" cy="9" r="3.4" fill="#a8402a"/><circle cx="34" cy="9" r="3.4" fill="#d9a520"/><circle cx="7" cy="19" r="3" fill="#d9a520"/><circle cx="33" cy="19" r="3" fill="#a8402a"/><circle cx="20" cy="5" r="3.4" fill="#f3e9d2"/>
+      </svg>
+      <div><h1>Linhagem</h1><small>nove gerações, um só sangue</small></div>
+      <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+    </div>
+    <div class="res" id="res"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="toast-box" id="toasts"></div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('linhagem-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('linhagem-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
+  // =====================================================================
+  // UTILITÁRIOS
+  // =====================================================================
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const ri = (a, b) => a + rand(b - a + 1);
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const bern = p => Math.random() < p ? 1 : 0;
+  const frac = x => { const F = [[1, '1'], [.5, '1/2'], [.25, '1/4'], [.125, '1/8'], [.0625, '1/16'], [.03125, '1/32'], [.015625, '1/64']]; for (const [v, s] of F) if (Math.abs(x - v) < 1e-9) return s; return x < .001 ? '0' : `${x.toFixed(3).replace('.', ',')} (≈ 1/${Math.round(1 / x)})`; };
+  const pct = x => `${Math.round(x * 100)}%`;
+
+  // =====================================================================
+  // GENES
+  // alelo 1 = a variante "notável": + (força/mente), r (ruivo), E (águia), S (falciforme), d (daltonismo), doenças
+  // =====================================================================
+  const POLY_F = ['f1', 'f2', 'f3'], POLY_M = ['m1', 'm2', 'm3'];
+  const CONDS = {
+    c1: { n: 'Surdez congênita', short: 'surdez', d: 'Não ouve desde o nascimento. −1 em feitos de Mente.', men: -1, real: 'surdez por mutação no gene GJB2' },
+    c2: { n: 'Ossos de vidro', short: 'ossos frágeis', d: 'Ossos que fraturam com facilidade. −2 em feitos de Força.', for: -2, real: 'osteogênese imperfeita (formas recessivas)' },
+    c3: { n: 'Mal dos pulmões', short: 'pulmões', d: 'Muco espesso nos pulmões e no pâncreas. Vida curta (até ~35 anos, menos ainda antes da medicina moderna).', life: [24, 36], real: 'fibrose cística (gene CFTR)' },
+    c4: { n: 'Cegueira precoce', short: 'cegueira', d: 'Perde a visão na infância. −2 em feitos de Vista.', vis: -2, real: 'amaurose congênita de Leber' },
+    c5: { n: 'Doença de Tayra', short: 'fatal na infância', d: 'Degeneração do sistema nervoso. Morte antes dos 5 anos.', life: [2, 4], real: 'doença de Tay-Sachs (gene HEXA)' },
+    c6: { n: 'Atrofia muscular', short: 'atrofia', d: 'Fraqueza muscular progressiva. −2 em Força e vida até ~45 anos.', for: -2, life: [34, 46], real: 'atrofia muscular espinhal (gene SMN1)' },
+  };
+  const COND_IDS = Object.keys(CONDS);
+  const ALL_LOCI = [...POLY_F, ...POLY_M, 'ruivo', 'aguia', 'falc', 'dalt', ...COND_IDS];
+
+  const REGIONS = {
+    vila:    { n: 'Vila do Sereno', d: 'gente da cidade, estudada', f: .38, m: .5, ruivo: .25, aguia: .05, falc: .04, dalt: .08, cond: .03, sur: ['Andrade', 'Souza', 'Moreira', 'Nogueira', 'Lima', 'Prado'] },
+    serra:   { n: 'Serra Alta', d: 'montanheses fortes, olhar de águia', f: .55, m: .35, ruivo: .2, aguia: .2, falc: .02, dalt: .08, cond: .03, sur: ['Serrano', 'Rocha', 'Pedreira', 'Monteiro', 'Penha'] },
+    pantano: { n: 'Várzea do Pântano', d: 'resistem às febres', f: .42, m: .4, ruivo: .15, aguia: .05, falc: .3, dalt: .08, cond: .03, sur: ['Várzea', 'Junqueira', 'Brejo', 'Ribeiro', 'Lagoa'] },
+    litoral: { n: 'Litoral', d: 'comerciantes ricos, muitos ruivos', f: .38, m: .45, ruivo: .4, aguia: .05, falc: .06, dalt: .18, cond: .03, sur: ['Marinho', 'Porto', 'Costa', 'Areia', 'Salgado'] },
+  };
+  function randG(R, sex) {
+    const g = {};
+    for (const l of POLY_F) g[l] = [bern(R.f), bern(R.f)];
+    for (const l of POLY_M) g[l] = [bern(R.m), bern(R.m)];
+    g.ruivo = [bern(R.ruivo), bern(R.ruivo)];
+    g.aguia = [bern(R.aguia), bern(R.aguia)];
+    g.falc = [bern(R.falc), bern(R.falc)];
+    g.dalt = sex === 'M' ? [bern(R.dalt)] : [bern(R.dalt), bern(R.dalt)];
+    for (const c of COND_IDS) g[c] = [bern(R.cond), 0]; // condições recessivas: raras, só heterozigotos na população
+    return g;
+  }
+  function childG(mom, dad, sex) {
+    const g = {}, mut = [];
+    for (const l of ALL_LOCI) {
+      if (l === 'dalt') { g.dalt = sex === 'M' ? [pick(mom.dalt)] : [pick(mom.dalt), dad.dalt[0]]; continue; }
+      g[l] = [pick(mom[l]), pick(dad[l])];
+    }
+    if (Math.random() < .015) { const c = pick(COND_IDS); const i = rand(2); if (!g[c][i]) { g[c][i] = 1; mut.push(c); } } // mutação nova (rara)
+    return { g, mut };
+  }
+  const cnt = (g, l) => g[l].reduce((a, b) => a + b, 0);
+  function ph(p) {
+    const g = p.g;
+    const conds = COND_IDS.filter(c => cnt(g, c) === 2);
+    const gf = POLY_F.reduce((a, l) => a + cnt(g, l), 0), gm = POLY_M.reduce((a, l) => a + cnt(g, l), 0);
+    const falc = cnt(g, 'falc');
+    const dalt = p.sex === 'M' ? g.dalt[0] === 1 : cnt(g, 'dalt') === 2;
+    const aguia = cnt(g, 'aguia') >= 1;
+    let fo = gf + (p.envF || 0) + (falc === 2 ? -1 : 0), me = gm + (p.envM || 0), vi = 1 + (aguia ? 2 : 0) + (dalt ? 1 : 0);
+    for (const c of conds) { fo += CONDS[c].for || 0; me += CONDS[c].men || 0; vi += CONDS[c].vis || 0; }
+    return { gf, gm, for: Math.max(0, fo), men: Math.max(0, me), vis: Math.max(0, vi), ruivo: cnt(g, 'ruivo') === 2, aguia, falc, dalt, conds };
+  }
+  function lifespan(p, era) {
+    const P = ph(p);
+    let L = ri(era.life[0], era.life[1]);
+    if (P.falc === 2) L = Math.min(L, era.from >= 1964 ? ri(44, 58) : ri(22, 32));
+    for (const c of P.conds) if (CONDS[c].life) { const [a, b] = CONDS[c].life; L = Math.min(L, era.from >= 1964 && c === 'c3' ? ri(38, 50) : ri(a, b)); }
+    return L;
+  }
+
+  // =====================================================================
+  // PESSOAS
+  // =====================================================================
+  let S = null;
+  const Pp = id => S.people[id];
+  const MALE = ['João', 'Pedro', 'Antônio', 'Francisco', 'José', 'Manuel', 'Joaquim', 'Bento', 'Inácio', 'Tomás', 'Henrique', 'Luís', 'Caetano', 'Damião', 'Estêvão', 'Gaspar', 'Lourenço', 'Mateus', 'Rafael', 'Sebastião', 'Vicente', 'Afonso', 'Bernardo', 'Cristóvão', 'Diogo', 'Fernão', 'Gonçalo', 'Jerônimo', 'Martim', 'Nuno', 'Otávio', 'Rodrigo', 'Simão', 'Teodoro', 'Valentim', 'Heitor', 'Davi', 'Gabriel', 'Miguel', 'Lucas', 'Arthur', 'Enzo', 'Caio', 'Igor', 'Bruno'];
+  const FEMALE = ['Maria', 'Ana', 'Francisca', 'Joaquina', 'Inês', 'Isabel', 'Teresa', 'Rosa', 'Luzia', 'Antônia', 'Benedita', 'Clara', 'Catarina', 'Leonor', 'Helena', 'Josefa', 'Margarida', 'Mariana', 'Rita', 'Úrsula', 'Brites', 'Constança', 'Felícia', 'Genoveva', 'Lívia', 'Matilde', 'Olímpia', 'Quitéria', 'Sabina', 'Violante', 'Alice', 'Beatriz', 'Cecília', 'Laura', 'Sofia', 'Valentina', 'Júlia', 'Lara', 'Yasmin', 'Luana'];
+  function newPerson(o) {
+    const id = S.next++;
+    const p = { id, kids: [], spouse: null, envF: 0, envM: 0, notes: [], tested: false, seq: false, ...o };
+    p.cos = p.cos || { skin: rand(5), hair: rand(4) };
+    S.people[id] = p;
+    return p;
+  }
+  function nameFor(sex, avoid) {
+    const L = sex === 'M' ? MALE : FEMALE;
+    for (let i = 0; i < 40; i++) { const n = pick(L); if (!avoid || !avoid.includes(n)) return n; }
+    return pick(L);
+  }
+
+  // parentesco (coeficiente de coancestralidade): ids menores são sempre mais velhos que seus descendentes
+  const kinMemo = new Map();
+  function kin(a, b) {
+    if (a == null || b == null) return 0;
+    if (a === b) { const p = Pp(a); return (1 + (p.parents ? kin(p.parents[0], p.parents[1]) : 0)) / 2; }
+    const key = a < b ? a + '-' + b : b + '-' + a;
+    if (kinMemo.has(key)) return kinMemo.get(key);
+    const y = Math.max(a, b), o = Math.min(a, b), py = Pp(y);
+    const r = py.parents ? (kin(py.parents[0], o) + kin(py.parents[1], o)) / 2 : 0;
+    kinMemo.set(key, r); return r;
+  }
+  const inbreeding = p => p.parents ? kin(p.parents[0], p.parents[1]) : 0;
+  function relation(a, b) {
+    const A = Pp(a), B = Pp(b);
+    const gp = x => x.parents ? x.parents.flatMap(id => Pp(id).parents || []) : [];
+    if (A.parents && B.parents && A.parents.some(id => B.parents.includes(id))) return 'irmãos';
+    const ga = gp(A), gb = gp(B);
+    if (ga.some(id => gb.includes(id))) return 'primos de primeiro grau';
+    if (kin(a, b) > 0) return 'parentes distantes';
+    return null;
+  }
+
+  // probabilidade de transmitir o alelo r (ruivo), estimada pelo genealogista (só com fenótipos e parentesco)
+  function passR(id, memo = {}) {
+    if (memo[id] !== undefined) return memo[id];
+    const p = Pp(id), P = ph(p);
+    let t;
+    if (P.ruivo) t = 1;
+    else if (p.kids.some(k => ph(Pp(k)).ruivo) || (p.parents && p.parents.some(x => ph(Pp(x)).ruivo))) t = .5;
+    else if (p.parents) {
+      const [tm, tf] = p.parents.map(x => passR(x, memo));
+      const rr = tm * tf, Rr = tm * (1 - tf) + tf * (1 - tm);
+      t = rr < 1 ? .5 * Rr / (1 - rr) : .5;
+    } else {
+      const q = (REGIONS[p.region] || REGIONS.vila).ruivo; t = .5 * (2 * q * (1 - q)) / (1 - q * q);
+    }
+    memo[id] = t; return t;
+  }
+
+  // =====================================================================
+  // ERAS, FEITOS, MARCOS DA CIÊNCIA, LIÇÕES E AMBIÇÕES
+  // =====================================================================
+  const ERAS = [
+    { from: 0,    n: 'Período colonial',          kids: [4, 7], infant: .2,  life: [44, 64], fever: .55 },
+    { from: 1822, n: 'Império',                   kids: [4, 7], infant: .17, life: [46, 66], fever: .5 },
+    { from: 1889, n: 'Primeira República',        kids: [3, 6], infant: .12, life: [50, 70], fever: .35 },
+    { from: 1930, n: 'Era Vargas e pós-guerra',   kids: [3, 5], infant: .06, life: [56, 76], fever: .12 },
+    { from: 1964, n: 'Fim do século XX',          kids: [2, 4], infant: .03, life: [64, 84], fever: 0 },
+    { from: 2000, n: 'Século XXI',                kids: [1, 3], infant: .01, life: [70, 90], fever: 0 },
+  ];
+  const eraOf = y => ERAS.filter(e => y >= e.from).pop();
+  const GENS = 9, Y0 = 1780, GAP = 27;
+  const bornYear = g => Y0 + (g - 1) * GAP;
+
+  // feitos: chance = base + por ponto do atributo
+  const QUESTS = [
+    // período colonial
+    { e: 0, t: 'Abrir picada no sertão', d: 'Guiar uma bandeira mata adentro.', st: 'for', pr: 6, gold: 40 },
+    { e: 0, t: 'Disputa de sesmaria', d: 'Defender as terras da família no tribunal da capitania.', st: 'men', pr: 6, gold: 50 },
+    { e: 0, t: 'A onça do curral', d: 'Achar a onça que ataca o gado antes que ela ache você.', st: 'vis', pr: 5, gold: 25 },
+    { e: 0, t: 'Erguer o engenho', d: 'Construir a moenda com as próprias mãos.', st: 'for', pr: 5, gold: 60 },
+    { e: 0, t: 'Primeiras letras', d: 'Abrir a primeira escola da vila.', st: 'men', pr: 7, gold: 15 },
+    { e: 0, t: 'Rota dos contrabandistas', d: 'Descobrir por onde passa o ouro desviado.', st: 'vis', pr: 7, gold: 45 },
+    // império
+    { e: 1822, t: 'Estrada de ferro', d: 'Comandar a turma que assenta trilhos na serra.', st: 'for', pr: 6, gold: 55 },
+    { e: 1822, t: 'Eleição para a Câmara', d: 'Convencer os eleitores da vila.', st: 'men', pr: 8, gold: 30 },
+    { e: 1822, t: 'Mapear o Rio Sereno', d: 'Achar a nascente que ninguém encontrou.', st: 'vis', pr: 7, gold: 35 },
+    { e: 1822, t: 'Campanha abolicionista', d: 'Organizar jornais e libertar quem ainda é escravizado na região.', st: 'men', pr: 9, gold: 10 },
+    // república
+    { e: 1889, t: 'Brigada sanitária', d: 'Combater a febre amarela de casa em casa, como Oswaldo Cruz.', st: 'men', pr: 8, gold: 30 },
+    { e: 1889, t: 'Fundar a cooperativa', d: 'Unir os produtores de café do vale.', st: 'men', pr: 6, gold: 60 },
+    { e: 1889, t: 'Pegar o ladrão de cavalos', d: 'Seguir rastros na madrugada.', st: 'vis', pr: 6, gold: 35 },
+    { e: 1889, t: 'Regata do porto', d: 'Remar contra os melhores do litoral.', st: 'for', pr: 6, gold: 40 },
+    // vargas
+    { e: 1930, t: 'Siderúrgica', d: 'Turno dobrado no alto-forno.', st: 'for', pr: 5, gold: 70 },
+    { e: 1930, t: 'Concurso público', d: 'Passar em primeiro lugar.', st: 'men', pr: 7, gold: 50 },
+    { e: 1930, t: 'Rádio-amador', d: 'Captar o sinal do navio perdido na tempestade.', st: 'vis', pr: 8, gold: 25 },
+    { e: 1930, t: 'Time de futebol da fábrica', d: 'Levar o time à final do estadual.', st: 'for', pr: 7, gold: 30 },
+    // fim do século xx
+    { e: 1964, t: 'Vestibular de Medicina', d: 'A vaga mais disputada do estado.', st: 'men', pr: 8, gold: 30 },
+    { e: 1964, t: 'Fotografar a ave rara', d: 'Uma semana de tocaia na mata.', st: 'vis', pr: 7, gold: 40 },
+    { e: 1964, t: 'Maratona de São Silvestre', d: 'Terminar entre os cem primeiros.', st: 'for', pr: 6, gold: 20 },
+    { e: 1964, t: 'Abrir uma empresa', d: 'Sobreviver à hiperinflação.', st: 'men', pr: 6, gold: 90 },
+    // século xxi
+    { e: 2000, t: 'Startup de biotecnologia', d: 'Convencer os investidores.', st: 'men', pr: 7, gold: 100 },
+    { e: 2000, t: 'Triatlo', d: 'Nadar, pedalar e correr.', st: 'for', pr: 6, gold: 30 },
+    { e: 2000, t: 'Ciência cidadã', d: 'Identificar espécies que ninguém registrou no vale.', st: 'vis', pr: 8, gold: 25 },
+    { e: 2000, t: 'Mestrado em genética', d: 'Estudar a própria família.', st: 'men', pr: 9, gold: 20 },
+  ];
+  const STAT_N = { for: 'Força', men: 'Mente', vis: 'Vista' };
+  const qChance = (st, v) => clamp(st === 'vis' ? .22 + .18 * v : .18 + .12 * v, .05, .95);
+
+  const MILESTONES = [
+    { y: 1866, k: 'mendel', t: '1866 · Mendel publica suas ervilhas',
+      h: `<p>Num mosteiro em Brno, Gregor Mendel mostra que características passam por "fatores" que vêm aos pares, um de cada genitor. Quase ninguém presta atenção.</p><p>🔓 O genealogista agora <b>estima a chance de filhos ruivos</b> em cada casamento.</p>` },
+    { y: 1908, k: 'hw', t: '1908 · Hardy e Weinberg',
+      h: `<p>Um matemático e um médico mostram, cada um por conta própria, que as frequências dos alelos ficam estáveis de geração em geração quando não há seleção, migração, mutação nem deriva.</p><p>É por isso que um alelo raro e recessivo pode ficar escondido em portadores por séculos.</p>` },
+    { y: 1953, k: 'dna', t: '1953 · A dupla hélice',
+      h: `<p>Watson e Crick, a partir das imagens de Rosalind Franklin, descrevem a estrutura do DNA. Os "fatores" de Mendel agora têm forma: são sequências de bases.</p>` },
+    { y: 1985, k: 'teste', t: 'Anos 1980 · Testes de portador',
+      h: `<p>Os laboratórios passam a detectar portadores de doenças recessivas, como o teste para Tay-Sachs que reduziu muito os casos em algumas comunidades.</p><p>🔓 Agora dá para <b>testar candidatos e o próprio herdeiro</b> para as doenças que já apareceram na família.</p>` },
+    { y: 2003, k: 'genoma', t: '2003 · O genoma humano',
+      h: `<p>O Projeto Genoma Humano termina a primeira sequência quase completa. Em poucos anos, ler um genoma inteiro fica barato.</p><p>🔓 <b>Sequenciamento completo</b>: revela até variantes que nunca deram sinal na família.</p>` },
+  ];
+
+  const LESSONS = {
+    segreg: { t: 'Metade de cada um', h: `<p>Cada filho recebeu <b>um alelo de cada gene de cada genitor</b>, sorteado. Por isso irmãos são diferentes entre si: compartilham, em média, metade dos genes.</p>` },
+    ruivo: { t: 'O ruivo que pulou uma geração', h: `<p>Nasceu um filho ruivo de pais que não são ruivos. O alelo r é <b>recessivo</b>: os dois pais eram portadores (Rr) e o filho recebeu r de cada um. Rr × Rr dá 1/4 de rr.</p>` },
+    regress: { t: 'Regressão à média', h: `<p>Os filhos de pais excepcionalmente fortes (ou inteligentes) tendem a ser menos extremos que eles. A força depende de <b>vários genes</b> (herança poligênica) e cada filho recebe só metade dos alelos de cada genitor, sorteada. Francis Galton notou isso em 1886 com a altura.</p>` },
+    lamarck: { t: 'O estudo não se herda', h: `<p>O treino e a educação melhoraram o herdeiro, mas os filhos dele não herdaram essa vantagem: características adquiridas em vida não passam pelos gametas. Lamarck achava que sim; a genética mostrou que não.</p><p>O ambiente muda o <b>fenótipo</b>, mas não o <b>genótipo</b> que vai para a próxima geração.</p>` },
+    endog: { t: 'Casar com a prima', h: `<p>Durante séculos, casar com primos manteve terras e nomes na família (os Habsburgo são o caso famoso). O problema: primos de primeiro grau herdaram dos mesmos avós, então o filho deles tem chance <b>F = 1/16</b> de receber duas cópias idênticas do mesmo alelo de um ancestral.</p><p>Se esse ancestral era portador de uma doença recessiva rara, o risco sobe muito. O valor F aparece em cada candidato.</p>` },
+    endog2: { t: 'Depressão endogâmica', h: `<p>Uma doença recessiva apareceu num filho de pais aparentados. Os dois herdaram a mesma variante de um ancestral comum, que era portador e nunca soube. É a <b>depressão endogâmica</b>: mais homozigotos para alelos raros e prejudiciais.</p>` },
+    cond: { t: 'Uma doença escondida', h: `<p>Uma doença recessiva apareceu na família. Os dois pais são <b>portadores obrigatórios</b> (heterozigotos), mesmo sem sintomas. Cada filho de dois portadores tem 1/4 de chance de ser afetado, e os irmãos não afetados têm 2/3 de chance de ser portadores.</p>` },
+    hetero: { t: 'A vantagem do heterozigoto', h: `<p>Na febre do pântano (malária), quem tem <b>uma</b> cópia do alelo S (heterozigoto AS) quase não adoece: o parasita não se reproduz bem nas hemácias dessas pessoas. Mas quem tem <b>duas</b> cópias (SS) tem anemia falciforme.</p><p>Por isso, onde há malária, o alelo S fica frequente: a seleção favorece o heterozigoto. Na Várzea do Pântano, muita gente é AS.</p>` },
+    xlink: { t: 'Daltonismo e o cromossomo X', h: `<p>O daltonismo vermelho-verde é recessivo e está no cromossomo X. Homens têm um X só: basta um alelo para ser daltônico. Mulheres precisam de dois. Um filho daltônico herda o X da <b>mãe</b>, nunca do pai.</p><p>Curiosidade real: daltônicos às vezes enxergam melhor através de camuflagem, por isso aqui eles têm +1 em Vista.</p>` },
+    mut: { t: 'Uma mutação nova', h: `<p>Um filho carrega uma variante que nenhum dos pais tinha: uma <b>mutação nova</b>, surgida no óvulo ou no espermatozoide. Cada pessoa tem dezenas de mutações novas, quase todas sem efeito.</p>` },
+    demog: { t: 'A transição demográfica', h: `<p>Com vacinas, saneamento e antibióticos, morrem muito menos crianças, e as famílias passam a ter menos filhos. Para a linhagem, isso significa menos chances de escolher herdeiros, e cada casamento pesa mais.</p>` },
+    sobrinho: { t: 'A herança passa para o lado', h: `<p>Sem filhos para herdar, a casa passa para um sobrinho. Ele é filho de um irmão ou irmã do herdeiro, e carrega cerca de 1/4 dos genes do tio ou da tia.</p>` },
+  };
+
+  const AMBITIONS = {
+    ruivo: { t: 'Chama da casa', d: 'Pelo menos 5 herdeiros ruivos, como o fundador.', check: hs => hs.filter(h => ph(h).ruivo).length >= 5, prog: hs => `${hs.filter(h => ph(h).ruivo).length}/5` },
+    forte: { t: 'Braço lendário', d: 'Um herdeiro com Força genética 6 (todos os alelos +).', check: hs => hs.some(h => ph(h).gf >= 6), prog: hs => `melhor: ${Math.max(...hs.map(h => ph(h).gf))}/6` },
+    mente: { t: 'Mente brilhante', d: 'Um herdeiro com Mente genética 6.', check: hs => hs.some(h => ph(h).gm >= 6), prog: hs => `melhor: ${Math.max(...hs.map(h => ph(h).gm))}/6` },
+    saude: { t: 'Sangue saudável', d: 'Nenhum herdeiro com doença hereditária.', check: hs => hs.every(h => !ph(h).conds.length && ph(h).falc < 2), prog: hs => hs.every(h => !ph(h).conds.length && ph(h).falc < 2) ? 'mantida' : 'perdida' },
+    aguia: { t: 'Olhar de águia', d: 'Pelo menos 3 herdeiros com olhar de águia.', check: hs => hs.filter(h => ph(h).aguia).length >= 3, prog: hs => `${hs.filter(h => ph(h).aguia).length}/3` },
+    grande: { t: 'Casa numerosa', d: 'Pelo menos 40 descendentes nascidos.', check: () => descendants() >= 40, prog: () => `${descendants()}/40` },
+  };
+  const descendants = () => Object.values(S.people).filter(p => p.house && p.gen > 1).length;
+
+  // =====================================================================
+  // ESTADO, SALVAR, INTERFACE BÁSICA
+  // =====================================================================
+  const SAVE_KEY = 'linhagem-save-v1';
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() { try { const t = localStorage.getItem(SAVE_KEY); if (t) return JSON.parse(t); } catch (e) {} return null; }
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  function toast(html) {
+    const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = html;
+    $('#toasts').appendChild(el); while ($('#toasts').children.length > 4) $('#toasts').firstChild.remove();
+    setTimeout(() => el.remove(), 4500);
+  }
+  let queue = [];
+  function modal(html, cls = '') { $('#modalRoot').innerHTML = `<div class="modal-bg"><div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div></div>`; }
+  function closeModal() { $('#modalRoot').innerHTML = ''; }
+  const modalOpen = () => !!$('#modalRoot').innerHTML;
+  function enqueue(html) { queue.push(html); if (!modalOpen()) nextQueued(); }
+  function nextQueued() { const h = queue.shift(); if (h) modal(h); }
+  function lesson(k) {
+    if (!S || S.lessons[k]) return;
+    S.lessons[k] = true;
+    const L = LESSONS[k];
+    enqueue(`<h3>📜 ${L.t}</h3><div class="lesson">${L.h}</div><div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`);
+  }
+  const log = t => { S.log.push(t); if (S.log.length > 120) S.log.shift(); };
+  const hero = () => Pp(S.heir);
+  const marYear = () => hero().born + hero().marAge;
+  const age = (p, y) => y - p.born;
+  const deathYear = p => p.born + p.life;
+  const sexSym = s => s === 'F' ? '♀' : '♂';
+
+  // =====================================================================
+  // RETRATOS
+  // =====================================================================
+  const SKIN = ['#f1d0b2', '#e2b48c', '#c98e62', '#9c6643', '#6e4529'];
+  const HAIR = ['#2a1b12', '#4b2f1c', '#7a5230', '#c9a35e'];
+  function portrait(p, sz = 64, dead = false) {
+    const P = ph(p), hair = P.ruivo ? '#c4501c' : HAIR[p.cos.hair], skin = SKIN[p.cos.skin];
+    const sh = 13 + P.gf * 1.6;
+    const eye = P.aguia ? '#d99a1e' : '#2b2018';
+    const longHair = p.sex === 'F' ? `<path d="M14 30 Q12 54 18 60 L46 60 Q52 54 50 30 Z" fill="${hair}"/>` : '';
+    const top = p.sex === 'F' ? `<path d="M17 30 Q18 12 32 12 Q46 12 47 30 Q40 20 32 21 Q24 20 17 30Z" fill="${hair}"/>`
+      : `<path d="M18 28 Q19 11 32 11 Q45 11 46 28 Q42 19 32 19 Q22 19 18 28Z" fill="${hair}"/>`;
+    const glasses = P.gm >= 5 ? `<g fill="none" stroke="#3a2a1c" stroke-width="1.3"><circle cx="26" cy="31" r="4.2"/><circle cx="38" cy="31" r="4.2"/><path d="M30.2 31h3.6"/></g>` : '';
+    return `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" style="flex:0 0 ${sz}px;${dead ? 'filter:grayscale(1) opacity(.7)' : ''}" aria-hidden="true">
+      <circle cx="32" cy="32" r="31" fill="#e8dbbb"/>
+      ${longHair}
+      <path d="M${32 - sh} 64 Q${32 - sh} 48 32 47 Q${32 + sh} 48 ${32 + sh} 64Z" fill="${p.sex === 'F' ? '#7a3b2e' : '#3b4f63'}"/>
+      <rect x="28" y="40" width="8" height="8" fill="${skin}"/>
+      <ellipse cx="32" cy="31" rx="13" ry="15" fill="${skin}"/>
+      ${top}
+      <circle cx="26.5" cy="31" r="1.9" fill="${eye}"/><circle cx="37.5" cy="31" r="1.9" fill="${eye}"/>
+      ${P.aguia ? `<path d="M23 27.5l6 1M41 27.5l-6 1" stroke="#3a2a1c" stroke-width="1.3"/>` : ''}
+      ${glasses}
+      <path d="M28 38.5 Q32 41 36 38.5" stroke="#7a3b2e" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }
+  const pips = v => `<span class="pips">${'●'.repeat(Math.min(v, 8))}<i>${'○'.repeat(Math.max(0, 6 - v))}</i></span>`;
+  function traitTags(p) {
+    const P = ph(p), t = [];
+    if (P.ruivo) t.push('<span class="tag red">ruivo(a)</span>');
+    if (P.aguia) t.push('<span class="tag gold">olhar de águia</span>');
+    if (P.dalt) t.push('<span class="tag blue">daltônico(a)</span>');
+    if (P.falc === 2) t.push('<span class="tag cond">anemia falciforme</span>');
+    for (const c of P.conds) t.push(`<span class="tag cond">${CONDS[c].n}</span>`);
+    if (p.tested || p.seq) {
+      const show = p.seq ? COND_IDS : COND_IDS.filter(c => S.discovered[c]);
+      if (!P.ruivo && cnt(p.g, 'ruivo') === 1) t.push('<span class="tag">porta r (ruivo)</span>');
+      if (P.falc === 1) t.push('<span class="tag green">AS: protegido(a) da febre</span>');
+      for (const c of show) if (cnt(p.g, c) === 1) t.push(`<span class="tag">portador(a): ${CONDS[c].short}</span>`);
+      if (p.sex === 'F' && cnt(p.g, 'dalt') === 1) t.push('<span class="tag">portadora: daltonismo</span>');
+    }
+    if (p.envF) t.push('<span class="tag green">treinado(a) +1</span>');
+    if (p.envM) t.push('<span class="tag green">educado(a) +1</span>');
+    return t.length ? `<div class="tags">${t.join('')}</div>` : '';
+  }
+  function statBlock(p, genetic) {
+    const P = ph(p);
+    return `<div class="stats"><span>Força</span><span>${pips(P.for)}</span><span>Mente</span><span>${pips(P.men)}</span><span>Vista</span><span>${pips(P.vis)}</span></div>`;
+  }
+
+  // =====================================================================
+  // NOVO JOGO
+  // =====================================================================
+  function newGame(house, sex) {
+    S = { v: 1, house, next: 1, people: {}, gen: 1, gold: 100, prestige: 0, heirs: [], log: [], lessons: {}, ms: {}, discovered: {}, phase: 'youth', amb: shuffle(Object.keys(AMBITIONS)).slice(0, 3), qs: null, cands: [], fever: null, finished: false, intro: false };
+    kinMemo.clear();
+    const g = randG(REGIONS.vila, sex);
+    g.ruivo = [1, 1]; g.f1 = [1, 1]; g.f2 = [1, 0]; g.m1 = [1, 0]; g.m2 = [1, 1]; g.aguia = [0, 0]; g.falc = [0, 0];
+    for (const c of COND_IDS) g[c] = [0, 0];
+    g.c2 = [1, 0]; g.c5 = [1, 0]; // o fundador carrega, sem saber, duas variantes recessivas
+    const f = newPerson({ name: sex === 'M' ? 'Inácio' : 'Brites', sur: house, sex, gen: 1, born: Y0, parents: null, house: true, region: 'vila', g, cos: { skin: 1, hair: 0 } });
+    f.life = ri(58, 66); f.marAge = 23;
+    S.heir = f.id; S.heirs = [f.id];
+    log(`${Y0}: nasce ${f.name} ${house}, fundador(a) da casa.`);
+    render();
+    modal(`<h3>A casa ${esc(house)}</h3>
+      <p>${Y0}, Vale do Sereno. ${f.name} ${esc(house)} herda um pedaço de terra, uma cabeleira ruiva e um sobrenome que ninguém conhece.</p>
+      <p>Você vai guiar <b>nove gerações</b> desta família, até o século XXI. Em cada geração, o herdeiro realiza dois feitos, escolhe com quem casar e decide qual filho herda a casa.</p>
+      <p>Força, Mente, Vista, a cor do cabelo e até doenças passam de pais para filhos pelos genes, do jeito que a genética explica, mesmo que ninguém na família saiba disso ainda. A ciência vai chegando com os anos.</p>
+      <div class="lesson"><b>Ambições da casa</b> (cada uma vale +30 de prestígio no fim):<br>${S.amb.map(k => `• <b>${AMBITIONS[k].t}</b>: ${AMBITIONS[k].d}`).join('<br>')}</div>
+      <div class="btns"><button class="btn primary" data-act="close">Começar</button></div>`);
+  }
+
+  // =====================================================================
+  // GERAÇÃO: JUVENTUDE → FEITOS → CASAMENTO → FILHOS → HERDEIRO
+  // =====================================================================
+  function enterYouth() {
+    const h = hero();
+    // a geração g casa por volta de 1803 + 27(g−1): assim a crônica chega ao século XXI na nona geração
+    if (h.marAge == null) h.marAge = clamp(Y0 + 23 + (S.gen - 1) * GAP + ri(-2, 2) - h.born, 17, 36);
+    if (h.life < h.marAge + 2) h.marAge = Math.max(16, h.life - 4);
+    S.phase = 'youth';
+    for (const m of MILESTONES) if (marYear() >= m.y && !S.ms[m.k]) { S.ms[m.k] = true; enqueue(`<h3>🔬 ${m.t}</h3><div class="lesson">${m.h}</div><div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`); }
+    if (eraOf(marYear()).from >= 1964) lesson('demog');
+  }
+  function offerQuests() {
+    const e = eraOf(marYear()).from;
+    let pool = QUESTS.filter(q => q.e === e);
+    S.qs = { offer: shuffle(pool.slice()).slice(0, 3).map(q => ({ ...q, res: null })), done: 0 };
+    S.phase = 'quests';
+  }
+  function doQuest(i) {
+    const q = S.qs.offer[i], h = hero(), P = ph(h);
+    if (!q || q.res || S.qs.done >= 2) return;
+    const ch = qChance(q.st, P[q.st]), ok = Math.random() < ch;
+    q.res = ok ? 'ok' : 'bad'; S.qs.done++;
+    if (ok) {
+      S.prestige += q.pr; S.gold += q.gold;
+      q.out = `Sucesso! +${q.pr} prestígio, +${q.gold} ouro.`; sfx.win();
+    } else {
+      if (q.st === 'for') { h.life = Math.max(h.marAge + 3, h.life - 5); q.out = 'Fracasso. Saiu ferido(a): a vida encurtou alguns anos.'; }
+      else if (q.st === 'men') { const l = Math.min(S.gold, 15); S.gold -= l; q.out = `Fracasso. Perdeu ${l} de ouro.`; }
+      else q.out = 'Fracasso. Voltou de mãos vazias.';
+      sfx.lose();
+    }
+    log(`${h.name}: ${q.t}, ${ok ? 'sucesso' : 'fracasso'}.`);
+    render();
+  }
+
+  function hintNotes(c) {
+    const n = [];
+    for (const id of COND_IDS) if (cnt(c.g, id) === 1 && Math.random() < .4) n.push(`Dizem que um irmão de ${c.sex === 'F' ? 'sua mãe' : 'seu pai'} tinha ${CONDS[id].short === 'fatal na infância' ? 'morrido pequeno de uma doença dos nervos' : CONDS[id].short}.`);
+    if (cnt(c.g, 'falc') === 1 && Math.random() < .55) n.push('Na família, quase ninguém adoece nas febres.');
+    if (!ph(c).ruivo && cnt(c.g, 'ruivo') === 1 && Math.random() < .45) n.push(`A avó ${c.sex === 'F' ? 'dela' : 'dele'} era ruiva.`);
+    if (c.sex === 'F' && cnt(c.g, 'dalt') === 1 && Math.random() < .45) n.push('O irmão dela confunde vermelho com verde.');
+    return n;
+  }
+  function genCands() {
+    const h = hero(), sex = h.sex === 'M' ? 'F' : 'M', used = [];
+    const regs = shuffle(Object.keys(REGIONS)).slice(0, 3);
+    const dowry = { litoral: [ri(70, 110), 2], vila: [ri(30, 50), 3], serra: [ri(10, 25), 2], pantano: [ri(0, 10), 1] };
+    S.cands = [];
+    for (const r of regs) {
+      const R = REGIONS[r], g = randG(R, sex);
+      const c = newPerson({ name: nameFor(sex, used), sur: pick(R.sur), sex, gen: h.gen, born: h.born + ri(-4, 3), parents: null, house: false, region: r, g, cand: true });
+      used.push(c.name);
+      c.dowry = dowry[r][0]; c.pr = dowry[r][1]; c.notes = hintNotes(c);
+      S.cands.push(c.id);
+    }
+    // primos (filhos dos irmãos do genitor herdeiro): mantêm as terras na família
+    const cousins = Object.values(S.people).filter(p => p.house && p.gen === h.gen && p.sex === sex && !p.spouse && p.id !== h.id && p.life >= h.marAge + 1 && relation(h.id, p.id) && relation(h.id, p.id) !== 'irmãos');
+    if (cousins.length) {
+      const c = cousins.sort((a, b) => (ph(b).gf + ph(b).gm) - (ph(a).gf + ph(a).gm))[0];
+      c.dowry = 40; c.pr = 5; c.cand = true; c.cousin = true;
+      c.notes = [`${c.sex === 'F' ? 'Prima' : 'Primo'} de ${h.name}: casando dentro da família, as terras não se dividem.`];
+      S.cands.push(c.id);
+      lesson('endog');
+    }
+    for (const id of S.cands) { const c = Pp(id); c.life = c.life || lifespan(c, eraOf(c.born + 20)); }
+  }
+  const canTest = () => !!S.ms.teste, canSeq = () => !!S.ms.genoma;
+  function riskLines(c) {
+    const h = hero(), out = [];
+    const F = kin(h.id, c.id);
+    if (F > 0) out.push(`Parentesco: <b>${relation(h.id, c.id)}</b> · endogamia do filho <b>F = ${frac(F)}</b>`);
+    if (S.ms.mendel) out.push(`Chance de cada filho ser ruivo ≈ <b>${pct(passR(h.id) * passR(c.id))}</b> <span class="meta">(estimativa do genealogista)</span>`);
+    if ((h.tested || h.seq) && (c.tested || c.seq)) {
+      const loci = COND_IDS.filter(x => (h.seq && c.seq) || S.discovered[x]);
+      const rk = loci.filter(x => cnt(h.g, x) >= 1 && cnt(c.g, x) >= 1).map(x => `${CONDS[x].n}: <b>${cnt(h.g, x) === 2 || cnt(c.g, x) === 2 ? '50%' : '25%'}</b>`);
+      if (cnt(h.g, 'falc') >= 1 && cnt(c.g, 'falc') >= 1) rk.push('Anemia falciforme: <b>25%</b>');
+      out.push(rk.length ? `Risco para cada filho: ${rk.join(' · ')}` : 'Testes: nenhum risco de doença recessiva entre as testadas.');
+    }
+    return out.length ? `<div class="risk">${out.join('<br>')}</div>` : '';
+  }
+  function testPerson(id, full) {
+    const p = Pp(id), cost = full ? 60 : 25;
+    if (S.gold < cost) return;
+    S.gold -= cost; if (full) { p.seq = true; for (const c of COND_IDS) if (cnt(p.g, c)) S.discovered[c] = true; } else p.tested = true;
+    sfx.seq(); render();
+  }
+
+  function marry(cid) {
+    const h = hero(), c = Pp(cid);
+    for (const id of S.cands) { const x = Pp(id); if (id !== cid) { if (!x.house) delete S.people[id]; else { delete x.cand; delete x.cousin; } } }
+    delete c.cand;
+    h.spouse = c.id; c.spouse = h.id;
+    S.gold += c.dowry; S.prestige += c.pr;
+    const y = marYear();
+    log(`${y}: ${h.name} casa com ${c.name} ${c.sur}${c.cousin ? ' (primos)' : ''}.`);
+    sfx.bells();
+    S.cands = [];
+    makeKids(h.sex === 'F' ? h : c, h.sex === 'F' ? c : h, y, true);
+  }
+  function makeKids(mom, dad, y, main) {
+    const era = eraOf(y), marAge = y - Math.max(mom.born, dad.born);
+    const fertile = Math.max(0, Math.min(mom.born + mom.life, dad.born + dad.life, mom.born + 44) - y);
+    let n = ri(era.kids[0], era.kids[1]);
+    n = Math.round(n * clamp(fertile / 16, 0, 1));
+    const kids = [], names = [];
+    let by = y;
+    for (let i = 0; i < n; i++) {
+      const sex = Math.random() < .5 ? 'M' : 'F';
+      const { g, mut } = childG(mom.g, dad.g, sex);
+      const born = (by += ri(1, 3));
+      const sur = main || mom.house || dad.house ? S.house : dad.sur;
+      const k = newPerson({ name: nameFor(sex, names), sur, sex, gen: Math.max(mom.gen, dad.gen) + 1, born, parents: [mom.id, dad.id], house: !!(mom.house || dad.house), region: 'vila', g, cos: { skin: pick([mom.cos.skin, dad.cos.skin]), hair: pick([mom.cos.hair, dad.cos.hair]) }, mut });
+      names.push(k.name);
+      k.life = lifespan(k, eraOf(born + 20));
+      if (Math.random() < era.infant && k.life > 1) { k.life = ri(0, 2); k.cause = 'infância'; }
+      if (ph(k).conds.includes('c5')) k.cause = CONDS.c5.n;
+      mom.kids.push(k.id); dad.kids.push(k.id); kids.push(k);
+    }
+    // febre do pântano: protege quem é AS
+    let fever = null;
+    if (main && Math.random() < era.fever && kids.length) {
+      fever = { died: [], saved: [] };
+      for (const k of kids) {
+        if (k.life < 2) continue;
+        const f = cnt(k.g, 'falc');
+        if (f === 0 && Math.random() < .4) { k.life = Math.min(k.life, ri(2, 14)); k.cause = 'febre do pântano'; fever.died.push(k.id); }
+        else if (f === 1) fever.saved.push(k.id);
+      }
+    }
+    for (const k of kids) { for (const c of ph(k).conds) S.discovered[c] = true; }
+    if (main) S.report = { kids: kids.map(k => k.id), fever, y };
+    return kids;
+  }
+  function afterBirthLessons() {
+    const h = hero(), sp = Pp(h.spouse), kids = h.kids.map(Pp);
+    if (!kids.length) return;
+    lesson('segreg');
+    if (!ph(h).ruivo && !ph(sp).ruivo && kids.some(k => ph(k).ruivo)) lesson('ruivo');
+    const adultish = kids.filter(k => k.life >= 2);
+    const avg = f => adultish.reduce((a, k) => a + f(k), 0) / Math.max(1, adultish.length);
+    if (adultish.length >= 2 && ((ph(h).gf >= 5 && avg(k => ph(k).gf) < ph(h).gf - 1) || (ph(h).gm >= 5 && avg(k => ph(k).gm) < ph(h).gm - 1))) lesson('regress');
+    if ((h.envF || h.envM) && adultish.length) lesson('lamarck');
+    if (kids.some(k => k.sex === 'M' && ph(k).dalt)) lesson('xlink');
+    if (kids.some(k => k.mut && k.mut.length)) lesson('mut');
+    const sick = kids.some(k => ph(k).conds.length || ph(k).falc === 2);
+    if (sick && kin(h.id, sp.id) > 0) lesson('endog2'); else if (sick) lesson('cond');
+    if (S.report.fever && (S.report.fever.died.length || S.report.fever.saved.length)) lesson('hetero');
+  }
+
+  // casamento automático dos irmãos do herdeiro: geram os primos da próxima geração
+  function marrySiblings(heir) {
+    const sibs = Object.values(S.people).filter(p => p.parents && heir.parents && p.parents.join() === heir.parents.join() && p.id !== heir.id && p.life >= 22 && !p.spouse).slice(0, 3);
+    for (const s of sibs) {
+      const r = pick(Object.keys(REGIONS)), R = REGIONS[r], sex = s.sex === 'M' ? 'F' : 'M';
+      const y = s.born + ri(20, 26);
+      const sp = newPerson({ name: nameFor(sex), sur: pick(R.sur), sex, gen: s.gen, born: s.born + ri(-3, 3), parents: null, house: false, region: r, g: randG(R, sex) });
+      sp.life = lifespan(sp, eraOf(sp.born + 20));
+      s.spouse = sp.id; sp.spouse = s.id;
+      makeKids(s.sex === 'F' ? s : sp, s.sex === 'F' ? sp : s, y, false);
+    }
+  }
+  function chooseHeir(id) {
+    const p = Pp(id), h = hero();
+    if (!p) return;
+    if (!h.kids.includes(id)) lesson('sobrinho');
+    marrySiblings(p);
+    p.heir = true; S.heirs.push(p.id);
+    S.prestige += h.kids.filter(k => Pp(k).life >= 18).length;
+    log(`${deathYear(h)}: morre ${h.name}, aos ${h.life} anos. ${p.name} herda a casa.`);
+    S.gen++; S.heir = p.id; S.report = null; S.qs = null;
+    sfx.heir();
+    enterYouth(); render();
+  }
+  function heirOptions() {
+    const h = hero();
+    const kids = h.kids.map(Pp).filter(k => k.life >= 18);
+    if (kids.length) return { kids, nephews: false };
+    const sibs = Object.values(S.people).filter(p => h.parents && p.parents && p.parents.join() === h.parents.join() && p.id !== h.id);
+    const nep = sibs.flatMap(s => s.kids.map(Pp)).filter(k => k.life >= 18 && !k.spouse);
+    return { kids: nep, nephews: true };
+  }
+  function finish(extinct) {
+    S.phase = 'end'; S.finished = true; S.extinct = !!extinct;
+    const hs = S.heirs.map(Pp);
+    S.ambDone = S.amb.filter(k => AMBITIONS[k].check(hs));
+    S.final = S.prestige + 30 * S.ambDone.length;
+    sfx.end(); render();
+  }
+
+  // =====================================================================
+  // TELAS
+  // =====================================================================
+  let titleSex = 'M';
+  function render() {
+    if (!S) { $('#res').innerHTML = ''; $('#main').innerHTML = rTitle(); return; }
+    const y = S.phase === 'end' ? 'fim' : marYear();
+    $('#res').innerHTML = `<span class="pill">Casa <b>${esc(S.house)}</b></span>
+      <span class="pill">Geração <b>${Math.min(S.gen, GENS)}</b>/${GENS}</span>
+      <span class="pill">📅 <b>${y}</b></span>
+      <span class="pill">👑 <b>${S.prestige}</b> prestígio</span>
+      <span class="pill">🪙 <b>${S.gold}</b> ouro</span>
+      <button class="ghost" data-act="tree">🌳 Árvore</button>
+      <button class="ghost" data-act="lessons">📜 Lições</button>
+      <button class="ghost" data-act="reset">Nova linhagem</button>`;
+    const R = { youth: rYouth, quests: rQuests, marry: rMarry, kids: rKids, end: rEnd }[S.phase];
+    $('#main').innerHTML = S.phase === 'end' ? R() : `<div class="layout"><div class="page">${R()}</div><div class="side">${rSide()}</div></div>`;
+    save();
+  }
+  function rTitle() {
+    const old = load();
+    return `<div class="title"><h2>Linhagem</h2><div class="tl">um RPG de gerações e genética</div>
+      <div class="page">
+        <p>De 1780 até hoje, uma família do Vale do Sereno atravessa nove gerações. Cada herdeiro vive seus feitos, escolhe com quem casar e decide quem herda a casa. Os filhos herdam metade dos genes de cada um: força, inteligência, a cor do cabelo… e doenças escondidas.</p>
+        ${old && !old.finished ? `<p><button class="btn primary" data-act="continue">Continuar a casa ${esc(old.house)} (geração ${Math.min(old.gen, GENS)})</button></p><hr>` : ''}
+        <p><b>Sobrenome da casa</b></p><input class="txt" id="hname" maxlength="18" placeholder="Valente">
+        <p style="margin-top:10px"><b>Fundador(a)</b></p>
+        <div class="seg"><button class="btn ${titleSex === 'M' ? 'on' : ''}" data-act="tsex" data-v="M">♂ Inácio</button><button class="btn ${titleSex === 'F' ? 'on' : ''}" data-act="tsex" data-v="F">♀ Brites</button></div>
+        <p style="margin-top:14px"><button class="btn primary" data-act="newgame">Fundar a casa</button></p>
+      </div></div>`;
+  }
+  function eraHead(extra = '') {
+    const y = marYear(), e = eraOf(y), h = hero();
+    return `<div class="era"><div><span class="yr">${y}</span> <span class="meta">${e.n}</span></div><div class="meta">Geração ${S.gen} de ${GENS}${extra}</div></div>`;
+  }
+  function heroCard(p, extra = '') {
+    return `<div class="who">${portrait(p, 76)}<div><div class="nm">${esc(p.name)} ${esc(p.sur)} ${sexSym(p.sex)}</div><div class="meta">nasceu em ${p.born}${p.gen === 1 ? ' · fundador(a)' : ''}</div>${extra}</div></div>${statBlock(p)}${traitTags(p)}`;
+  }
+  function rYouth() {
+    const h = hero(), par = h.parents ? h.parents.map(Pp) : null;
+    return `${eraHead()}
+      <h2>${esc(h.name)} ${esc(S.house)}</h2>
+      <p class="sub">${par ? `Filho(a) de ${par.map(x => esc(x.name)).join(' e ')}. ` : ''}Aos ${h.marAge} anos, ${h.name} assume a casa.</p>
+      <div class="card" style="max-width:420px">${heroCard(h)}</div>
+      <p class="meta" style="margin-top:8px">Força e Mente vêm de três genes cada (herança poligênica): cada alelo "+" vale um ponto. Vista vem do olhar de águia (dominante) e do daltonismo (ligado ao X).</p>
+      <div class="btns" style="margin-top:10px"><button class="btn primary" data-act="toquests">Viver a juventude →</button></div>`;
+  }
+  function rQuests() {
+    const h = hero(), P = ph(h), Q = S.qs;
+    return `${eraHead()}
+      <h2>Feitos de ${esc(h.name)}</h2>
+      <p class="sub">Escolha <b>dois</b> dos três feitos. A chance de sucesso depende dos atributos de ${h.name}.</p>
+      <div class="grid">${Q.offer.map((q, i) => {
+        const ch = qChance(q.st, P[q.st]);
+        return `<div class="card ${q.res === 'ok' ? 'ok' : q.res === 'bad' ? 'bad' : Q.done >= 2 ? 'done' : 'pick'}" ${!q.res && Q.done < 2 ? `data-act="quest" data-v="${i}"` : ''}>
+          <h3>${q.t}</h3><p style="margin:0 0 6px">${q.d}</p>
+          <div class="meta">${STAT_N[q.st]} ${P[q.st]} → <span class="chance">${pct(ch)}</span> de chance · +${q.pr} 👑 +${q.gold} 🪙</div>
+          ${q.out ? `<p style="margin:6px 0 0"><b>${q.out}</b></p>` : ''}</div>`;
+      }).join('')}</div>
+      <div class="btns" style="margin-top:12px"><button class="btn primary" data-act="tomarry" ${Q.done >= 2 ? '' : 'disabled'}>Procurar casamento →</button></div>`;
+  }
+  function rMarry() {
+    const h = hero();
+    return `${eraHead()}
+      <h2>Com quem ${esc(h.name)} vai casar?</h2>
+      <p class="sub">O dote e as alianças rendem ouro e prestígio. Os genes do cônjuge vão para os filhos, mas você só vê o que aparece por fora e o que contam da família.</p>
+      <div class="grid">${S.cands.map(id => {
+        const c = Pp(id), R = REGIONS[c.region];
+        return `<div class="card">
+          <div class="who">${portrait(c, 60)}<div><div class="nm">${esc(c.name)} ${esc(c.sur)}</div><div class="meta">${c.cousin ? 'da própria família' : R.n} · ${age(c, marYear())} anos</div><div class="meta">${c.cousin ? '' : R.d}</div></div></div>
+          ${statBlock(c)}${traitTags(c)}
+          ${c.notes.map(n => `<p class="note">“${esc(n)}”</p>`).join('')}
+          <div class="meta">Dote: <b>+${c.dowry} 🪙</b> · Aliança: <b>+${c.pr} 👑</b></div>
+          ${riskLines(c)}
+          <div class="btns" style="margin-top:8px"><button class="btn primary" data-act="marry" data-id="${c.id}">Casar</button>
+          ${canTest() && !c.tested && !c.seq ? `<button class="btn" data-act="test" data-id="${c.id}" ${S.gold < 25 ? 'disabled' : ''}>🧪 Testar (25)</button>` : ''}
+          ${canSeq() && !c.seq ? `<button class="btn" data-act="seqp" data-id="${c.id}" ${S.gold < 60 ? 'disabled' : ''}>🧬 Sequenciar (60)</button>` : ''}</div>
+        </div>`;
+      }).join('')}</div>
+      ${canTest() && !h.tested && !h.seq ? `<p class="meta" style="margin-top:10px">Para calcular os riscos, ${h.name} também precisa ser testado(a). <button class="btn" data-act="test" data-id="${h.id}" ${S.gold < 25 ? 'disabled' : ''}>🧪 Testar ${esc(h.name)} (25)</button>${canSeq() ? ` <button class="btn" data-act="seqp" data-id="${h.id}" ${S.gold < 60 ? 'disabled' : ''}>🧬 Sequenciar (60)</button>` : ''}</p>` : ''}`;
+  }
+  let heirSel = null;
+  function rKids() {
+    const h = hero(), sp = Pp(h.spouse), R = S.report, opt = heirOptions(), last = S.gen >= GENS;
+    const kidCard = k => {
+      const dead = k.life < 18, sel = heirSel === k.id;
+      return `<div class="card ${dead ? 'dead' : opt.kids.includes(k) && !last ? 'pick' : ''}" ${!dead && !last && opt.kids.includes(k) ? `data-act="hsel" data-id="${k.id}"` : ''} style="${sel ? 'border-color:#d9a520;box-shadow:0 0 0 3px #d9a52066' : ''}">
+        <div class="who">${portrait(k, 56, dead)}<div><div class="nm">${esc(k.name)} ${sexSym(k.sex)}</div><div class="meta">${k.born}${dead ? ` · † ${k.born + k.life} (${k.cause || 'doença'}, ${k.life} ${k.life === 1 ? 'ano' : 'anos'})` : ''}</div></div></div>
+        ${dead ? traitTags(k) : statBlock(k) + traitTags(k)}
+        ${k.mut && k.mut.length ? '<div class="meta">★ mutação nova</div>' : ''}</div>`;
+    };
+    const fev = R && R.fever;
+    const nep = opt.nephews && opt.kids.length;
+    return `${eraHead()}
+      <h2>Os filhos de ${esc(h.name)} e ${esc(sp.name)}</h2>
+      <p class="sub">${h.kids.length ? `Nasceram ${h.kids.length} filho(s).` : 'O casal não teve filhos.'} ${h.name} viveu até ${deathYear(h)}, aos ${h.life} anos${sp ? `; ${sp.name}, até ${deathYear(sp)}` : ''}.${kin(h.id, sp.id) > 0 ? ` Os pais são aparentados (F dos filhos = ${frac(kin(h.id, sp.id))}).` : ''}</p>
+      ${fev ? `<div class="lesson">🦟 <b>A febre do pântano atingiu o vale.</b> ${fev.died.length ? `Morreram: ${fev.died.map(i => esc(Pp(i).name)).join(', ')}.` : 'Nenhum filho morreu.'} ${fev.saved.length && S.lessons.hetero ? `<span class="meta">Quem sobreviveu sem adoecer pode carregar o alelo S.</span>` : ''}</div>` : ''}
+      <div class="grid">${h.kids.map(id => kidCard(Pp(id))).join('')}</div>
+      ${nep ? `<div class="lesson" style="margin-top:10px">Nenhum filho chegou à idade adulta. A herança pode passar para um <b>sobrinho ou sobrinha</b>:</div><div class="grid">${opt.kids.map(kidCard).join('')}</div>` : ''}
+      ${last ? `<div class="lesson" style="margin-top:12px">Esta é a última geração da crônica. <button class="btn primary" data-act="finish">Encerrar a crônica da casa</button></div>`
+        : !opt.kids.length ? `<div class="lesson" style="margin-top:12px">Não há herdeiros vivos. A casa ${esc(S.house)} termina aqui. <button class="btn primary" data-act="extinct">Encerrar</button></div>`
+        : heirSel ? heirPanel() : `<p class="meta" style="margin-top:10px">Clique em um filho adulto para escolher o próximo herdeiro.</p>`}`;
+  }
+  function heirPanel() {
+    const p = Pp(heirSel);
+    return `<div class="box" style="margin-top:12px"><b>Herdeiro escolhido: ${esc(p.name)}</b>
+      <p class="meta" style="margin:4px 0">Você pode investir na criação de ${p.name}. Isso melhora o fenótipo dele(a), mas não muda os genes que irão para os filhos.</p>
+      <div class="btns"><button class="btn" data-act="train" ${p.envF || S.gold < 40 ? 'disabled' : ''}>🏋️ Treinar: +1 Força (40)</button><button class="btn" data-act="educate" ${p.envM || S.gold < 40 ? 'disabled' : ''}>📚 Educar: +1 Mente (40)</button>
+      <button class="btn primary" data-act="heir">Passar a herança para ${esc(p.name)} →</button></div></div>`;
+  }
+  function rSide() {
+    const h = hero(), hs = S.heirs.map(Pp);
+    return `<div class="box">${S.phase === 'youth' ? '<b>Linha dos herdeiros</b>' : heroCard(h)}
+      ${S.phase === 'youth' ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${hs.map(p => `<span title="${esc(p.name)} (${p.born})">${portrait(p, 34, p.id !== h.id)}</span>`).join('')}</div>` : ''}</div>
+      <div class="box"><b>Ambições da casa</b>${S.amb.map(k => `<div class="amb"><b>${AMBITIONS[k].t}</b>: ${AMBITIONS[k].d} <span class="meta">(${AMBITIONS[k].prog(hs)})</span></div>`).join('')}</div>
+      <div class="box"><b>Crônica</b><div class="log" id="log">${S.log.map(l => `<p>${esc(l)}</p>`).join('')}</div></div>`;
+  }
+  function rEnd() {
+    const hs = S.heirs.map(Pp);
+    return `<div class="page">
+      <div class="era"><div><span class="yr">${S.extinct ? 'Fim da linhagem' : 'Crônica completa'}</span></div><div class="meta">Casa ${esc(S.house)}</div></div>
+      <h2>👑 ${S.final} pontos de prestígio</h2>
+      <p class="sub">${S.prestige} de feitos e alianças + ${30 * S.ambDone.length} das ambições (${S.ambDone.length}/${S.amb.length}).</p>
+      ${S.amb.map(k => `<div class="amb">${S.ambDone.includes(k) ? '✅' : '❌'} <b>${AMBITIONS[k].t}</b>: ${AMBITIONS[k].d}</div>`).join('')}
+      <h3 style="margin-top:14px">Os herdeiros</h3>
+      <div class="grid">${hs.map(p => `<div class="card"><div class="who">${portrait(p, 52)}<div><div class="nm">${esc(p.name)}</div><div class="meta">${p.born}–${deathYear(p)} · geração ${p.gen}</div></div></div>${traitTags(p)}</div>`).join('')}</div>
+      <h3 style="margin-top:14px">Árvore da casa</h3>${treeBlock()}
+      <h3 style="margin-top:14px">O que a família aprendeu</h3>
+      ${Object.keys(S.lessons).map(k => `<div class="lesson"><b>${LESSONS[k].t}</b>${LESSONS[k].h}</div>`).join('') || '<p class="meta">Nenhuma lição registrada.</p>'}
+      <div class="btns" style="margin-top:12px"><button class="btn primary" data-act="reset2">Fundar outra casa</button></div></div>`;
+  }
+
+  // =====================================================================
+  // ÁRVORE (heredograma da linha principal)
+  // =====================================================================
+  let treeTrait = 'ruivo';
+  function treeData() {
+    const rows = [], pos = new Map(), lines = [];
+    const hs = S.heirs.map(Pp);
+    for (let r = 0; r < hs.length; r++) {
+      const H = hs[r], prev = hs[r - 1];
+      const row = [];
+      let sibs = prev ? prev.kids.map(Pp) : [];
+      if (H && !sibs.includes(H)) { // sobrinho herdeiro
+        row.push(...sibs.map(k => ({ p: k })));
+        row.push({ p: H, heir: true });
+      } else if (H) {
+        for (const k of sibs) row.push({ p: k, heir: k.id === H.id });
+        if (!prev) row.push({ p: H, heir: true });
+      }
+      if (H && H.spouse) { const i = row.findIndex(x => x.p.id === H.id); row.splice(i + 1, 0, { p: Pp(H.spouse), spouse: true }); }
+      const hi = row.findIndex(x => x.heir);
+      row.forEach((x, i) => { x.x = i - hi; x.r = r; pos.set(x.p.id, x); });
+      rows.push(row);
+    }
+    // filhos do último herdeiro (ainda sem herdeiro escolhido)
+    const L = hs[hs.length - 1];
+    if (L && L.kids.length && (S.phase === 'kids' || S.phase === 'end')) {
+      const row = L.kids.map(Pp).map((k, i, a) => ({ p: k, x: i - (a.length - 1) / 2 + .5, r: hs.length }));
+      row.forEach(x => pos.set(x.p.id, x)); rows.push(row);
+    }
+    return { rows, pos, hs };
+  }
+  function obligate(p, test) {
+    // portador(a) obrigatório(a): genitor de afetado ou filho(a) de afetado em traço recessivo autossômico
+    return (p.kids.some(k => test(Pp(k))) || (p.parents || []).some(x => test(Pp(x))));
+  }
+  function treeSVG() {
+    const { rows, pos, hs } = treeData();
+    const all = rows.flat(), minX = Math.min(...all.map(x => x.x)), maxX = Math.max(...all.map(x => x.x));
+    const SW = 70, RH = 104, PX = 70, PY = 30, R = 13;
+    const X = x => PX + (x - minX) * SW + SW / 2, Y = r => PY + r * RH + R;
+    const W = PX + (maxX - minX + 1) * SW + 10, H = PY + rows.length * RH - 6;
+    const T = treeTrait;
+    const affected = p => {
+      const P = ph(p);
+      if (T === 'ruivo') return P.ruivo; if (T === 'aguia') return P.aguia; if (T === 'dalt') return P.dalt; if (T === 'falc') return P.falc === 2;
+      return P.conds.includes(T);
+    };
+    const carrier = p => {
+      if (affected(p)) return false;
+      const known = p.seq || (p.tested && (T === 'ruivo' || T === 'falc' || S.discovered[T] || T === 'dalt'));
+      if (T === 'aguia') return false;
+      if (T === 'dalt') { if (p.sex === 'M') return false; return (known && cnt(p.g, 'dalt') === 1) || p.kids.some(k => Pp(k).sex === 'M' && ph(Pp(k)).dalt) || (p.parents && ph(Pp(p.parents[1])).dalt); }
+      const l = T === 'ruivo' ? 'ruivo' : T === 'falc' ? 'falc' : T;
+      return (known && cnt(p.g, l) === 1) || obligate(p, affected);
+    };
+    let L = '', N = '';
+    for (let r = 0; r < rows.length; r++) {
+      const H = hs[r];
+      if (H && H.spouse && pos.has(H.spouse)) {
+        const a = pos.get(H.id), b = pos.get(H.spouse), y = Y(r), cons = kin(H.id, H.spouse) > 0;
+        L += cons ? `<path class="ln" d="M${X(a.x) + R} ${y - 3}H${X(b.x) - R}M${X(a.x) + R} ${y + 3}H${X(b.x) - R}"/>` : `<path class="ln" d="M${X(a.x) + R} ${y}H${X(b.x) - R}"/>`;
+        const kids = rows[r + 1] ? rows[r + 1].filter(x => x.p.parents && x.p.parents.includes(H.id)) : [];
+        if (kids.length) {
+          const mx = (X(a.x) + X(b.x)) / 2, sy = y + RH / 2 + 2, kx = kids.map(x => X(x.x));
+          L += `<path class="ln" d="M${mx} ${y}V${sy}M${Math.min(mx, ...kx)} ${sy}H${Math.max(mx, ...kx)}${kx.map(x => `M${x} ${sy}V${Y(r + 1) - R}`).join('')}"/>`;
+        }
+      }
+    }
+    // ligações tracejadas: cônjuge primo e sobrinho herdeiro, ligados ao genitor que aparece na linha de cima
+    for (const x of all) {
+      if (!x.p.parents) continue;
+      const par = x.p.parents.map(id => pos.get(id)).find(Boolean);
+      const main = hs[x.r - 1];
+      if (par && main && !x.p.parents.includes(main.id)) L += `<path class="dash" d="M${X(par.x)} ${Y(par.r) + R}C${X(par.x)} ${Y(par.r) + 60} ${X(x.x)} ${Y(x.r) - 60} ${X(x.x)} ${Y(x.r) - R}"/>`;
+    }
+    for (const x of all) {
+      const p = x.p, cx = X(x.x), cy = Y(x.r);
+      const aff = affected(p), car = carrier(p);
+      const fill = aff ? (T === 'ruivo' ? '#c4501c' : T === 'aguia' ? '#d99a1e' : T === 'dalt' ? '#3b6688' : '#2b2018') : '#fffaf0';
+      const sym = p.sex === 'M' ? `<rect x="${cx - R}" y="${cy - R}" width="${2 * R}" height="${2 * R}" class="sym" fill="${fill}"/>` : `<circle cx="${cx}" cy="${cy}" r="${R}" class="sym" fill="${fill}"/>`;
+      const ring = x.heir ? (p.sex === 'M' ? `<rect x="${cx - R - 5}" y="${cy - R - 5}" width="${2 * R + 10}" height="${2 * R + 10}" class="heir"/>` : `<circle cx="${cx}" cy="${cy}" r="${R + 5}" class="heir"/>`) : '';
+      const now = S.phase === 'end' ? 2026 : S.phase === 'kids' ? deathYear(hero()) : marYear();
+      const died = deathYear(p) <= now;
+      N += `<g>${ring}${sym}${car ? `<circle cx="${cx}" cy="${cy}" r="4" fill="#2b2018"/>` : ''}
+        ${died ? `<path d="M${cx - R - 5} ${cy + R + 5}L${cx + R + 5} ${cy - R - 5}" class="ln"/>` : ''}
+        <text x="${cx}" y="${cy + R + 13}" class="nm">${esc(p.name)}</text>
+        <text x="${cx}" y="${cy + R + 25}" class="yr">${p.born}${p.life < 18 ? `–${p.born + p.life}` : ''}</text></g>`;
+    }
+    const gl = rows.map((row, r) => `<text x="6" y="${Y(r) + 4}" class="gen">${['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][r]}</text><text x="6" y="${Y(r) + 18}" class="yr" style="text-anchor:start">${row[0] ? row.find(x => x.heir)?.p.born || row[0].p.born : ''}</text>`).join('');
+    return `<svg class="tree" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${gl}${L}${N}</svg>`;
+  }
+  function traitOpts() {
+    const o = [['ruivo', 'Ruivo (recessivo)'], ['aguia', 'Olhar de águia (dominante)'], ['dalt', 'Daltonismo (ligado ao X)'], ['falc', 'Anemia falciforme']];
+    for (const c of COND_IDS) if (S.discovered[c]) o.push([c, CONDS[c].n]);
+    return o;
+  }
+  function treeBlock() {
+    return `<div class="trsel">${traitOpts().map(([k, n]) => `<button class="btn ${treeTrait === k ? 'primary' : ''}" data-act="trait" data-v="${k}">${n}</button>`).join('')}</div>
+      <div class="treewrap" id="treewrap">${treeSVG()}</div>
+      <div class="legend"><span>□ homem</span><span>○ mulher</span><span>■ ● com a característica</span><span>⊙ portador(a) conhecido(a) ou obrigatório(a)</span><span>／ falecido(a)</span><span>═ casal aparentado</span><span>┄ ligação com primo(a) ou sobrinho(a)</span><span style="color:#b8860b">▢ herdeiro</span></div>`;
+  }
+  function showTree() {
+    modal(`<h3>🌳 Árvore da casa ${esc(S.house)}</h3>${treeBlock()}<p class="meta">Só a linha principal aparece: herdeiros, cônjuges e irmãos. Escolha uma característica para colorir o heredograma.</p><div class="btns"><button class="btn primary" data-act="close">Fechar</button></div>`, 'wide');
+    const w = $('#modalRoot #treewrap'); if (w) w.scrollTop = w.scrollHeight;
+  }
+  function showLessons() {
+    const ks = Object.keys(S.lessons);
+    modal(`<h3>📜 Lições da família</h3>${ks.map(k => `<div class="lesson"><b>${LESSONS[k].t}</b>${LESSONS[k].h}</div>`).join('') || '<p>Ainda nenhuma. Elas aparecem quando algo acontece na família.</p>'}
+      ${MILESTONES.filter(m => S.ms[m.k]).map(m => `<div class="lesson"><b>${m.t}</b>${m.h}</div>`).join('')}
+      <div class="btns"><button class="btn primary" data-act="close">Fechar</button></div>`);
+  }
+
+  // =====================================================================
+  // SOM
+  // =====================================================================
+  const SONG = { bpm: 76, play(step, t, d) {
+    const CH = [[50, 57, 62, 65], [48, 55, 60, 64], [46, 53, 58, 62], [45, 52, 57, 61]];
+    const MEL = [74, 72, 69, 72, 74, 77, 76, 74, 72, 70, 69, 67, 69, 72, 73, 69];
+    const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
+    if (s === 0) Sound.note(midi(ch[0] - 12), t, d * 7, 'triangle', .18);
+    if (s === 0 || s === 4) Sound.note(midi(ch[1]), t, d * 3.5, 'sine', .07);
+    if (s % 2 === 0) Sound.note(midi(MEL[(Math.floor(step / 2)) % 16]), t, d * 1.8, 'triangle', .08);
+  } };
+  let musicOn = false;
+  function wakeAudio() { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONG); } }
+  const sfx = {
+    tick: () => Sound.tone(660, .03, { type: 'sine', vol: .05 }),
+    win: () => Sound.arp([67, 71, 74, 79], .09, { type: 'triangle', vol: .14, dur: .2 }),
+    lose: () => Sound.arp([64, 60, 57], .15, { type: 'triangle', vol: .12, dur: .3 }),
+    bells: () => { [79, 76, 72, 67, 72, 76, 79, 84].forEach((n, i) => Sound.tone(midi(n), .5, { type: 'sine', vol: .1, delay: i * .16 })); },
+    heir: () => Sound.arp([60, 64, 67, 72, 76], .12, { type: 'square', vol: .08, dur: .25 }),
+    seq: () => { for (let i = 0; i < 9; i++) Sound.tone(midi(72 + (i * 5) % 12), .04, { type: 'sine', vol: .07, delay: i * .05 }); },
+    end: () => Sound.arp([60, 64, 67, 72, 67, 72, 76, 79, 84], .13, { type: 'triangle', vol: .14, dur: .3 }),
+  };
+
+  // =====================================================================
+  // AÇÕES
+  // =====================================================================
+  document.addEventListener('click', e => {
+    wakeAudio();
+    const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+    const a = el.dataset.act, id = el.dataset.id ? +el.dataset.id : null, v = el.dataset.v;
+    switch (a) {
+      case 'close': closeModal(); if (queue.length) nextQueued(); render(); break;
+      case 'tsex': titleSex = v; sfx.tick(); render(); break;
+      case 'newgame': newGame((($('#hname').value || '').trim() || 'Valente').replace(/^./, c => c.toUpperCase()), titleSex); enterYouth(); render(); break;
+      case 'continue': S = load(); kinMemo.clear(); render(); break;
+      case 'reset': modal(`<h3>Fundar outra casa?</h3><p>A linhagem atual será apagada.</p><div class="btns"><button class="btn primary" data-act="reset2">Apagar e recomeçar</button><button class="btn" data-act="close">Cancelar</button></div>`); break;
+      case 'reset2': closeModal(); queue = []; S = null; try { localStorage.removeItem(SAVE_KEY); } catch (e2) {} render(); break;
+      case 'toquests': offerQuests(); sfx.tick(); render(); break;
+      case 'quest': doQuest(+v); break;
+      case 'tomarry': genCands(); S.phase = 'marry'; sfx.tick(); render(); break;
+      case 'test': testPerson(id, false); break;
+      case 'seqp': testPerson(id, true); break;
+      case 'marry': marry(id); S.phase = 'kids'; heirSel = null; render(); afterBirthLessons(); window.scrollTo({ top: 0 }); break;
+      case 'hsel': heirSel = id; sfx.tick(); render(); break;
+      case 'train': { const p = Pp(heirSel); if (p && !p.envF && S.gold >= 40) { S.gold -= 40; p.envF = 1; sfx.win(); render(); } break; }
+      case 'educate': { const p = Pp(heirSel); if (p && !p.envM && S.gold >= 40) { S.gold -= 40; p.envM = 1; sfx.win(); render(); } break; }
+      case 'heir': { const p = heirSel; heirSel = null; chooseHeir(p); window.scrollTo({ top: 0 }); break; }
+      case 'finish': finish(false); break;
+      case 'extinct': finish(true); break;
+      case 'tree': showTree(); break;
+      case 'lessons': showLessons(); break;
+      case 'trait': treeTrait = v; sfx.tick(); if (S.phase === 'end' && !modalOpen()) render(); else showTree(); break;
+    }
+    const lg = $('#log'); if (lg) lg.scrollTop = lg.scrollHeight;
+  });
+
+  if (/github\.io$/.test(location.hostname)) $('#backlink').hidden = false;
+  render();
+  window.__LI = { get S() { return S; }, ph, kin, cnt, render, hero, heirOptions, treeData };
+
+})();
+</script>
+</body>
+</html>
