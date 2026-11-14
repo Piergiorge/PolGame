@@ -11,6 +11,7 @@ Jogos que rodam direto no navegador, no computador ou no celular. Não precisa i
 | 🦠 **GULP!** | Roguelike | Imunidade inata: fagocitose, patógenos, citocinas e anticorpos | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
 | 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/PolGame/locus-astra/) |
 | 🩺 **Surto** | RPG investigativo | Heredogramas humanos: modos de herança, consanguinidade, penetrância incompleta, início tardio e fenocópias | [▶️ Jogar](https://piergiorge.github.io/PolGame/surto/) |
+| 🌳 **Linhagem** | RPG de gerações | Herança poligênica, endogamia, vantagem do heterozigoto, herança ligada ao X e história da genética | [▶️ Jogar](https://piergiorge.github.io/PolGame/linhagem/) |
 
 Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** liga e desliga) e funcionam no celular.
 
@@ -145,6 +146,27 @@ As famílias são geradas aleatoriamente a cada partida, sempre com um heredogra
 
 ---
 
+# 🌳 Linhagem
+
+**Um RPG de gerações.** Você guia a família de um fundador ruivo do Vale do Sereno por **nove gerações**, de 1780 até o século XXI. Em cada geração, o herdeiro realiza dois feitos (a chance depende de Força, Mente e Vista), escolhe com quem casar e decide qual filho herda a casa. Os filhos herdam metade dos alelos de cada genitor, sorteados.
+
+| No jogo | O que ensina |
+|---|---|
+| Força e Mente (3 genes cada) | Herança poligênica e regressão à média |
+| Cabelo ruivo | Herança recessiva: o traço "pula" gerações |
+| Olhar de águia | Herança dominante |
+| Daltonismo | Herança ligada ao X |
+| Casar com primos | Endogamia: o jogo calcula o coeficiente F e doenças recessivas escondidas do fundador reaparecem |
+| Febre do pântano | Vantagem do heterozigoto (alelo S e malária) |
+| Treinar e educar o herdeiro | O ambiente muda o fenótipo, mas não se herda (contra Lamarck) |
+| Eras históricas | Mendel (1866), Hardy-Weinberg (1908), DNA (1953), testes de portador (anos 1980) e genoma (2003) liberam ferramentas novas |
+
+A árvore da família é um heredograma de verdade, colorido pela característica escolhida, com portadores obrigatórios marcados e casais aparentados em linha dupla. Cada partida sorteia três ambições para a casa.
+
+### ▶️ [Jogar o Linhagem](https://piergiorge.github.io/PolGame/linhagem/)
+
+---
+
 ## Detalhes técnicos
 
 Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API). Os gráficos do Locus Astra são SVG gerados a partir do fenótipo de cada criatura.
@@ -156,6 +178,7 @@ genoblocos/index.html
 gulp/index.html
 locus-astra/index.html
 surto/index.html
+linhagem/index.html
 ```
 
 No Fita Molde:
