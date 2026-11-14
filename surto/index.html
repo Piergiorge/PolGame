@@ -1,1 +1,1177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surto — RPG de investigação genética</title>
+<style>
+  :root {
+    --bg:#0e1a1c; --panel:#152629; --panel2:#1c3236; --line:#2a464b; --text:#eaf2ef; --muted:#93aeaa;
+    --accent:#4dd0b1; --warm:#ffb86b; --good:#9ccc65; --bad:#ff7a7a; --paper:#f4efe4; --ink:#22303a;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:radial-gradient(1200px 600px at 90% -10%, #1f3d3a66, transparent 70%), var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; }
+  .wrap { max-width:1200px; margin:0 auto; padding:14px 14px 40px; }
+  header.top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; margin-bottom:12px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font:700 24px/1 Georgia, 'Times New Roman', serif; letter-spacing:.12em; }
+  .brand h1 span { color:var(--warm); }
+  .brand small { color:var(--muted); display:block; font-size:12px; margin-top:3px; }
+  .res { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .pill { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:4px 11px; font-size:13px; white-space:nowrap; }
+  .pill b { color:var(--warm); }
+  .xpbar { display:inline-block; width:70px; height:7px; background:#0b1517; border-radius:4px; overflow:hidden; vertical-align:middle; margin-left:4px; }
+  .xpbar i { display:block; height:100%; background:var(--accent); }
+  .ghost, .soundbtn { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 10px; font-size:12px; }
+  .ghost:hover, .soundbtn:hover { color:var(--text); border-color:#46707a; }
+  h2 { margin:4px 0 6px; font:700 21px Georgia, serif; }
+  h3 { margin:0 0 6px; }
+  .sub { color:var(--muted); margin:0 0 14px; }
+  .meta { color:var(--muted); font-size:12px; }
+  .muted { color:var(--muted); }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .btn { background:var(--panel2); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:6px 11px; font-size:13px; font-weight:600; }
+  .btn:hover:not(:disabled) { border-color:var(--accent); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); color:#06231d; border-color:var(--accent); }
+  .btn.warm { background:var(--warm); color:#2b1600; border-color:var(--warm); }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .stars { color:var(--warm); letter-spacing:1px; }
+  /* título */
+  .title { text-align:center; padding:30px 10px; }
+  .title h2 { font-size:44px; letter-spacing:.2em; margin:0; }
+  .title .tagline { color:var(--muted); font-size:16px; margin:6px 0 24px; }
+  .hubgrid { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 2fr); gap:12px; align-items:start; }
+  @media (max-width:760px) { .hubgrid { grid-template-columns:1fr; } }
+  .bgs { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; max-width:820px; margin:12px auto; text-align:left; }
+  .bg { background:var(--panel); border:2px solid var(--line); border-radius:12px; padding:12px; color:var(--text); text-align:left; }
+  .bg.on { border-color:var(--warm); background:#22302a; }
+  .bg b { display:block; font-size:15px; margin-bottom:4px; }
+  input.name { background:#0b1517; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:8px 12px; font-size:15px; width:min(320px, 90%); }
+  /* hub */
+  .clist { display:grid; gap:8px; }
+  .citem { display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .citem.now { border-color:var(--warm); }
+  .citem.off { opacity:.5; }
+  .citem .n { font:700 18px Georgia, serif; color:var(--warm); width:28px; text-align:center; }
+  .citem .grow { flex:1; }
+  .perks { display:flex; flex-wrap:wrap; gap:6px; }
+  .perk { background:#1f3a3a; border-radius:6px; padding:2px 8px; font-size:12px; }
+  /* caso */
+  .casehead { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:8px; margin-bottom:10px; }
+  .clock { font-size:16px; font-weight:700; }
+  .clock.low { color:var(--bad); }
+  .casegrid { display:grid; grid-template-columns:minmax(0, 1fr) 360px; gap:12px; align-items:start; }
+  @media (max-width:900px) { .casegrid { grid-template-columns:1fr; } }
+  .pedwrap { background:var(--paper); border-radius:12px; overflow:auto; max-height:72vh; box-shadow:inset 0 0 0 1px #d9cfba; }
+  svg.ped { display:block; }
+  svg.ped text { font-family:system-ui, sans-serif; text-anchor:middle; fill:var(--ink); }
+  svg.ped .nm { font-size:11.5px; font-weight:600; }
+  svg.ped .ag { font-size:10px; fill:#6a7178; }
+  svg.ped .lb { font-size:9.5px; fill:#8a8f94; }
+  svg.ped .gen { font:700 14px Georgia, serif; fill:#8a7d62; text-anchor:start; }
+  svg.ped .ln { stroke:var(--ink); stroke-width:1.6; fill:none; }
+  svg.ped .sym { stroke:var(--ink); stroke-width:2; }
+  svg.ped .pn { cursor:pointer; }
+  svg.ped .pn:hover .sym { stroke:#c4561d; }
+  svg.ped .sel { fill:none; stroke:#e07a1f; stroke-width:3; }
+  svg.ped .hl { fill:#ffb86b55; stroke:#e07a1f; stroke-width:1.5; stroke-dasharray:5 3; }
+  svg.ped .q { font:700 15px system-ui; fill:#7d8790; }
+  svg.ped .seqt { font:600 9.5px ui-monospace, Menlo, monospace; fill:#2f7d6b; }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted); margin-top:8px; align-items:center; }
+  .legend span { display:inline-flex; gap:5px; align-items:center; }
+  .side { display:flex; flex-direction:column; gap:10px; }
+  .person h3 { font:700 18px Georgia, serif; margin:0; }
+  .quote { background:#0f1d1f; border-left:3px solid var(--accent); border-radius:6px; padding:8px 10px; margin:8px 0; font-style:italic; }
+  .tag { display:inline-block; background:#1f3a3a; border-radius:6px; padding:1px 7px; font-size:12px; margin:2px 4px 2px 0; }
+  .tag.aff { background:#4a2622; color:#ffc9bd; }
+  .tag.un { background:#203a2a; color:#c9f0cf; }
+  .tag.q { background:#3a3420; color:#ffe3a6; }
+  .hyp { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center; }
+  .hyp .st { width:34px; text-align:center; border-radius:6px; padding:3px 0; background:#0f1d1f; border:1px solid var(--line); color:var(--text); }
+  .hyp .st.x { color:var(--bad); }
+  .hyp .st.ok { color:var(--good); }
+  .hel { font-size:12px; margin-top:2px; }
+  .relbar { display:inline-block; width:60px; height:6px; background:#0b1517; border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:5px; }
+  .relbar i { display:block; height:100%; background:var(--accent); }
+  .log { max-height:180px; overflow:auto; font-size:12.5px; }
+  .log p { margin:3px 0; padding-left:10px; border-left:2px solid var(--line); }
+  /* modal e toast */
+  .modal-bg { position:fixed; inset:0; background:#020807cc; display:flex; align-items:center; justify-content:center; padding:16px; z-index:40; }
+  .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; width:min(720px, 100%); max-height:90vh; overflow:auto; }
+  .modal h3 { margin:0 0 8px; font:700 21px Georgia, serif; color:var(--warm); }
+  .modal p { margin:6px 0; }
+  .modal .who { display:flex; gap:10px; align-items:flex-start; }
+  .modal .avatar { flex:0 0 48px; height:48px; border-radius:50%; background:#2a464b; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .opt { display:block; width:100%; text-align:left; background:#0f1d1f; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 10px; margin:4px 0; }
+  .opt.on { border-color:var(--warm); background:#2b2a1c; }
+  .opt.right { border-color:var(--good); background:#1d3320; }
+  .opt.wrong { border-color:var(--bad); background:#3a1f1f; }
+  .lesson { background:#0f1d1f; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-top:10px; }
+  .lesson h4 { margin:0 0 4px; color:var(--accent); }
+  .guide h4 { margin:12px 0 4px; color:var(--accent); }
+  .toast-box { position:fixed; right:14px; bottom:14px; display:flex; flex-direction:column; gap:8px; z-index:50; max-width:min(380px, 92vw); }
+  .toast { background:#183236; border:1px solid var(--accent); border-radius:10px; padding:9px 12px; font-size:13px; box-shadow:0 6px 20px #0008; animation:tin .25s ease; }
+  .toast.warm { border-color:var(--warm); }
+  @keyframes tin { from { transform:translateY(10px); opacity:0; } }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; }
+  .backlink:hover { color:var(--text); }
+  .backlink[hidden] { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand">
+      <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">
+        <rect x="4" y="5" width="12" height="12" fill="none" stroke="#ffb86b" stroke-width="2"/>
+        <circle cx="31" cy="11" r="6.5" fill="#ffb86b"/>
+        <path d="M16 11H24.5M20 11V21M10 21H32M10 21V27M32 21V27" stroke="#4dd0b1" stroke-width="2" fill="none"/>
+        <rect x="4" y="27" width="12" height="12" fill="#4dd0b1"/><circle cx="32" cy="33" r="6.5" fill="none" stroke="#4dd0b1" stroke-width="2"/>
+      </svg>
+      <div><h1>SUR<span>TO</span></h1><small>investigação genética no Vale do Sereno</small></div>
+      <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+    </div>
+    <div class="res" id="res"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="toast-box" id="toasts"></div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('surto-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('surto-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
+  // =====================================================================
+  // UTILITÁRIOS
+  // =====================================================================
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const ri = (a, b) => a + rand(b - a + 1);
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // =====================================================================
+  // MODOS DE HERANÇA E VEROSSIMILHANÇA
+  // Hipótese do alelo raro: quem entra na família por casamento (sem histórico) não carrega
+  // a variante, a não ser que seja afetado. Os fundadores do topo podem ser portadores.
+  // =====================================================================
+  const MODES = {
+    AD:  { n: 'Autossômica dominante', sh: 'AD' },
+    AR:  { n: 'Autossômica recessiva', sh: 'AR' },
+    XLR: { n: 'Recessiva ligada ao X', sh: 'XR' },
+    XLD: { n: 'Dominante ligada ao X', sh: 'XD' },
+    MT:  { n: 'Mitocondrial', sh: 'MT' },
+    ENV: { n: 'Não genética (causa ambiental)', sh: 'AMB' },
+  };
+  const ALL_MODES = ['AD', 'AR', 'XLR', 'XLD', 'MT', 'ENV'];
+  const isX = m => m === 'XLR' || m === 'XLD';
+  const domain = (mode, sex) => mode === 'MT' ? [0, 1] : isX(mode) && sex === 'M' ? [0, 1] : [0, 1, 2];
+  function pAff(mode, sex, g, pen = 1) {
+    let a;
+    switch (mode) {
+      case 'AD': a = g >= 1; break;
+      case 'AR': a = g === 2; break;
+      case 'XLR': a = sex === 'M' ? g === 1 : g === 2; break;
+      case 'XLD': a = g >= 1; break;
+      case 'MT': a = g === 1; break;
+      default: a = false;
+    }
+    return a ? (mode === 'AD' ? pen : 1) : 0;
+  }
+  const pObs = (mode, sex, g, obs, pen) => obs == null ? 1 : obs === 'A' ? pAff(mode, sex, g, pen) : 1 - pAff(mode, sex, g, pen);
+  const minAff = (mode, sex) => domain(mode, sex).find(g => pAff(mode, sex, g) > 0);
+  const gam = g => g === 0 ? [[0, 1]] : g === 1 ? [[0, .5], [1, .5]] : [[1, 1]];
+  function trans(mode, sex, gc, gm, gf) {
+    if (mode === 'MT') return gc === gm ? 1 : 0;
+    let s = 0;
+    if (isX(mode)) {
+      if (sex === 'M') { for (const [a, p] of gam(gm)) if (a === gc) s += p; return s; }
+      for (const [a, p] of gam(gm)) if (a + gf === gc) s += p;
+      return s;
+    }
+    for (const [a, p] of gam(gm)) for (const [b, q] of gam(gf)) if (a + b === gc) s += p * q;
+    return s;
+  }
+
+  // fatores para eliminação de variáveis
+  function mkF(v, d, fn) {
+    const n = d.reduce((a, b) => a * b, 1), t = new Float64Array(n), a = new Array(v.length).fill(0);
+    for (let i = 0; i < n; i++) {
+      t[i] = fn(a);
+      for (let k = v.length - 1; k >= 0; k--) { if (++a[k] < d[k]) break; a[k] = 0; }
+    }
+    return { v, d, t };
+  }
+  function product(fs) {
+    const v = [], d = [];
+    for (const f of fs) f.v.forEach((x, i) => { if (!v.includes(x)) { v.push(x); d.push(f.d[i]); } });
+    const maps = fs.map(f => f.v.map(x => v.indexOf(x)));
+    return mkF(v, d, a => {
+      let p = 1;
+      for (let j = 0; j < fs.length; j++) {
+        const f = fs[j], m = maps[j]; let idx = 0;
+        for (let k = 0; k < m.length; k++) idx = idx * f.d[k] + a[m[k]];
+        p *= f.t[idx]; if (!p) return 0;
+      }
+      return p;
+    });
+  }
+  function sumOut(f, x) {
+    const i = f.v.indexOf(x), v = f.v.filter(y => y !== x), d = f.d.filter((_, k) => k !== i);
+    return mkF(v, d, a => {
+      let s = 0; const b = [...a.slice(0, i), 0, ...a.slice(i)];
+      for (let g = 0; g < f.d[i]; g++) {
+        b[i] = g; let idx = 0;
+        for (let k = 0; k < b.length; k++) idx = idx * f.d[k] + b[k];
+        s += f.t[idx];
+      }
+      return s;
+    });
+  }
+
+  function allowedMap(fam, mode, obsOf, pen) {
+    const A = {};
+    for (const p of Object.values(fam.people)) {
+      const o = obsOf(p);
+      const d = domain(mode, p.sex).filter(g => pObs(mode, p.sex, g, o, pen) > 0);
+      if (p.marriedIn) { const v = o === 'A' ? d[0] : 0; A[p.id] = d.includes(v) ? [v] : []; }
+      else if (p.top) { const m = minAff(mode, p.sex); A[p.id] = d.filter(g => g <= m); }
+      else A[p.id] = d;
+    }
+    return A;
+  }
+  // verossimilhança: máximo sobre os genótipos dos fundadores do topo, soma sobre o resto
+  function likelihood(fam, mode, obsOf, pen = 1) {
+    if (mode === 'ENV') return 0;
+    const ppl = Object.values(fam.people), A = allowedMap(fam, mode, obsOf, pen);
+    if (ppl.some(p => !A[p.id].length)) return 0;
+    const tops = ppl.filter(p => p.top);
+    const order = ppl.slice().sort((a, b) => b.gen - a.gen || a.id - b.id).map(p => p.id);
+    let best = 0;
+    const combos = tops.reduce((acc, p) => acc.flatMap(c => A[p.id].map(g => ({ ...c, [p.id]: g }))), [{}]);
+    for (const fix of combos) {
+      const vals = id => fix[id] !== undefined ? [fix[id]] : A[id];
+      let F = [];
+      for (const p of ppl) {
+        const V = vals(p.id), o = obsOf(p);
+        F.push(mkF([p.id], [V.length], a => pObs(mode, p.sex, V[a[0]], o, pen)));
+        if (p.parents) {
+          const [m, f] = p.parents, Vm = vals(m), Vf = vals(f);
+          if (mode === 'MT') F.push(mkF([p.id, m], [V.length, Vm.length], a => trans(mode, p.sex, V[a[0]], Vm[a[1]], 0)));
+          else F.push(mkF([p.id, m, f], [V.length, Vm.length, Vf.length], a => trans(mode, p.sex, V[a[0]], Vm[a[1]], Vf[a[2]])));
+        }
+      }
+      for (const x of order) {
+        const inn = F.filter(f => f.v.includes(x)); if (!inn.length) continue;
+        F = F.filter(f => !f.v.includes(x));
+        F.push(sumOut(product(inn), x));
+      }
+      const L = F.reduce((acc, f) => acc * f.t[0], 1);
+      if (L > best) best = L;
+    }
+    return best;
+  }
+
+  // procura uma família nuclear que, sozinha, já contradiz o modo (para explicar o descarte)
+  function witness(fam, mode, obsOf, pen = 1) {
+    const P = id => fam.people[id], A = allowedMap(fam, mode, obsOf, pen);
+    for (const p of Object.values(fam.people)) if (!A[p.id].length) return { ids: [p.id], msg: `${p.name} é afetado(a) e entrou na família por casamento, o que não se encaixa nessa herança.` };
+    const groups = {};
+    for (const p of Object.values(fam.people)) if (p.parents) (groups[p.parents.join('-')] = groups[p.parents.join('-')] || []).push(p);
+    for (const [key, kids] of Object.entries(groups)) {
+      const [m, f] = key.split('-').map(Number);
+      let ok = false;
+      for (const gm of A[m]) { for (const gf of A[f]) {
+        if (kids.every(k => A[k.id].some(gk => trans(mode, k.sex, gk, gm, gf) > 0))) { ok = true; break; }
+      } if (ok) break; }
+      if (!ok) return { ids: [m, f, ...kids.map(k => k.id)], msg: explain(mode, P(m), P(f), kids, obsOf) };
+    }
+    return null;
+  }
+  const nm = list => list.map(p => p.name).join(', ');
+  function explain(mode, M, F, kids, o) {
+    const affK = kids.filter(k => o(k) === 'A'), unK = kids.filter(k => o(k) === 'U');
+    const dau = s => kids.filter(k => k.sex === 'F' && o(k) === s), son = s => kids.filter(k => k.sex === 'M' && o(k) === s);
+    const inlaw = p => p.marriedIn && o(p) !== 'A' ? ` (${p.name} entrou na família por casamento e, pela hipótese do alelo raro, não carrega a variante)` : '';
+    if ((mode === 'AD' || mode === 'XLD') && o(M) !== 'A' && o(F) !== 'A' && affK.length)
+      return `${nm(affK)} tem a doença, mas nenhum dos pais (${M.name} e ${F.name}) tem. Na herança dominante, todo afetado tem um genitor afetado.${inlaw(M) || inlaw(F)}`;
+    if (mode === 'XLD' && o(F) === 'A' && dau('U').length) return `${F.name} é afetado e passa seu único X para todas as filhas, mas ${nm(dau('U'))} não tem a doença.`;
+    if (mode === 'XLD' && o(F) === 'A' && son('A').length && o(M) !== 'A') return `${nm(son('A'))} é afetado, mas pai não passa o X para filho homem e a mãe (${M.name}) não é afetada.${inlaw(M)}`;
+    if (mode === 'MT' && o(M) !== 'A' && affK.length) return `${nm(affK)} tem a doença, mas a mãe (${M.name}) não. As mitocôndrias vêm só da mãe.`;
+    if (mode === 'MT' && o(M) === 'A' && unK.length) return `${M.name} é afetada e passa suas mitocôndrias a todos os filhos, mas ${nm(unK)} não tem a doença.`;
+    if (mode === 'XLR' && dau('A').length && o(F) !== 'A') return `${nm(dau('A'))} é afetada, mas o pai (${F.name}) não. Uma filha afetada na recessiva ligada ao X recebe um X alterado de cada genitor, e o do pai só pode vir de um pai afetado.`;
+    if (mode === 'XLR' && o(M) === 'A' && son('U').length) return `${M.name} é afetada (dois X alterados), então todos os filhos homens seriam afetados, mas ${nm(son('U'))} não é.`;
+    if (mode === 'XLR' && son('A').length && M.marriedIn && o(M) !== 'A') return `${nm(son('A'))} é afetado e o X dele vem da mãe, ${M.name}, que entrou na família por casamento e é considerada não portadora (alelo raro).`;
+    if (mode === 'XLR' && son('A').length && o(F) === 'A' && o(M) !== 'A') return `${nm(son('A'))} é afetado, mas pai não passa o X para filho homem.`;
+    if (mode === 'AR' && o(M) === 'A' && o(F) === 'A' && unK.length) return `${M.name} e ${F.name} são afetados (aa) e só podem ter filhos aa, mas ${nm(unK)} não é afetado(a).`;
+    if (mode === 'AR' && affK.length && (inlaw(M) || inlaw(F))) return `${nm(affK)} é afetado(a) e precisaria de um alelo de cada genitor.${inlaw(M) || inlaw(F)}`;
+    if ((mode === 'AD' || mode === 'XLD') && affK.length) return `${nm(affK)} tem a doença sem genitor afetado que pudesse transmiti-la.${inlaw(M) || inlaw(F)}`;
+    return `A família de ${M.name} e ${F.name} não se explica com essa herança.`;
+  }
+
+  // =====================================================================
+  // DOENÇAS E CASOS DA CAMPANHA (nomes fictícios: o modo de herança se descobre pelo heredograma)
+  // =====================================================================
+  const CASES = [
+    { id: 'ar', mode: 'AR', opts: ['AD', 'AR'], strict: true, gens: 3, ages: 'young3', k0: [3, 5], marry: .55, k1: [1, 3], q: 'ar1',
+      fam: 'Siqueira', caller: 'O posto de saúde do bairro Sereno',
+      dis: { name: 'Síndrome de Albedo', short: 'pele e cabelos sem pigmento e baixa visão',
+        aff: ['Minha pele queima com qualquer sol e eu enxergo pouco de longe.', 'Nasci com o cabelo quase branco. A luz forte me incomoda muito.', 'Uso óculos escuros o tempo todo; sem eles a claridade dói.'],
+        kid: 'A pele e o cabelo são clarinhos desde que nasceu, e a luz incomoda muito.', rec: 'Registro de "pele e cabelos sem pigmento, baixa acuidade visual".',
+        real: 'o <b>albinismo oculocutâneo</b> (gene <i>TYR</i>)' },
+      lesson: `<h4>Herança autossômica recessiva</h4><p>Pais não afetados com filhos afetados: os dois são <b>portadores</b> (Aa). Cada filho tem 1/4 de chance de ser aa. A doença aparece em homens e mulheres na mesma proporção e costuma "pular" gerações.</p>` },
+    { id: 'ad', mode: 'AD', opts: ['AD', 'AR'], strict: true, gens: 3, ages: 'std3', k0: [3, 5], marry: .8, k1: [1, 4], q: 'ad',
+      fam: 'Lacerda', caller: 'A cardiologia do hospital regional',
+      dis: { name: 'Síndrome de Longis', short: 'estatura alta, braços longos e problemas no cristalino',
+        aff: ['Sempre fui o mais alto da turma. Meus dedos são compridos e o cardiologista me acompanha todo ano.', 'Tenho miopia forte desde criança e o cristalino saiu do lugar.', 'Meus braços são longos demais para qualquer camisa. Faço ecocardiograma de rotina.'],
+        kid: 'É bem mais alto que os colegas, e o oftalmologista viu o cristalino deslocado.', rec: 'Registro de "estatura elevada, aracnodactilia, dilatação da aorta".',
+        real: 'a <b>síndrome de Marfan</b> (gene <i>FBN1</i>)' },
+      lesson: `<h4>Herança autossômica dominante</h4><p>Todo afetado tem um genitor afetado (herança "vertical"), homens e mulheres são afetados e há transmissão de <b>pai para filho homem</b>, o que exclui herança ligada ao X. O filho de um afetado (Aa) com um não afetado (aa) tem 1/2 de chance de herdar.</p>` },
+    { id: 'xlr', mode: 'XLR', opts: ['AD', 'AR', 'XLR'], gens: 3, ages: 'std3', k0: [3, 5], marry: .8, k1: [1, 4], q: 'xlr',
+      fam: 'Tavares', caller: 'A hematologia do hospital regional',
+      dis: { name: 'Doença de Hemora', short: 'sangramentos prolongados e hematomas',
+        aff: ['Qualquer corte pequeno sangra por horas. Já precisei de transfusão depois de uma extração de dente.', 'Tenho hematomas que aparecem sem eu bater em nada. O joelho incha de sangue às vezes.', 'Faço reposição de fator de coagulação desde criança.'],
+        kid: 'Desde bebê, qualquer batidinha vira uma mancha roxa enorme.', rec: 'Registro de "hemorragias de repetição, hemartroses".',
+        real: 'a <b>hemofilia A</b> (gene <i>F8</i>, no cromossomo X)' },
+      lesson: `<h4>Herança recessiva ligada ao X</h4><p>Quase só homens são afetados, porque têm um único X. O alelo passa por mulheres <b>portadoras</b> não afetadas. Não há transmissão de pai para filho homem (o pai passa o Y). A filha de um homem afetado é portadora obrigatória.</p>` },
+    { id: 'cons', mode: 'AR', opts: ['AD', 'AR', 'XLR'], gens: 4, ages: 'std4', k0: [3, 4], marry: .9, k1: [1, 3], marry2: .5, k2: [1, 3], consang: true, founders: 'one', q: 'cons',
+      fam: 'Nogueira', caller: 'O teste do pezinho da maternidade',
+      dis: { name: 'Doença de Fenila', short: 'atraso no desenvolvimento se não tratada; detectada no teste do pezinho',
+        aff: ['Descobriram pelo teste do pezinho. Sigo uma dieta especial a vida inteira.', 'Não posso comer quase nada com proteína; se paro a dieta fico muito irritado e sem concentração.', 'Tomo uma fórmula especial todos os dias desde bebê.'],
+        kid: 'O teste do pezinho deu alterado. Agora segue uma dieta especial.', rec: 'Registro de "deficiência intelectual, odor característico na urina".',
+        real: 'a <b>fenilcetonúria</b> (gene <i>PAH</i>), uma das doenças do teste do pezinho' },
+      lesson: `<h4>Consanguinidade</h4><p>Primos de primeiro grau compartilham, em média, <b>1/8</b> dos genes por descendência. Se um avô em comum era portador de um alelo recessivo raro, os dois primos podem ter herdado a mesma cópia, e o filho deles pode ser aa. Por isso doenças recessivas raras aparecem mais em casamentos consanguíneos (no heredograma, linha dupla).</p>` },
+    { id: 'xld', mode: 'XLD', opts: ['AD', 'AR', 'XLR', 'XLD'], gens: 3, ages: 'std3', k0: [3, 5], marry: .85, k1: [2, 4], q: 'xld',
+      fam: 'Coutinho', caller: 'A ortopedia pediátrica',
+      dis: { name: 'Raquitismo de Ossária', short: 'pernas arqueadas, baixa estatura e fósforo baixo no sangue',
+        aff: ['Tenho as pernas arqueadas desde criança e o fósforo no sangue sempre deu baixo.', 'Sou baixinha e tive várias fraturas. Tomo fosfato todos os dias.', 'Meus dentes têm abscessos sem cárie, e as pernas são tortas.'],
+        kid: 'Começou a andar com as pernas bem arqueadas. O exame mostrou fósforo baixo.', rec: 'Registro de "raquitismo resistente à vitamina D, hipofosfatemia".',
+        real: 'o <b>raquitismo hipofosfatêmico ligado ao X</b> (gene <i>PHEX</i>)' },
+      lesson: `<h4>Herança dominante ligada ao X</h4><p>O pai afetado passa seu único X para <b>todas as filhas</b> (todas afetadas) e para <b>nenhum filho</b>. A mãe afetada (heterozigota) passa a 1/2 dos filhos de ambos os sexos. Há mais mulheres afetadas que homens.</p>` },
+    { id: 'mt', mode: 'MT', opts: ['AD', 'AR', 'XLR', 'XLD', 'MT'], gens: 3, ages: 'std3', k0: [3, 5], marry: .85, k1: [2, 4], q: 'mt',
+      fam: 'Esteves', caller: 'A neurologia da universidade',
+      dis: { name: 'Síndrome de Mitra', short: 'fraqueza muscular, cansaço extremo e perda auditiva',
+        aff: ['Canso com qualquer escada. Os músculos falham e estou perdendo a audição.', 'Tive episódios parecidos com AVC, mas os médicos disseram que não era isso.', 'O lactato no sangue sempre vem alto e sinto fraqueza o tempo todo.'],
+        kid: 'Cansa muito rápido nas brincadeiras e já está com dificuldade para ouvir.', rec: 'Registro de "miopatia, surdez neurossensorial, episódios semelhantes a AVC".',
+        real: 'a <b>síndrome MELAS</b> (DNA mitocondrial)' },
+      lesson: `<h4>Herança mitocondrial</h4><p>As mitocôndrias do embrião vêm do óvulo, então a doença passa <b>só pela mãe</b>, para filhos de ambos os sexos. Um homem afetado não transmite. Na vida real, a gravidade varia muito entre irmãos por causa da <b>heteroplasmia</b> (mistura de mitocôndrias normais e alteradas).</p>` },
+    { id: 'hd', mode: 'AD', opts: ['AD', 'AR', 'XLR', 'XLD', 'MT'], gens: 4, ages: 'hd4', k0: [3, 4], marry: .9, k1: [2, 3], marry2: .6, k2: [1, 3], late: true, q: 'hd',
+      fam: 'Rezende', caller: 'O ambulatório de distúrbios do movimento',
+      dis: { name: 'Coreia do Sereno', short: 'movimentos involuntários e mudanças de humor, a partir da meia-idade',
+        aff: ['Começou aos quarenta e poucos: as mãos se mexem sozinhas e fiquei esquecido.', 'Os movimentos involuntários pioraram muito nos últimos anos. Meu humor também mudou.', 'Tenho dificuldade para andar reto e para engolir.'],
+        kid: '', rec: 'Registro de "movimentos coreicos e demência progressiva a partir dos 40 anos".',
+        real: 'a <b>doença de Huntington</b> (expansão CAG no gene <i>HTT</i>)' },
+      lesson: `<h4>Início tardio</h4><p>Herança dominante com início na meia-idade: jovens sem sintomas podem ter herdado a variante. O filho de um afetado tem 1/2 de risco, e esse risco só cai aos poucos com a idade sem sintomas. O <b>teste preditivo</b> existe, mas exige aconselhamento: não há cura, e saber o resultado mexe com a vida da pessoa. Na doença de Huntington, a repetição CAG pode crescer entre gerações (<b>antecipação</b>).</p>` },
+    { id: 'pen', mode: 'AD', opts: ['AD', 'AR', 'XLR', 'XLD', 'MT'], gens: 4, ages: 'std4', k0: [3, 4], marry: .9, k1: [2, 3], marry2: .6, k2: [1, 3], pen: .7, q: 'pen',
+      fam: 'Barros', caller: 'A pediatria do hospital regional',
+      dis: { name: 'Hexadactilia do Vale', short: 'um dedo a mais nas mãos ou nos pés',
+        aff: ['Nasci com seis dedos na mão esquerda. Tiraram o extra quando eu era bebê.', 'Tenho um dedinho a mais em cada pé; nunca atrapalhou.', 'Nasci com seis dedos nas duas mãos.'],
+        kid: 'Nasceu com um dedinho a mais na mão. Vai operar no ano que vem.', rec: 'Registro de "dedo supranumerário pós-axial".',
+        real: 'a <b>polidactilia pós-axial</b>' },
+      lesson: `<h4>Penetrância incompleta</h4><p><b>Penetrância</b> é a fração dos portadores que manifesta o traço. Com penetrância incompleta, um portador pode não ter o fenótipo e ainda assim transmiti-lo: a herança parece "pular" uma geração mesmo sendo dominante. Isso é diferente de <b>expressividade variável</b> (todos manifestam, mas com intensidades diferentes).</p>` },
+    { id: 'env', mode: 'ENV', opts: ['AD', 'AR', 'XLR', 'XLD', 'MT', 'ENV'], gens: 3, ages: 'std3', k0: [3, 5], marry: .85, k1: [2, 4], env: true, q: 'env',
+      fam: 'Duarte', caller: 'A vigilância sanitária do município',
+      dis: { name: 'Mal da Vila Nova', short: 'anemia, dores abdominais e irritabilidade',
+        aff: ['Ando pálido, com dor de barriga e sem paciência para nada.', 'Fiz exame e deu anemia. Tenho dor nas articulações e dormência nas mãos.', 'Perdi o apetite e vivo com dor de cabeça.'],
+        kid: 'Anda irritada, com dor de barriga, e a professora disse que caiu o rendimento.', rec: 'Registro de "anemia, cólicas abdominais, neuropatia periférica".',
+        real: 'a <b>intoxicação por chumbo</b> (saturnismo)' },
+      lesson: `<h4>Fenocópia ambiental</h4><p>Nem toda doença que se repete na família é genética. Aqui os afetados se agrupam por <b>endereço</b>, não por descendência: cônjuges que entraram na família adoeceram, parentes que moram longe não. Nenhum modo de herança explica o heredograma e o sequenciamento não achou variante. Uma <b>fenocópia</b> imita um fenótipo genético, mas tem causa ambiental.</p>` },
+  ];
+
+  const AGES = { young3: [50, 62], std3: [72, 88], std4: [96, 108], hd4: [100, 112] };
+  const DEAD = { young3: [.05, 0, 0], std3: [.5, .06, 0], std4: [.9, .3, .04, 0], hd4: [.95, .45, .06, 0] };
+  const MALE = ['João', 'Pedro', 'Lucas', 'Mateus', 'Gabriel', 'Tiago', 'André', 'Bruno', 'Carlos', 'Diego', 'Eduardo', 'Felipe', 'Gustavo', 'Henrique', 'Igor', 'Jorge', 'Leonardo', 'Marcelo', 'Nelson', 'Otávio', 'Paulo', 'Renato', 'Samuel', 'Vinícius', 'Wagner', 'Antônio', 'Benedito', 'Caio', 'Davi', 'Enzo', 'Fábio', 'Heitor', 'Joaquim', 'Luiz', 'Miguel', 'Raul', 'Sérgio', 'Valter', 'Ícaro', 'Rodrigo'];
+  const FEMALE = ['Maria', 'Ana', 'Beatriz', 'Camila', 'Daniela', 'Eduarda', 'Fernanda', 'Gabriela', 'Helena', 'Isabela', 'Júlia', 'Larissa', 'Mariana', 'Natália', 'Olívia', 'Patrícia', 'Raquel', 'Sofia', 'Tatiane', 'Vitória', 'Alice', 'Bianca', 'Cecília', 'Débora', 'Elisa', 'Flávia', 'Giovana', 'Heloísa', 'Inês', 'Joana', 'Lívia', 'Lúcia', 'Marta', 'Nair', 'Odete', 'Paula', 'Rita', 'Sandra', 'Teresa', 'Vera'];
+  const SURN = ['Almeida', 'Cardoso', 'Ferraz', 'Gouveia', 'Macedo', 'Pacheco', 'Queiroz', 'Vasconcelos', 'Xavier', 'Bittencourt', 'Moraes', 'Prado', 'Rocha', 'Monteiro', 'Teixeira', 'Pinheiro', 'Freitas', 'Campos'];
+  const JOBS = [['agricultor', 'agricultora'], ['motorista', 'motorista'], ['comerciante', 'comerciante'], ['enfermeiro', 'enfermeira'], ['pedreiro', 'costureira'], ['mecânico', 'cozinheira'], ['professor', 'professora'], ['pescador', 'técnica de laboratório'], ['eletricista', 'cabeleireira'], ['contador', 'farmacêutica']];
+
+  // ---------- estrutura da família ----------
+  function buildStructure(T) {
+    const fam = { people: {}, next: 1 };
+    const P = (sex, gen, extra = {}) => { const id = fam.next++; const p = { id, sex, gen, parents: null, spouses: [], kids: [], marriedIn: false, top: false, ...extra }; fam.people[id] = p; return p; };
+    const marry = (a, b) => { a.spouses.push(b.id); b.spouses.push(a.id); };
+    const kids = (mom, dad, n, gen) => { for (let i = 0; i < n; i++) { const k = P(Math.random() < .5 ? 'M' : 'F', gen); k.parents = [mom.id, dad.id]; mom.kids.push(k.id); dad.kids.push(k.id); } };
+    const wed = (p, gen, n) => { const s = P(p.sex === 'M' ? 'F' : 'M', gen, { marriedIn: true }); marry(p, s); const [m, f] = p.sex === 'F' ? [p, s] : [s, p]; kids(m, f, n, gen + 1); };
+    const a = P('M', 0, { top: true }), b = P('F', 0, { top: true }); marry(a, b); kids(b, a, ri(...T.k0), 1);
+    const g1 = Object.values(fam.people).filter(p => p.gen === 1);
+    for (const p of g1) if (Math.random() < T.marry) wed(p, 1, ri(...T.k1));
+    if (T.gens === 4) {
+      const g2 = Object.values(fam.people).filter(p => p.gen === 2);
+      if (T.consang) {
+        const men = g2.filter(p => p.sex === 'M'), women = g2.filter(p => p.sex === 'F');
+        const pairs = [];
+        for (const m of men) for (const w of women) {
+          const pm = m.parents.map(id => fam.people[id]).find(x => !x.marriedIn), pw = w.parents.map(id => fam.people[id]).find(x => !x.marriedIn);
+          if (pm && pw && pm.id !== pw.id) pairs.push([m, w]);
+        }
+        if (!pairs.length) return null;
+        const [m, w] = pick(pairs); marry(m, w); kids(w, m, ri(2, 4), 3); fam.consang = [m.id, w.id];
+      }
+      for (const p of g2) if (!p.spouses.length && Math.random() < T.marry2) wed(p, 2, ri(...T.k2));
+    }
+    const n = Object.keys(fam.people).length;
+    if (n < 9 || n > 30) return null;
+    return fam;
+  }
+
+  // ---------- idades, genótipos e fenótipos ----------
+  function simulate(fam, T) {
+    const ppl = Object.values(fam.people).sort((a, b) => a.gen - b.gen || a.marriedIn - b.marriedIn || a.id - b.id);
+    const P = id => fam.people[id];
+    for (const p of ppl) {
+      if (p.top) p.age = ri(AGES[T.ages][0], AGES[T.ages][0] + 6);
+      else if (p.marriedIn) p.age = Math.max(16, P(p.spouses[0]).age + ri(-5, 5));
+      else p.age = Math.min(P(p.parents[0]).age, P(p.parents[1]).age) - ri(20, 33);
+      if (p.age < 0) return false;
+      const dp = (DEAD[T.ages][p.gen] || 0) + (p.age > 92 ? 1 : 0);
+      p.alive = !(Math.random() < dp);
+      p.deadAge = p.alive ? null : Math.max(Math.min(p.age, 20), p.age - ri(1, p.gen === 0 ? 25 : 30));
+      p.eff = p.alive ? p.age : p.deadAge;
+    }
+    // genótipos
+    const mode = T.mode, tops = ppl.filter(p => p.top), [tm, tf] = [tops.find(p => p.sex === 'M'), tops.find(p => p.sex === 'F')];
+    for (const p of ppl) p.g = 0;
+    if (mode === 'AD' || mode === 'XLD') pick(tops).g = 1;
+    if (mode === 'AR') { if (T.founders === 'one') pick(tops).g = 1; else { tm.g = 1; tf.g = 1; } }
+    if (mode === 'XLR') { if (Math.random() < .7) tf.g = 1; else tm.g = 1; }
+    if (mode === 'MT') tf.g = 1;
+    for (const p of ppl) if (p.parents) {
+      const [m, f] = p.parents.map(P);
+      const opts = domain(mode === 'ENV' ? 'AD' : mode, p.sex).map(g => [g, mode === 'ENV' ? (g === 0 ? 1 : 0) : trans(mode, p.sex, g, m.g, f.g)]);
+      let r = Math.random(); p.g = opts.find(([, pr]) => (r -= pr) <= 0)?.[0] ?? opts.find(([, pr]) => pr > 0)[0];
+    }
+    // ambiental: um ou dois núcleos moram na Vila da Fábrica
+    if (T.env) {
+      const heads = ppl.filter(p => p.gen === 1 && !p.marriedIn && p.spouses.length);
+      if (!heads.length) return false;
+      for (const h of shuffle(heads).slice(0, Math.random() < .4 ? 2 : 1)) {
+        const s = P(h.spouses[0]); h.vila = s.vila = true;
+        for (const k of h.kids) { P(k).vila = true; }
+      }
+    }
+    for (const p of ppl) {
+      if (T.env) { p.obs = p.vila && p.eff > 0 && Math.random() < .72 ? 'A' : 'U'; continue; }
+      let a = pAff(mode, p.sex, p.g) > 0;
+      if (a && T.pen) a = Math.random() < T.pen;
+      if (T.late) {
+        if (!p.onset) p.onset = ri(34, 52);
+        if (a && p.eff >= p.onset) p.obs = 'A';
+        else p.obs = p.eff < 55 ? null : 'U';
+        continue;
+      }
+      p.obs = a ? 'A' : 'U';
+    }
+    return true;
+  }
+
+  // ---------- nomes e detalhes ----------
+  function dress(fam, T) {
+    const used = new Set(), ppl = Object.values(fam.people).sort((a, b) => a.gen - b.gen || a.id - b.id), P = id => fam.people[id];
+    const surs = shuffle(SURN.filter(s => s !== T.fam));
+    for (const p of ppl) {
+      let n; do n = pick(p.sex === 'M' ? MALE : FEMALE); while (used.has(n)); used.add(n);
+      p.name = n;
+      p.surname = p.top ? T.fam : p.parents ? P(p.parents[1]).surname : (surs.pop() || 'Silva');
+      const job = pick(JOBS)[p.sex === 'M' ? 0 : 1];
+      p.job = p.eff < 18 ? null : p.age >= 65 ? (p.sex === 'M' ? 'aposentado' : 'aposentada') : p.age < 24 ? 'estudante' : job;
+    }
+  }
+
+  // ---------- layout do heredograma ----------
+  function layout(fam) {
+    const P = id => fam.people[id], done = new Set(); let cursor = 0;
+    for (const p of Object.values(fam.people)) delete p.x;
+    function place(id) {
+      const p = P(id); if (p.x !== undefined) return;
+      const groups = [];
+      for (const s of p.spouses) {
+        const S = P(s), key = [id, s].sort((a, b) => a - b).join('-');
+        if (done.has(key)) continue;
+        if (!S.marriedIn && !S.top && S.x === undefined && !p.marriedIn) continue; // casal consanguíneo: tratado pelo segundo primo
+        done.add(key); groups.push({ s, kids: p.kids.filter(k => S.kids.includes(k)) });
+      }
+      if (!groups.some(g => g.kids.length)) { p.x = cursor++; for (const g of groups) if (P(g.s).x === undefined) P(g.s).x = cursor++; return; }
+      const start = cursor;
+      for (const g of groups) { for (const k of g.kids) place(k); g.xs = g.kids.map(k => P(k).x); }
+      const g0 = groups.find(g => g.kids.length), c0 = (Math.min(...g0.xs) + Math.max(...g0.xs)) / 2;
+      p.x = Math.max(start, c0 - .5); let right = p.x;
+      for (const g of groups) { const S = P(g.s); if (S.x === undefined) { const cx = g.xs.length ? (Math.min(...g.xs) + Math.max(...g.xs)) / 2 : right; S.x = Math.max(right + 1, cx + .5); right = S.x; } }
+      cursor = Math.max(cursor, Math.ceil(right + 1));
+    }
+    if (fam.consang) { // primos lado a lado: os pais deles vizinhos, cada primo na borda de dentro da irmandade
+      const [a, b] = fam.consang.map(P), pa = a.parents.map(P).find(x => !x.marriedIn), pb = b.parents.map(P).find(x => !x.marriedIn);
+      for (const t of Object.values(fam.people).filter(x => x.top)) { t.kids = t.kids.filter(k => k !== pb.id); t.kids.splice(t.kids.indexOf(pa.id) + 1, 0, pb.id); }
+      for (const x of a.parents.map(P)) { x.kids = x.kids.filter(k => k !== a.id); x.kids.push(a.id); }
+      for (const x of b.parents.map(P)) { x.kids = x.kids.filter(k => k !== b.id); x.kids.unshift(b.id); }
+    }
+    place(Object.values(fam.people).find(p => p.top && p.sex === 'M').id);
+    for (const p of Object.values(fam.people)) if (p.x === undefined) p.x = cursor++;
+    const ROM = ['I', 'II', 'III', 'IV', 'V'];
+    const gens = [...new Set(Object.values(fam.people).map(p => p.gen))];
+    for (const g of gens) Object.values(fam.people).filter(p => p.gen === g).sort((a, b) => a.x - b.x).forEach((p, i) => { p.label = `${ROM[g]}-${i + 1}`; });
+  }
+
+  // ---------- perguntas do laudo ----------
+  const FR = ['0', '1/4', '1/2', '3/4', '1'];
+  const QS = {
+    ar1: (fam, pb) => {
+      const [m, f] = pb.parents.map(id => fam.people[id]);
+      if (m.obs !== 'U' || f.obs !== 'U') return null;
+      return { q: `${m.name} e ${f.name}, os pais de ${pb.name}, não têm a doença. Se tivessem mais um filho, qual seria a chance de ele ser afetado?`, opts: FR, a: '1/4',
+        why: `Se o filho deles é afetado e eles não são, os dois são portadores (Aa). Aa × Aa → 1/4 AA : 1/2 Aa : 1/4 aa.` };
+    },
+    ar2: (fam, pb) => {
+      const [m, f] = pb.parents.map(id => fam.people[id]);
+      if (m.obs !== 'U' || f.obs !== 'U') return null;
+      const sib = Object.values(fam.people).find(p => p.parents && p.parents.join() === pb.parents.join() && p.obs === 'U' && p.alive);
+      if (!sib) return null;
+      return { q: `${sib.name}, irmã(o) de ${pb.name}, não tem a doença. Qual a chance de ${sib.name} ser portador(a)?`, opts: ['0', '1/4', '1/2', '2/3', '3/4'], a: '2/3',
+        why: `Os pais são Aa × Aa. Entre os filhos <b>não afetados</b> (AA ou Aa), 2 em cada 3 são Aa: o aa já está descartado.` };
+    },
+    ad: (fam) => {
+      const A = Object.values(fam.people).filter(p => p.obs === 'A' && !p.top && !p.marriedIn && p.alive && p.age >= 16);
+      if (!A.length) return null; const a = pick(A);
+      return { q: `${a.name} tem a doença. Se tiver um filho com alguém de fora da família e sem a doença, qual a chance de a criança ser afetada?`, opts: FR, a: '1/2',
+        why: `${a.name} é heterozigoto(a) (Aa) e o parceiro é aa: metade dos gametas de ${a.name} levam o alelo dominante.` };
+    },
+    xlr: (fam) => {
+      const ppl = Object.values(fam.people);
+      for (const s of shuffle(ppl.filter(p => p.sex === 'M' && p.obs === 'A' && p.parents))) {
+        const [m, f] = s.parents.map(id => fam.people[id]);
+        if (m.obs !== 'U' || f.obs !== 'U') continue;
+        const sis = ppl.find(p => p.sex === 'F' && p.obs === 'U' && p.parents && p.parents.join() === s.parents.join() && p.alive);
+        if (sis) return { q: `${sis.name} é irmã de ${s.name}. Os pais deles não têm a doença. Qual a chance de ${sis.name} ser portadora?`, opts: ['0', '1/4', '1/2', '2/3', '1'], a: '1/2',
+          why: `${s.name} recebeu o X alterado da mãe, ${m.name}, que é portadora obrigatória (XᴴXʰ). Cada filha recebe um dos dois X da mãe: 1/2.` };
+      }
+      return null;
+    },
+    cons: (fam) => {
+      const [a, b] = (fam.consang || []).map(id => fam.people[id]); if (!a) return null;
+      return { q: `${a.name} e ${b.name} são primos de primeiro grau. Em média, que fração dos genes primos de primeiro grau compartilham por herdarem dos mesmos avós?`, opts: ['1/2', '1/4', '1/8', '1/16'], a: '1/8',
+        why: `Irmãos compartilham 1/2; cada geração a mais divide por 2. Primos de primeiro grau: 1/8. Por isso a chance de os dois carregarem a mesma variante rara é bem maior que na população.` };
+    },
+    xld: (fam) => {
+      const M = Object.values(fam.people).filter(p => p.sex === 'M' && p.obs === 'A'); if (!M.length) return null; const m = pick(M);
+      return { q: `${m.name} tem a doença. Se tiver filhos com uma mulher não afetada, o que se espera?`, opts: ['Todas as filhas afetadas e nenhum filho', 'Metade das filhas e metade dos filhos', 'Todos os filhos homens e nenhuma filha', 'Nenhum filho afetado'], a: 'Todas as filhas afetadas e nenhum filho',
+        why: `O pai passa o X (com a variante dominante) para todas as filhas e o Y para todos os filhos.` };
+    },
+    mt: (fam) => {
+      const M = Object.values(fam.people).filter(p => p.sex === 'M' && p.obs === 'A'); if (!M.length) return null; const m = pick(M);
+      return { q: `${m.name} tem a doença. Qual a chance de ele transmiti-la a um filho?`, opts: ['Praticamente nula', '1/4', '1/2', 'Todos os filhos'], a: 'Praticamente nula',
+        why: `As mitocôndrias do espermatozoide não chegam ao embrião (são degradadas). O DNA mitocondrial vem só do óvulo.` };
+    },
+    hd: (fam) => {
+      const P = id => fam.people[id];
+      const Y = Object.values(fam.people).filter(p => p.alive && p.obs == null && p.eff < 40 && p.parents && p.parents.some(id => P(id).obs === 'A'));
+      if (!Y.length) return null; const y = pick(Y), par = y.parents.map(P).find(p => p.obs === 'A');
+      return { q: `${y.name}, ${y.age} anos, ainda não tem sintomas e é filho(a) de ${par.name}, que tem a doença. Qual o risco de ${y.name} ter herdado a variante?`, opts: ['0', '1/4', 'Cerca de 1/2', '1'], a: 'Cerca de 1/2',
+        why: `${par.name} é Aa: cada filho tem 1/2 de chance de herdar. Estar sem sintomas aos ${y.age} anos quase não muda o risco, porque a doença costuma começar depois dos 35.` };
+    },
+    pen: (fam) => {
+      const P = id => fam.people[id];
+      for (const x of shuffle(Object.values(fam.people).filter(p => p.g >= 1 && p.obs === 'U' && p.parents))) {
+        const pa = x.parents.map(P).find(p => p.obs === 'A'), k = x.kids.map(P).find(p => p.obs === 'A');
+        if (pa && k) return { q: `${x.name} não tem o traço, mas ${pa.name} (genitor) e ${k.name} (filho/a) têm. Qual a explicação mais provável?`,
+          opts: [`Penetrância incompleta: ${x.name} tem a variante, mas não manifesta`, `Uma nova mutação surgiu em ${k.name}`, 'A herança é recessiva', `${x.name} foi diagnosticado errado`], a: `Penetrância incompleta: ${x.name} tem a variante, mas não manifesta`,
+          why: `Seria uma coincidência enorme ${k.name} ter uma mutação nova idêntica à do avô/avó. ${x.name} é portador(a) obrigatório(a), e o sequenciamento confirmaria.` };
+      }
+      return null;
+    },
+    env: () => ({ q: 'Que exame ajudaria a confirmar a suspeita?', opts: ['Dosagem de chumbo no sangue (plumbemia)', 'Cariótipo', 'Sequenciamento do DNA mitocondrial', 'Teste do pezinho'], a: 'Dosagem de chumbo no sangue (plumbemia)',
+      why: 'Os afetados moram perto da antiga fábrica de baterias. Chumbo causa anemia, cólicas e neuropatia. O próximo passo é dosar chumbo no sangue e avaliar a água e o solo.' }),
+  };
+
+  // ---------- gerador ----------
+  function genCase(T, plantao) {
+    const opts = plantao ? ALL_MODES : T.opts;
+    for (let t = 0; t < 8000; t++) {
+      const fam = buildStructure(T); if (!fam) continue;
+      if (!simulate(fam, T)) continue;
+      const ppl = Object.values(fam.people);
+      const nA = ppl.filter(p => p.obs === 'A').length; if (nA < 2 || nA > 11) continue;
+      const cand = ppl.filter(p => p.obs === 'A' && p.alive && p.parents && (!T.env || p.vila));
+      if (!cand.length) continue;
+      const maxG = Math.max(...cand.map(p => p.gen)), pb = pick(cand.filter(p => p.gen === maxG));
+      const full = p => p.obs, pen = T.pen || 1;
+      const L = {}; for (const m of opts) if (m !== 'ENV') L[m] = likelihood(fam, m, full, m === 'AD' ? pen : 1);
+      if (T.mode === 'ENV') { if (Object.values(L).some(v => v > 0)) continue; }
+      else {
+        const Lt = L[T.mode]; if (!(Lt > 0)) continue;
+        const strict = T.strict && !plantao;
+        if (opts.some(m => m !== T.mode && m !== 'ENV' && (strict ? L[m] > 0 : L[m] * 8 > Lt))) continue;
+      }
+      if (T.pen && likelihood(fam, 'AD', full, 1) > 0) continue;
+      dress(fam, T);
+      const qk = plantao && T.q === 'ar1' && Math.random() < .5 ? 'ar2' : T.q;
+      const q = QS[qk](fam, pb) || (qk === 'ar2' ? QS.ar1(fam, pb) : null); if (!q) continue;
+      layout(fam);
+      return { fam, pb: pb.id, q, tries: t + 1 };
+    }
+    return null;
+  }
+
+  // =====================================================================
+  // ESTADO DO JOGADOR
+  // =====================================================================
+  const SAVE_KEY = 'surto-save-v1';
+  let S = null;
+  const BGS = {
+    clinica: { n: 'Clínica', d: 'Anos de ambulatório: você começa com +2 horas por caso.', perk: 'folego' },
+    lab: { n: 'Laboratório', d: 'Veio da bancada: sequenciar custa menos tempo e verba.', perk: 'bancada' },
+    estat: { n: 'Genética estatística', d: 'Pensa em probabilidades: +1 consulta à Dra. Helena por caso.', perk: 'intuicao' },
+  };
+  const PERKS = {
+    folego: { n: 'Fôlego', d: '+2 horas em cada caso.', max: 3 },
+    arquivo: { n: 'Arquivista', d: 'Prontuários de falecidos não gastam horas.', max: 1 },
+    bancada: { n: 'Bancada afiada', d: 'Sequenciar custa 1 hora e 40% de verba a menos.', max: 1 },
+    intuicao: { n: 'Intuição clínica', d: '+1 consulta à Dra. Helena por caso.', max: 2 },
+    conversa: { n: 'Boa de conversa', d: 'Cada entrevista também revela se um parente ainda não investigado tem a doença.', max: 1 },
+    captacao: { n: 'Captação de recursos', d: '+30% de verba por caso resolvido.', max: 2 },
+    estudo: { n: 'Estudiosa(o)', d: '+20% de experiência.', max: 2 },
+  };
+  const RANKS = ['Residente', 'Geneticista em treinamento', 'Geneticista', 'Geneticista sênior', 'Investigador(a) de famílias', 'Referência regional', 'Referência nacional'];
+  const rank = () => RANKS[Math.min(RANKS.length - 1, S.level - 1)];
+  const need = () => 80 + 40 * S.level;
+  const perk = k => (S.perks && S.perks[k]) || 0;
+  const seqCost = () => ({ h: 2 - (perk('bancada') ? 1 : 0), cash: perk('bancada') ? 72 : 120 });
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() { try { const t = localStorage.getItem(SAVE_KEY); if (t) return JSON.parse(t); } catch (e) {} return null; }
+
+  // =====================================================================
+  // INTERFACE BÁSICA
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  function toast(html, kind) {
+    const el = document.createElement('div'); el.className = 'toast' + (kind ? ' ' + kind : ''); el.innerHTML = html;
+    $('#toasts').appendChild(el); while ($('#toasts').children.length > 4) $('#toasts').firstChild.remove();
+    setTimeout(() => el.remove(), 4200);
+  }
+  function modal(html) { $('#modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; }
+  function closeModal() { $('#modalRoot').innerHTML = ''; }
+  const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const helena = html => `<div class="who"><div class="avatar">👩🏽‍⚕️</div><div>${html}</div></div>`;
+
+  // =====================================================================
+  // CASO
+  // =====================================================================
+  const tplOf = cs => CASES[cs.tpl];
+  const Pc = id => S.cs.fam.people[id];
+  const known = p => S.cs.reveal || S.cs.inv[p.id] || (S.cs.gossip && S.cs.gossip[p.id]);
+  const obsKnown = p => known(p) ? p.obs : null;
+  const optsOf = cs => cs.plantao ? ALL_MODES : tplOf(cs).opts;
+
+  function startCase(idx, plantao) {
+    const T0 = CASES[idx], T = plantao ? { ...T0, fam: pick(SURN) } : T0;
+    const r = genCase(T, plantao);
+    if (!r) { toast('Não consegui montar a família. Tente de novo.'); return; }
+    const n = Object.keys(r.fam.people).length;
+    const cs = { tpl: idx, plantao, famName: T.fam, fam: r.fam, pb: r.pb, q: r.q, disc: {}, inv: {}, seq: {}, txt: {}, gossip: {}, hyp: {}, log: [], hl: [], sel: r.pb,
+      hours: Math.ceil(n * .55) + 2 + 2 * perk('folego'), hel: { left: 1 + perk('intuicao'), res: null, at: 0 }, lsel: {}, reveal: false };
+    cs.hours0 = cs.hours;
+    S.cs = cs; S.screen = 'case';
+    const pb = Pc(r.pb);
+    reveal(pb); cs.inv[pb.id] = true; cs.txt[pb.id] = interview(pb);
+    cs.log.push(`Caso aberto: ${pb.name} (${pb.label}), ${pb.age} anos, é o probando.`);
+    render(); centerPed();
+    caseIntro();
+  }
+  function reveal(p) {
+    const cs = S.cs, ids = [p.id, ...p.spouses, ...p.kids];
+    if (p.parents) { ids.push(...p.parents); ids.push(...Object.values(cs.fam.people).filter(q => q.parents && q.parents.join() === p.parents.join()).map(q => q.id)); }
+    for (const id of ids) cs.disc[id] = true;
+  }
+  const GREET = ['Bom dia!', 'Pode entrar.', 'Oi, tudo bem?', 'Que bom que você veio.', 'Olá, fique à vontade.'];
+  function interview(p) {
+    const cs = S.cs, T = tplOf(cs), d = T.dis, out = [];
+    const kid = p.age < 12, pars = p.parents ? p.parents.map(Pc) : [];
+    if (kid) { const g = pars.find(x => x.alive) || pars[0]; out.push(`<i>Quem responde é ${g.name} (${g.sex === 'F' ? 'mãe' : 'pai'}):</i>`); }
+    else out.push(`${pick(GREET)} Sou ${p.name}, tenho ${p.age} anos${p.job ? `, sou ${p.job}` : ''}.`);
+    if (p.obs === 'A') out.push(kid && d.kid ? d.kid : pick(d.aff));
+    else if (p.obs == null) {
+      const pa = pars.find(x => x.obs === 'A');
+      out.push(pick(['Por enquanto não sinto nada.', 'Não tenho sintoma nenhum, pelo menos por ora.']) + (pa ? ` Mas vi o que aconteceu com ${pa.sex === 'F' ? 'minha mãe' : 'meu pai'} e tenho medo.` : ''));
+    } else out.push(kid ? 'Nunca teve nada parecido.' : pick(['Nunca tive nada parecido.', 'Graças a Deus, não tenho nada disso.', 'Sou saudável, só a pressão que às vezes sobe.', 'Fiz todos os exames e nunca deu nada.']));
+    if (cs.fam.consang && cs.fam.consang.includes(p.id)) {
+      const o = Pc(cs.fam.consang.find(id => id !== p.id));
+      const pa = p.parents.map(Pc).find(x => !x.marriedIn), pb = o.parents.map(Pc).find(x => !x.marriedIn);
+      out.push(`Eu e ${o.name} somos primos de primeiro grau: ${pa.sex === 'F' ? 'minha mãe' : 'meu pai'}, ${pa.name}, e ${pb.sex === 'F' ? 'a mãe' : 'o pai'} de ${o.name}, ${pb.name}, são irmãos.`);
+    }
+    if (T.env) out.push(p.vila ? pick(['Moramos na Vila da Fábrica, do lado da antiga fábrica de baterias.', 'A gente mora na Vila da Fábrica há uns quinze anos. A água do poço tem um gosto estranho.', 'Moro na Vila da Fábrica, na mesma rua dos parentes.'])
+      : pick(['Moro no centro, longe da vila.', 'Moro em outra cidade faz muitos anos.', 'Moro no sítio, do outro lado do rio.']));
+    if (p.marriedIn && !kid) out.push(pick(['Na minha família de origem, ninguém teve isso.', 'Entrei nessa família quando me casei.']));
+    return out.join(' ');
+  }
+  function record(p) {
+    const T = tplOf(S.cs), d = T.dis;
+    return `Prontuário de ${p.name} ${p.surname}, falecido(a) aos ${p.deadAge} anos. ` + (p.obs === 'A' ? d.rec : p.obs == null ? 'Morreu antes da idade em que a doença costuma começar.' : 'Nenhum registro de sinais da doença.') + (T.env && p.vila ? ' Endereço: Vila da Fábrica.' : '');
+  }
+  function seqText(p) {
+    const T = tplOf(S.cs);
+    if (T.env) return 'Nenhuma variante patogênica no painel de genes.';
+    if (T.mode === 'MT') return p.g ? 'Variante patogênica detectada.' : 'Nenhuma variante patogênica.';
+    return ['Nenhuma cópia da variante.', 'Variante em 1 cópia.', 'Variante em 2 cópias.'][p.g];
+  }
+  const seqShort = p => tplOf(S.cs).env ? 'sem variante' : tplOf(S.cs).mode === 'MT' ? (p.g ? 'variante' : 'normal') : ['0 cópias', '1 cópia', '2 cópias'][p.g];
+  const phenLabel = p => p.obs === 'A' ? `<span class="tag aff">tem ${tplOf(S.cs).dis.name}</span>` : p.obs === 'U' ? '<span class="tag un">sem sinais da doença</span>' : `<span class="tag q">${p.alive ? 'sem sintomas, mas ainda jovem para descartar' : 'morreu antes da idade típica de início'}</span>`;
+
+  function investigate(id) {
+    const cs = S.cs, p = Pc(id); if (!p || cs.inv[id] || cs.reveal) return;
+    const cost = !p.alive && perk('arquivo') ? 0 : 1;
+    if (cs.hours < cost) { toast('Sem horas para isso. Hora de emitir o laudo.'); return; }
+    cs.hours -= cost; cs.inv[id] = true;
+    cs.txt[id] = p.alive ? interview(p) : record(p);
+    reveal(p);
+    const st = p.obs === 'A' ? 'tem a doença' : p.obs === 'U' ? 'não tem sinais' : 'ainda sem sintomas';
+    cs.log.push(`${p.alive ? 'Entrevista' : 'Prontuário'}: ${p.name} (${p.label}) ${st}.`);
+    if (perk('conversa') && p.alive) {
+      const rel = [...(p.parents || []), ...p.spouses, ...p.kids].map(Pc).filter(q => !known(q) && cs.disc[q.id]);
+      if (rel.length) { const q = pick(rel); cs.gossip[q.id] = p.name; cs.log.push(`${p.name} contou que ${q.name} ${q.obs === 'A' ? 'tem a doença' : q.obs === 'U' ? 'não tem a doença' : 'ainda não tem sintomas'}.`); }
+    }
+    p.alive ? sfx.step() : sfx.paper();
+    render();
+  }
+  function sequence(id) {
+    const cs = S.cs, p = Pc(id), c = seqCost();
+    if (!p || cs.seq[id] || !p.alive || !cs.inv[id] || cs.reveal) return;
+    if (cs.hours < c.h) { toast('Sem horas para sequenciar.'); return; }
+    if (S.cash < c.cash) { toast('Verba insuficiente para o sequenciamento.'); return; }
+    cs.hours -= c.h; S.cash -= c.cash; cs.seq[id] = true;
+    cs.log.push(`Sequenciamento de ${p.name}: ${seqText(p)}`);
+    sfx.seq(); render();
+  }
+  function consult() {
+    const cs = S.cs, T = tplOf(cs);
+    if (cs.hel.left < 1 || cs.hours < 1 || cs.reveal) return;
+    cs.hours--; cs.hel.left--;
+    const res = {}; let max = 0;
+    const opts = optsOf(cs);
+    for (const m of opts) if (m !== 'ENV') { const L = likelihood(cs.fam, m, obsKnown, m === 'AD' ? (T.pen || 1) : 1); res[m] = { L }; if (L > max) max = L; }
+    for (const m of opts) if (m !== 'ENV') {
+      const r = res[m];
+      if (!r.L) { const w = witness(cs.fam, m, obsKnown, m === 'AD' ? (T.pen || 1) : 1); r.msg = w ? w.msg : 'Nenhuma família sozinha contradiz, mas o conjunto das gerações não fecha.'; r.ids = w ? w.ids : []; }
+      else r.rel = r.L / max;
+    }
+    if (opts.includes('ENV')) res.ENV = { env: true, ok: max === 0 };
+    cs.hel.res = res; cs.hel.at = Object.keys(cs.inv).length + Object.keys(cs.gossip).length;
+    cs.log.push('Você discutiu o caso com a Dra. Helena.');
+    sfx.hel(); render();
+  }
+  function helLine(m) {
+    const cs = S.cs, r = cs.hel.res && cs.hel.res[m]; if (!r) return '';
+    if (r.env) return `<div class="hel">${r.ok ? '<b style="color:var(--good)">Plausível:</b> nenhuma herança genética explica o que você levantou.' : 'Ainda existe explicação genética compatível.'}</div>`;
+    if (!r.L) return `<div class="hel"><b style="color:var(--bad)">Descartada.</b> ${esc(r.msg)} ${r.ids.length ? `<button class="ghost" data-act="hl" data-v="${m}">mostrar</button>` : ''}</div>`;
+    const lab = r.rel > .999 ? 'melhor explicação até agora' : r.rel >= .25 ? 'também plausível' : r.rel >= 1 / 16 ? 'possível, mas menos provável' : `muito improvável (≈1 em ${Math.round(1 / r.rel)} em relação à melhor)`;
+    return `<div class="hel"><span class="relbar"><i style="width:${Math.max(3, r.rel * 100)}%"></i></span>${lab}</div>`;
+  }
+
+  // ---------- laudo ----------
+  function laudo() {
+    const cs = S.cs, q = cs.q;
+    if (!cs.lsel.mode) { const fav = optsOf(cs).find(m => cs.hyp[m] === 'ok'); if (fav) cs.lsel.mode = fav; }
+    modal(`<h3>📝 Laudo da família ${esc(cs.famName)}</h3>
+      <p><b>1. Modo de herança mais provável</b></p>
+      ${optsOf(cs).map(m => `<button class="opt ${cs.lsel.mode === m ? 'on' : ''}" data-act="lmode" data-v="${m}">${MODES[m].n}</button>`).join('')}
+      <p style="margin-top:12px"><b>2. ${esc(q.q)}</b></p>
+      ${q.opts.map(o => `<button class="opt ${cs.lsel.ans === o ? 'on' : ''}" data-act="lans" data-v="${esc(o)}">${esc(o)}</button>`).join('')}
+      <p class="meta">Responda pensando no modo de herança que você escolheu. Depois de assinar, o laudo não pode ser alterado.</p>
+      <div class="btns"><button class="btn warm" data-act="sign" ${cs.lsel.mode && cs.lsel.ans ? '' : 'disabled'}>Assinar laudo</button><button class="btn" data-act="close">Continuar investigando</button></div>`);
+  }
+  function sign() {
+    const cs = S.cs, T = tplOf(cs), q = cs.q;
+    const mOK = cs.lsel.mode === T.mode, qOK = cs.lsel.ans === q.a;
+    let xp = (mOK ? 60 : 10) + (qOK ? 40 : 0) + (mOK ? cs.hours * 3 : 0) + (cs.plantao ? 20 : 0);
+    xp = Math.round(xp * (1 + .2 * perk('estudo')));
+    const base = cs.plantao ? 320 : 220 + 30 * cs.tpl;
+    const cash = Math.round(base * (.6 + .1 * S.rep) * (1 + .3 * perk('captacao')) * (mOK ? 1 : .3));
+    const rep0 = S.rep; S.rep = Math.max(0, Math.min(5, S.rep + (mOK && qOK ? 1 : mOK ? 0 : -1)));
+    S.cash += cash; S.solved += mOK ? 1 : 0;
+    if (!cs.plantao && mOK && S.camp === cs.tpl) S.camp++;
+    if (cs.plantao) S.plantoes++;
+    const lv0 = S.level; S.xp += xp;
+    while (S.xp >= need()) { S.xp -= need(); S.level++; S.pendingPerk = (S.pendingPerk || 0) + 1; }
+    cs.reveal = true; cs.hl = []; cs.result = { mOK, qOK, xp, cash };
+    mOK ? sfx.good() : sfx.bad();
+    if (S.level > lv0) setTimeout(sfx.level, 900);
+    const d = T.dis;
+    modal(`<h3>${mOK ? '✅ Laudo correto!' : '❌ Laudo incorreto'}</h3>
+      <p><b>Modo de herança:</b> você indicou <b>${MODES[cs.lsel.mode].n}</b>${mOK ? '.' : `, mas era <b>${MODES[T.mode].n}</b>.`}</p>
+      <p><b>Pergunta:</b> ${qOK ? `<span style="color:var(--good)">certo (${esc(q.a)})</span>` : `<span style="color:var(--bad)">você marcou ${esc(cs.lsel.ans)}; a resposta era ${esc(q.a)}</span>`}. ${q.why}</p>
+      <div class="lesson">${helena(`${T.lesson}<p class="meta">Na vida real, o quadro de "${d.name}" corresponde a ${d.real}.</p>`)}</div>
+      <p class="meta" style="margin-top:10px">+${xp} XP · +R$ ${cash} · reputação ${stars(rep0)} → ${stars(S.rep)}${S.level > lv0 ? ` · <b style="color:var(--warm)">subiu para o nível ${S.level}!</b>` : ''}</p>
+      <div class="btns"><button class="btn primary" data-act="close">Ver o heredograma completo</button><button class="btn" data-act="hub">Voltar ao consultório</button></div>`);
+    render();
+  }
+
+  // ---------- heredograma ----------
+  function pedSVG() {
+    const cs = S.cs, fam = cs.fam, ppl = Object.values(fam.people), P = id => fam.people[id], T = tplOf(cs);
+    const vis = p => cs.reveal || cs.disc[p.id];
+    const SW = 76, RH = 108, PX = 40, PY = 36, R = 14;
+    const X = x => PX + x * SW + SW / 2, Y = r => PY + r * RH + R;
+    const maxX = Math.max(...ppl.map(p => p.x)), maxR = Math.max(...ppl.map(p => p.gen));
+    const W = PX + (maxX + 1) * SW + 16, H = PY + (maxR + 1) * RH - 10;
+    let L = '', N = '';
+    const seen = new Set();
+    for (const a of ppl) for (const s of a.spouses) {
+      const key = [a.id, s].sort((x, y) => x - y).join('-'); if (seen.has(key)) continue; seen.add(key);
+      const b = P(s); if (!vis(a) || !vis(b)) continue;
+      const [l, r] = a.x < b.x ? [a, b] : [b, a], y = Y(a.gen);
+      const cons = fam.consang && fam.consang.includes(a.id) && fam.consang.includes(b.id);
+      let topY; const near = !ppl.some(q => q.gen === a.gen && q.x > l.x && q.x < r.x && vis(q));
+      if (near) {
+        L += cons ? `<path class="ln" d="M${X(l.x) + R} ${y - 3}H${X(r.x) - R}M${X(l.x) + R} ${y + 3}H${X(r.x) - R}"/>` : `<path class="ln" d="M${X(l.x) + R} ${y}H${X(r.x) - R}"/>`; topY = y;
+      } else {
+        const yy = y - R - 16; topY = yy;
+        L += `<path class="ln" d="M${X(l.x)} ${y - R}V${yy}H${X(r.x)}V${y - R}"/>` + (cons ? `<path class="ln" d="M${X(l.x) + 5} ${y - R}V${yy + 5}H${X(r.x) - 5}V${y - R}"/>` : '');
+      }
+      const kids = a.kids.filter(k => b.kids.includes(k)).map(P).filter(vis); if (!kids.length) continue;
+      const kx = kids.map(k => X(k.x)), cx = near ? (X(l.x) + X(r.x)) / 2 : (Math.min(...kx) + Math.max(...kx)) / 2;
+      const sy = y + RH / 2 + 4, ky = Y(a.gen + 1) - R;
+      L += `<path class="ln" d="M${cx} ${topY}V${sy}M${Math.min(cx, ...kx)} ${sy}H${Math.max(cx, ...kx)}${kx.map(x => `M${x} ${sy}V${ky}`).join('')}"/>`;
+    }
+    for (const p of ppl) {
+      if (!vis(p)) continue;
+      const x = X(p.x), y = Y(p.gen), k = known(p);
+      const fill = !k ? '#e3dccb' : p.obs === 'A' ? '#22303a' : '#ffffff';
+      const shape = (cls, pad, f) => p.sex === 'M' ? `<rect x="${x - R - pad}" y="${y - R - pad}" width="${2 * (R + pad)}" height="${2 * (R + pad)}" class="${cls}" ${f ? `fill="${f}"` : ''}/>` : `<circle cx="${x}" cy="${y}" r="${R + pad}" class="${cls}" ${f ? `fill="${f}"` : ''}/>`;
+      const showSeq = (cs.seq[p.id] || cs.reveal) && !T.env;
+      let g = `<rect x="${x - 34}" y="${y - R - 8}" width="68" height="${2 * R + 52}" fill="transparent"/>`;
+      if (cs.hl.includes(p.id)) g += `<rect x="${x - 30}" y="${y - 24}" width="60" height="62" rx="8" class="hl"/>`;
+      g += shape('sym', 0, fill);
+      const dot = showSeq && p.g >= 1 && p.obs !== 'A';
+      if (!k || (p.obs == null && !dot)) g += `<text x="${x}" y="${y + 5}" class="q">?</text>`;
+      if (dot) g += `<circle cx="${x}" cy="${y}" r="4.5" fill="#22303a"/>`;
+      if (!p.alive) g += `<path d="M${x - R - 6} ${y + R + 6}L${x + R + 6} ${y - R - 6}" class="ln"/>`;
+      if (p.id === cs.pb) g += `<path d="M${x - R - 22} ${y + R + 12}L${x - R - 4} ${y + R - 4}" class="ln" style="stroke-width:2.2"/><path d="M${x - R - 4} ${y + R - 4}l-8 1l5 6z" fill="#22303a"/><text x="${x - R - 26}" y="${y + R + 22}" style="font-size:11px;font-weight:700">P</text>`;
+      if (cs.sel === p.id && !cs.reveal) g += shape('sel', 5);
+      g += `<text x="${x}" y="${y + R + 14}" class="nm">${esc(p.name)}</text>`;
+      g += `<text x="${x}" y="${y + R + 26}" class="ag">${p.label}${k ? ` · ${p.alive ? p.age + ' a' : '†' + p.deadAge}` : ''}</text>`;
+      if (showSeq) g += `<text x="${x}" y="${y + R + 38}" class="seqt">${seqShort(p)}</text>`;
+      else if (cs.gossip[p.id] && !cs.inv[p.id]) g += `<text x="${x}" y="${y + R + 38}" class="lb">(relato)</text>`;
+      N += `<g class="pn" data-act="sel" data-id="${p.id}">${g}</g>`;
+    }
+    const rows = Array.from({ length: maxR + 1 }, (_, r) => `<text x="8" y="${Y(r) + 5}" class="gen">${['I', 'II', 'III', 'IV', 'V'][r]}</text>`).join('');
+    return `<svg class="ped" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${rows}${L}${N}</svg>`;
+  }
+  const legend = () => `<div class="legend">
+    <span><svg width="16" height="16"><rect x="1" y="1" width="14" height="14" fill="#fff" stroke="#22303a" stroke-width="1.5"/></svg>homem</span>
+    <span><svg width="16" height="16"><circle cx="8" cy="8" r="7" fill="#fff" stroke="#22303a" stroke-width="1.5"/></svg>mulher</span>
+    <span><svg width="16" height="16"><rect x="1" y="1" width="14" height="14" fill="#22303a"/></svg>afetado(a)</span>
+    <span><svg width="16" height="16"><circle cx="8" cy="8" r="7" fill="#e3dccb" stroke="#22303a" stroke-width="1.5"/><text x="8" y="12" font-size="10" text-anchor="middle" fill="#7d8790">?</text></svg>não investigado(a) ou sem sintomas ainda</span>
+    <span><svg width="16" height="16"><circle cx="8" cy="8" r="7" fill="#fff" stroke="#22303a" stroke-width="1.5"/><circle cx="8" cy="8" r="2.6" fill="#22303a"/></svg>portador(a) confirmado(a)</span>
+    <span>／ falecido(a)</span><span>═ casal consanguíneo</span><span>↗P probando</span></div>`;
+  function centerPed() {
+    const w = $('#pedwrap'), cs = S.cs; if (!w || !cs) return;
+    const p = Pc(cs.sel || cs.pb);
+    w.scrollLeft = 40 + p.x * 76 + 38 - w.clientWidth / 2; w.scrollTop = 36 + p.gen * 108 - w.clientHeight / 2;
+  }
+
+  // =====================================================================
+  // TELAS
+  // =====================================================================
+  function render() {
+    $('#res').innerHTML = S && S.name ? `
+      <span class="pill">🧑‍🔬 <b>${esc(S.name)}</b> · nível ${S.level} · ${rank()} <span class="xpbar" title="${S.xp}/${need()} XP"><i style="width:${S.xp / need() * 100}%"></i></span></span>
+      <span class="pill stars" title="reputação">${stars(S.rep)}</span>
+      <span class="pill">💰 <b>R$ ${S.cash}</b></span>
+      <button class="ghost" data-act="guide">Guia de heredogramas</button>` : '';
+    const scr = !S || !S.name ? 'title' : S.screen;
+    $('#main').innerHTML = scr === 'title' ? rTitle() : scr === 'hub' ? rHub() : rCase();
+    if (S && S.name) save();
+  }
+  let newBg = 'clinica';
+  function rTitle() {
+    const old = load();
+    return `<div class="title"><h2>SURTO</h2><div class="tagline">Um RPG de investigação genética no Vale do Sereno</div>
+      <p style="max-width:640px;margin:0 auto 18px">Você acaba de assumir o novo Serviço de Genética do Vale do Sereno. Famílias inteiras adoecem e ninguém sabe por quê. Entreviste parentes, consulte prontuários, sequencie amostras e monte o heredograma até descobrir <b>como a doença passa de uma geração para outra</b>.</p>
+      ${old && old.name ? `<p><button class="btn primary" data-act="continue">Continuar como ${esc(old.name)} (nível ${old.level})</button></p><p class="meta">ou comece de novo:</p>` : ''}
+      <p><input class="name" id="pname" maxlength="24" placeholder="Seu nome" value="${old && old.name ? '' : ''}"></p>
+      <p class="meta">Sua formação:</p>
+      <div class="bgs">${Object.entries(BGS).map(([k, b]) => `<button class="bg ${newBg === k ? 'on' : ''}" data-act="bg" data-v="${k}"><b>${b.n}</b>${b.d}</button>`).join('')}</div>
+      <p style="margin-top:16px"><button class="btn warm" data-act="new">Começar a residência</button></p></div>`;
+  }
+  function rHub() {
+    const done = S.camp >= CASES.length;
+    const list = CASES.map((T, i) => {
+      const st = i < S.camp ? 'done' : i === S.camp ? 'now' : 'off';
+      return `<div class="citem ${st}"><div class="n">${i + 1}</div><div class="grow"><b>${st === 'off' ? '???' : `Família ${T.fam}`}</b><div class="meta">${st === 'off' ? 'caso ainda não chegou' : `${T.dis.name}: ${T.dis.short}`}</div></div>
+        ${st === 'done' ? '✅' : st === 'now' ? `<button class="btn warm" data-act="open" data-v="${i}">${S.cs && !S.cs.reveal && S.cs.tpl === i && !S.cs.plantao ? 'Continuar' : 'Abrir caso'}</button>` : '🔒'}</div>`;
+    }).join('');
+    const ongoing = S.cs && !S.cs.reveal;
+    return `<h2>Consultório de Genética do Vale do Sereno</h2>
+      <p class="sub">${done ? 'A campanha terminou, mas as famílias continuam chegando. Atenda plantões com todos os modos de herança possíveis.' : 'Os casos chegam em ordem. Cada um traz um padrão de herança novo.'}</p>
+      ${ongoing && S.cs.plantao ? `<div class="panel" style="margin-bottom:12px;border-color:var(--warm)">Plantão em andamento: família ${esc(S.cs.famName)}. <button class="btn warm" data-act="resume">Continuar</button></div>` : ''}
+      <div class="hubgrid">
+        <div class="panel"><h3>${esc(S.name)}</h3><div>${rank()} · nível ${S.level}</div>
+          <div class="meta">${S.xp}/${need()} XP para o próximo nível</div>
+          <div style="margin:8px 0" class="stars">${stars(S.rep)} <span class="meta">reputação</span></div>
+          <div>💰 R$ ${S.cash} · ✅ ${S.solved} caso(s) resolvido(s)${S.plantoes ? ` · 🚑 ${S.plantoes} plantão(ões)` : ''}</div>
+          <p class="meta" style="margin:10px 0 4px">Formação: ${BGS[S.bg].n}. Habilidades:</p>
+          <div class="perks">${Object.entries(S.perks).filter(([, v]) => v).map(([k, v]) => `<span class="perk" title="${esc(PERKS[k].d)}">${PERKS[k].n}${v > 1 ? ' ×' + v : ''}</span>`).join('')}</div>
+          ${S.pendingPerk ? `<p><button class="btn warm" data-act="perkpick">Escolher nova habilidade (${S.pendingPerk})</button></p>` : ''}
+        </div>
+        <div><div class="clist">${list}</div>
+          ${done ? `<p><button class="btn warm" data-act="plantao" ${ongoing ? 'disabled' : ''}>🚑 Atender plantão (família aleatória)</button></p>` : ''}</div>
+      </div>`;
+  }
+  function rCase() {
+    const cs = S.cs, T = tplOf(cs), d = T.dis;
+    return `<div class="casehead"><div><div class="meta">${cs.plantao ? 'Plantão' : `Caso ${cs.tpl + 1} de ${CASES.length}`} · encaminhado por ${T.caller.charAt(0).toLowerCase() + T.caller.slice(1)}</div>
+        <h2>Família ${esc(cs.famName)}</h2><div><b>${d.name}</b>: ${d.short}</div></div>
+        <div class="btns" style="align-items:center">${cs.reveal ? '' : `<span class="clock ${cs.hours <= 2 ? 'low' : ''}">⏱ ${cs.hours} h restantes</span>`}<button class="ghost" data-act="hub">Voltar ao consultório</button></div></div>
+      <div class="casegrid"><div><div class="pedwrap" id="pedwrap">${pedSVG()}</div>${legend()}</div>
+        <div class="side">${cs.reveal ? rReveal() : rPerson() + rHyp()}${rLog()}</div></div>`;
+  }
+  function rPerson() {
+    const cs = S.cs, p = Pc(cs.sel); if (!p) return '';
+    const k = cs.inv[p.id], c = seqCost();
+    const sym = p.sex === 'F' ? '♀' : '♂';
+    let h = `<div class="panel person"><div class="meta">${p.label}${p.id === cs.pb ? ' · probando' : ''}${p.marriedIn ? ' · entrou na família por casamento' : ''}</div><h3>${esc(p.name)} ${esc(p.surname)} ${sym}</h3>`;
+    if (!k) {
+      h += `<p class="muted">${p.alive ? 'Ainda não entrevistado(a).' : 'Faleceu. O prontuário está no arquivo do hospital.'}</p>`;
+      if (cs.gossip[p.id]) h += `<p>${phenLabel(p)} <span class="meta">segundo ${esc(cs.gossip[p.id])}</span></p>`;
+      const cost = !p.alive && perk('arquivo') ? 0 : 1;
+      h += `<div class="btns"><button class="btn primary" data-act="inv" data-id="${p.id}" ${cs.hours < cost ? 'disabled' : ''}>${p.alive ? '🗣️ Entrevistar' : '📁 Consultar prontuário'} (${cost} h)</button></div>`;
+    } else {
+      h += `<div>${phenLabel(p)}<span class="tag">${p.alive ? `${p.age} anos` : `faleceu aos ${p.deadAge}`}</span></div><div class="quote">${cs.txt[p.id]}</div>`;
+      if (cs.seq[p.id]) h += `<p>🧬 <b>Sequenciamento:</b> ${seqText(p)}</p>`;
+      else if (p.alive) h += `<div class="btns"><button class="btn" data-act="seq" data-id="${p.id}" ${cs.hours < c.h || S.cash < c.cash ? 'disabled' : ''}>🧬 Sequenciar (${c.h} h · R$ ${c.cash})</button></div>`;
+    }
+    return h + '</div>';
+  }
+  function rHyp() {
+    const cs = S.cs;
+    const stale = cs.hel.res && cs.hel.at !== Object.keys(cs.inv).length + Object.keys(cs.gossip).length;
+    return `<div class="panel"><b>Quadro de hipóteses</b> <span class="meta">clique para marcar: ? → ✗ descartada → ✓ favorita</span>
+      ${cs.hel.res ? `<div class="meta" style="margin:4px 0">Avaliação da Dra. Helena${stale ? ' <b style="color:var(--warm)">(desatualizada: há informações novas)</b>' : ''}:</div>` : ''}
+      <div class="hyp" style="margin-top:6px">${optsOf(cs).map(m => { const s = cs.hyp[m] || ''; return `<button class="st ${s}" data-act="hyp" data-v="${m}">${s === 'x' ? '✗' : s === 'ok' ? '✓' : '?'}</button><div>${MODES[m].n}${helLine(m)}</div>`; }).join('')}</div>
+      <div class="btns" style="margin-top:10px"><button class="btn" data-act="helena" ${cs.hel.left < 1 || cs.hours < 1 ? 'disabled' : ''} title="Ela avalia cada hipótese com o que você já investigou">👩🏽‍⚕️ Consultar Dra. Helena (1 h · ${cs.hel.left} restante${cs.hel.left === 1 ? '' : 's'})</button>
+        <button class="btn warm" data-act="laudo">📝 Emitir laudo</button></div></div>`;
+  }
+  function rReveal() {
+    const cs = S.cs, T = tplOf(cs), r = cs.result || {};
+    const retry = !cs.plantao && !r.mOK;
+    return `<div class="panel" style="border-color:${r.mOK ? 'var(--good)' : 'var(--bad)'}"><b>Caso encerrado</b>
+      <p>Heredograma completo, com todos os parentes e o resultado que o sequenciamento daria. Modo de herança: <b>${MODES[T.mode].n}</b>.</p>
+      <div class="btns">${retry ? `<button class="btn warm" data-act="open" data-v="${cs.tpl}">Tentar com outra família</button>` : ''}<button class="btn primary" data-act="hub">Voltar ao consultório</button></div></div>`;
+  }
+  function rLog() {
+    const cs = S.cs;
+    return `<div class="panel"><b>Caderno de campo</b><div class="log" id="log">${cs.log.map(l => `<p>${esc(l)}</p>`).join('')}</div></div>`;
+  }
+
+  // ---------- modais ----------
+  const INTROS = [
+    'Dica: quem teve filhos afetados sem ser afetado está escondendo alguma coisa nos genes.',
+    'Dica: repare se a doença passa de pai para filho homem.',
+    'Dica: conte quantos homens e quantas mulheres são afetados.',
+    'Dica: a linha dupla no heredograma marca um casal consanguíneo.',
+    'Dica: olhe todos os filhos e filhas de cada homem afetado.',
+    'Dica: compare os filhos das mulheres afetadas com os filhos dos homens afetados.',
+    'Dica: jovens sem sintomas aparecem com "?". Eles ainda podem desenvolver a doença.',
+    'Dica: nem todo portador manifesta. O sequenciamento pode ajudar.',
+    'Dica: preste atenção ao que as pessoas contam sobre onde moram.',
+  ];
+  function caseIntro() {
+    const cs = S.cs, T = tplOf(cs), pb = Pc(cs.pb);
+    modal(`<h3>${cs.plantao ? '🚑 Plantão' : `Caso ${cs.tpl + 1}`}: família ${esc(cs.famName)}</h3>
+      ${helena(`<p>${T.caller} encaminhou <b>${esc(pb.name)}</b>, ${pb.age} anos, com <b>${T.dis.name}</b> (${T.dis.short}). Há suspeita de que outras pessoas da família tenham o mesmo quadro.</p>
+      <p>Descubra o modo de herança e responda à pergunta do laudo. Você tem <b>${cs.hours} horas</b> de investigação.</p>
+      ${cs.plantao ? '<p class="meta">No plantão, todos os modos de herança são possíveis.</p>' : `<p class="meta">${INTROS[cs.tpl]}</p>`}`)}
+      <div class="btns" style="margin-top:10px">${S.seenHow ? '<button class="btn primary" data-act="close">Começar</button><button class="btn" data-act="how">Como investigar</button>' : '<button class="btn primary" data-act="how">Como investigar →</button>'}</div>`);
+    S.seenHow = true;
+  }
+  function how() {
+    modal(`<h3>Como investigar</h3>
+      <ol>
+        <li><b>Clique em uma pessoa</b> do heredograma para ver o que você sabe sobre ela.</li>
+        <li><b>Entrevistar</b> (vivos) ou <b>consultar prontuário</b> (falecidos) custa 1 hora, mostra se a pessoa tem a doença e revela os parentes dela no heredograma.</li>
+        <li><b>Sequenciar</b> custa horas e verba e mostra quantas cópias da variante a pessoa carrega. Útil para achar portadores.</li>
+        <li>Use o <b>quadro de hipóteses</b> para anotar o que já descartou. A <b>Dra. Helena</b> avalia todas as hipóteses com o que você já levantou (as consultas são limitadas).</li>
+        <li>Quando tiver certeza, <b>emita o laudo</b>. Horas que sobrarem viram experiência.</li>
+      </ol>
+      <p class="meta"><b>Hipótese do alelo raro:</b> quem entrou na família por casamento, sem histórico, é considerado não portador da variante, a menos que seja afetado.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`);
+  }
+  function guide() {
+    modal(`<div class="guide"><h3>Guia de heredogramas</h3>
+      <p><b>Notação:</b> quadrado = homem, círculo = mulher, preenchido = afetado, ponto central = portador, barra = falecido, linha dupla = consanguinidade, seta P = probando. Gerações em algarismos romanos.</p>
+      <h4>Autossômica dominante</h4><p>Todo afetado tem um genitor afetado; homens e mulheres igualmente; transmissão de pai para filho homem é possível; filho de afetado (Aa × aa): 1/2.</p>
+      <h4>Autossômica recessiva</h4><p>Afetados costumam ter pais não afetados (portadores); homens e mulheres igualmente; mais comum em casamentos consanguíneos; Aa × Aa: 1/4 afetados, e 2/3 dos irmãos não afetados são portadores.</p>
+      <h4>Recessiva ligada ao X</h4><p>Muito mais homens afetados; passa por mães portadoras; nunca de pai para filho homem; todas as filhas de um homem afetado são portadoras.</p>
+      <h4>Dominante ligada ao X</h4><p>Homem afetado: todas as filhas afetadas e nenhum filho. Mulher afetada: 1/2 dos filhos de ambos os sexos. Mais mulheres afetadas.</p>
+      <h4>Mitocondrial</h4><p>Só a mãe transmite, para todos os filhos; homem afetado não transmite. A gravidade varia (heteroplasmia).</p>
+      <h4>Não genética</h4><p>Quando os afetados se agrupam por lugar ou exposição, não por parentesco, e nenhuma herança explica o heredograma: suspeite de uma <b>fenocópia</b> ambiental.</p>
+      <h4>Hipótese do alelo raro</h4><p>Quem entra na família por casamento é considerado não portador, a menos que seja afetado. É o que se assume nos exercícios de heredograma quando a doença é rara.</p>
+      <div class="btns" style="margin-top:12px"><button class="btn primary" data-act="close">Fechar</button></div></div>`);
+  }
+  function perkPick() {
+    const avail = shuffle(Object.keys(PERKS).filter(k => perk(k) < PERKS[k].max)).slice(0, 3);
+    if (!avail.length) { S.pendingPerk = 0; render(); return; }
+    modal(`<h3>⭐ Nível ${S.level}: ${rank()}</h3><p>Escolha uma habilidade nova:</p>
+      ${avail.map(k => `<button class="opt" data-act="perk" data-v="${k}"><b>${PERKS[k].n}</b>${perk(k) ? ` (nível ${perk(k) + 1})` : ''}<br><span class="meta">${PERKS[k].d}</span></button>`).join('')}`);
+  }
+
+  // =====================================================================
+  // SOM
+  // =====================================================================
+  const SONG = { bpm: 68, play(step, t, d) {
+    const CH = [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [52, 56, 59, 64]];
+    const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
+    if (s === 0) Sound.note(midi(ch[0] - 12), t, d * 7, 'sine', .22);
+    if (s % 2 === 0) Sound.note(midi(ch[(s / 2) % 4] + 12), t, d * 2.5, 'triangle', .1);
+    if (s === 5 && bar % 2) Sound.note(midi(ch[3] + 12), t, d * 2, 'sine', .07);
+  } };
+  let musicOn = false;
+  function wakeAudio() { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONG); } }
+  const sfx = {
+    tick: () => Sound.tone(700, .03, { type: 'sine', vol: .05 }),
+    step: () => { for (let i = 0; i < 3; i++) Sound.noise(.05, { freq: 500, vol: .12, delay: i * .14 }); Sound.arp([72, 76], .08, { type: 'sine', vol: .08, delay: .45 }); },
+    paper: () => { Sound.noise(.25, { freq: 4000, sweep: 1500, vol: .12 }); Sound.noise(.18, { freq: 3000, vol: .08, delay: .25 }); },
+    seq: () => { for (let i = 0; i < 10; i++) Sound.tone(midi(76 + (i * 7) % 12), .04, { type: 'sine', vol: .07, delay: i * .05 }); Sound.arp([84, 88], .1, { type: 'triangle', vol: .12, delay: .6 }); },
+    hel: () => Sound.arp([69, 72, 76], .12, { type: 'sine', vol: .12 }),
+    good: () => Sound.arp([72, 76, 79, 84], .1, { type: 'triangle', vol: .15, dur: .25 }),
+    bad: () => Sound.arp([67, 63, 60], .18, { type: 'triangle', vol: .15, dur: .35 }),
+    level: () => Sound.arp([72, 76, 79, 84, 79, 84, 88], .09, { type: 'square', vol: .1, dur: .18 }),
+  };
+
+  // =====================================================================
+  // AÇÕES
+  // =====================================================================
+  document.addEventListener('click', e => {
+    wakeAudio();
+    const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+    const a = el.dataset.act, id = el.dataset.id ? +el.dataset.id : null, v = el.dataset.v;
+    switch (a) {
+      case 'close': closeModal(); render(); if (S && S.pendingPerk && S.screen === 'hub') perkPick(); break;
+      case 'guide': guide(); break;
+      case 'how': how(); break;
+      case 'bg': newBg = v; sfx.tick(); render(); break;
+      case 'continue': S = load(); S.screen = S.cs && !S.cs.reveal ? 'case' : 'hub'; render(); if (S.screen === 'case') centerPed(); break;
+      case 'new': {
+        const name = ($('#pname').value || '').trim() || 'Dra. Residente';
+        S = { v: 1, name, bg: newBg, level: 1, xp: 0, rep: 3, cash: 400, perks: { [BGS[newBg].perk]: 1 }, camp: 0, solved: 0, plantoes: 0, screen: 'hub', cs: null, pendingPerk: 0, seenHow: false };
+        render(); sfx.good();
+        modal(`<h3>Bem-vinda(o) ao Vale do Sereno</h3>${helena(`<p>${esc(name)}, que bom ter você aqui. Eu sou a Dra. Helena Prado e estou me aposentando depois de 35 anos atendendo as famílias do vale. O serviço agora é seu.</p><p>Cada caso é uma família. Converse com as pessoas, leia os prontuários e monte o heredograma: é ele que conta como a doença passa adiante. Quando precisar, me chame para discutir as hipóteses.</p>`)}<div class="btns" style="margin-top:10px"><button class="btn primary" data-act="close">Vamos ao primeiro caso</button></div>`);
+        break;
+      }
+      case 'hub': closeModal(); S.screen = 'hub'; render(); if (S.pendingPerk) perkPick(); break;
+      case 'resume': S.screen = 'case'; render(); centerPed(); break;
+      case 'open': {
+        const i = +v; closeModal();
+        if (S.cs && !S.cs.reveal && S.cs.tpl === i && !S.cs.plantao) { S.screen = 'case'; render(); centerPed(); break; }
+        startCase(i, false); break;
+      }
+      case 'plantao': startCase(rand(CASES.length), true); break;
+      case 'sel': S.cs.sel = id; S.cs.hl = []; sfx.tick(); render(); break;
+      case 'inv': investigate(id); break;
+      case 'seq': sequence(id); break;
+      case 'helena': consult(); break;
+      case 'hyp': { const cur = S.cs.hyp[v] || ''; S.cs.hyp[v] = cur === '' ? 'x' : cur === 'x' ? 'ok' : ''; if (S.cs.hyp[v] === 'ok') for (const m in S.cs.hyp) if (m !== v && S.cs.hyp[m] === 'ok') S.cs.hyp[m] = ''; sfx.tick(); render(); break; }
+      case 'hl': { const r = S.cs.hel.res && S.cs.hel.res[v]; S.cs.hl = r && r.ids ? r.ids : []; render(); break; }
+      case 'laudo': laudo(); break;
+      case 'lmode': S.cs.lsel.mode = v; sfx.tick(); laudo(); break;
+      case 'lans': S.cs.lsel.ans = v; sfx.tick(); laudo(); break;
+      case 'sign': sign(); break;
+      case 'perkpick': perkPick(); break;
+      case 'perk': S.perks[v] = perk(v) + 1; S.pendingPerk = Math.max(0, S.pendingPerk - 1); sfx.level(); closeModal(); render(); toast(`⭐ Nova habilidade: <b>${PERKS[v].n}</b>`, 'warm'); if (S.pendingPerk) perkPick(); break;
+    }
+    const lg = $('#log'); if (lg) lg.scrollTop = lg.scrollHeight;
+  });
+
+  if (/github\.io$/.test(location.hostname)) $('#backlink').hidden = false;
+  S = null;
+  render();
+  window.__SU = { get S() { return S; }, CASES, genCase, likelihood, witness, render, startCase };
+
+})();
+</script>
+</body>
+</html>
