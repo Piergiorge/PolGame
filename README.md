@@ -165,12 +165,6 @@ No Fita Molde:
 
 Para jogar sem internet, baixe o `index.html` do jogo e abra no navegador.
 
-## Próximas fases do Fita Molde (ideias)
-
-- Fita descontínua: fragmentos de Okazaki, primase e DNA ligase
-- Transcrição: RNA polimerase, uracila no lugar de timina
-- Tradução: ribossomo, tRNAs e anticódons
-
 ## Licença
 
 Veja o arquivo [LICENSE](LICENSE).
