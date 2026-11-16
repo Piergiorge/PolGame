@@ -5,120 +5,89 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GULP! — a jornada de um macrófago</title>
 <style>
-  :root { --bg:#100a18; --panel:#1d1430; --text:#efe9f7; --muted:#a99bc0; --accent:#81d4fa; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; gap:12px; }
-  .wrap { width:100%; max-width:800px; }
-  h1 { font-size:20px; margin:0; font-weight:700; }
-  h1 small { font-weight:400; color:var(--muted); font-size:14px; margin-left:6px; }
-  .stage { position:relative; }
-  canvas { width:100%; aspect-ratio:800/620; display:block; border-radius:12px; background:#0b0710; outline:none; touch-action:manipulation; }
-  .overlay { position:absolute; inset:0; background:rgba(14,8,24,.93); border-radius:12px; display:flex; align-items:center; justify-content:center; padding:18px; overflow:auto; }
-  .overlay[hidden] { display:none; }
-  .card { max-width:600px; width:100%; }
-  .card h2 { margin:0 0 8px; font-size:22px; color:#81d4fa; }
-  .card p, .card li { margin:5px 0; }
-  .card ul { padding-left:18px; margin:6px 0; }
-  .muted { color:var(--muted); font-size:13px; }
-  kbd { background:#2c2240; border-radius:4px; padding:1px 6px; font-family:inherit; font-size:12px; color:var(--text); }
-  button.big { background:#81d4fa; color:#0d1b2a; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; margin-top:10px; }
-  button.big:hover { filter:brightness(1.08); }
-  .choices { display:grid; gap:10px; margin-top:10px; }
-  .choice { text-align:left; background:#241a38; border:1px solid #3a2d55; color:var(--text); border-radius:10px; padding:10px 12px; cursor:pointer; font:inherit; }
-  .choice:hover, .choice:focus { border-color:#81d4fa; outline:none; background:#2b2044; }
-  .choice b { display:block; font-size:15px; color:#ffe082; }
-  .choice span { display:block; margin-top:2px; }
-  .choice em { display:block; margin-top:4px; color:var(--muted); font-size:12px; font-style:normal; }
-  .stats { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; margin:10px 0; font-size:14px; }
-  .stats span { color:var(--muted); } .stats b { color:var(--text); float:right; }
-  .panel { background:var(--panel); border-radius:12px; padding:12px 14px; font-size:13px; }
-  .panel h3 { margin:0 0 6px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
-  #upgrades { color:var(--text); }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px 18px; }
-  .grid p { margin:0; } .grid b { color:var(--text); } .grid span { color:var(--muted); }
-  .hint { color:var(--muted); font-size:13px; }
-  .touch { display:none; justify-content:center; gap:18px; user-select:none; -webkit-user-select:none; }
-  .dpad { display:grid; grid-template-columns:repeat(3,54px); gap:6px; }
-  .dpad button { height:50px; border-radius:10px; border:0; background:#2c2240; color:var(--text); font:inherit; font-size:18px; font-weight:700; touch-action:manipulation; }
-  .dpad button:active { background:#46366a; }
-  @media (pointer: coarse) { .touch { display:flex; } }
-
-  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; }
-  .topbar .left { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
-  .backlink { color:var(--muted); text-decoration:none; font-size:13px; }
-  .backlink:hover { color:var(--text); }
-  .backlink[hidden] { display:none; }
-  .soundbtn { background:rgba(255,255,255,.08); color:var(--text); border:0; border-radius:8px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
-  .soundbtn:hover { background:rgba(255,255,255,.15); }
+  :root { --bg:#120d14; --panel:#1f1622; --line:#3d2a42; --text:#f4eef6; --muted:#b39fbb; --warm:#ffd166; --accent:#5fe3a1; --red:#ff6b81; }
+  * { box-sizing:border-box; } html, body { margin:0; }
+  body { background:radial-gradient(900px 500px at 20% -10%, #3a1f3a, transparent 70%), var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; color:inherit; }
+  .wrap { max-width:1280px; margin:0 auto; padding:10px 12px 30px; }
+  header.top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font:900 26px/1 ui-rounded, system-ui; letter-spacing:.06em; } .brand h1 span { color:var(--warm); }
+  .brand small { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+  .ghost, .soundbtn { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 10px; font-size:12px; }
+  .ghost:hover, .soundbtn:hover { color:var(--text); border-color:#7a5684; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; } .backlink[hidden] { display:none; }
+  .btn { background:#2d1f33; border:1px solid var(--line); border-radius:10px; padding:7px 14px; font-weight:700; font-size:13px; }
+  .btn:hover:not(:disabled) { border-color:var(--warm); } .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.primary { background:var(--warm); color:#2b1d00; border-color:var(--warm); } .btn.big { font-size:16px; padding:10px 20px; }
+  .btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+  .meta { color:var(--muted); font-size:12.5px; }
+  .hero { text-align:center; max-width:820px; margin:6px auto 14px; }
+  .hero h2 { font:900 64px/1 ui-rounded, system-ui; margin:6px 0 0; color:var(--warm); text-shadow:0 4px 0 #6b2b3f; letter-spacing:.05em; }
+  .hero .sub { color:var(--muted); margin:2px 0 10px; font-size:15px; }
+  .stages { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; }
+  .stc { text-align:left; background:linear-gradient(160deg, var(--a), #1f1622 70%); border:2px solid var(--line); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:3px; min-height:130px; }
+  .stc:hover:not(:disabled) { border-color:var(--warm); transform:translateY(-2px); } .stc:disabled { opacity:.45; cursor:not-allowed; }
+  .stc .num { font:900 11px ui-monospace, monospace; color:var(--warm); letter-spacing:.12em; } .stc b { font-size:18px; } .stc .stx { margin-top:auto; font-size:12px; color:#e6d8ee; }
+  .row2 { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:14px; } @media (max-width:820px) { .row2 { grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .panel h3 { margin:0 0 4px; font-size:15px; } .mem { float:right; color:var(--warm); }
+  .shop { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:6px; margin-top:8px; }
+  .si { display:flex; gap:8px; align-items:center; background:#18111b; border:1px solid var(--line); border-radius:10px; padding:6px 8px; } .si > div { flex:1; } .si .ic { font-size:22px; }
+  .gamewrap { position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#000; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .gamewrap canvas { display:block; width:100%; }
+  .ctrl { display:flex; gap:8px; align-items:center; margin-top:8px; }
+  .modalbg { position:fixed; inset:0; background:rgba(8,4,10,.72); display:flex; align-items:center; justify-content:center; padding:14px; z-index:50; }
+  .modal { background:#22172a; border:1px solid #5a3d63; border-radius:16px; max-width:620px; width:100%; max-height:92vh; overflow:auto; padding:18px 20px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .modal.wide { max-width:860px; } .modal h2 { margin:0 0 6px; font-size:22px; } .modal h3 { margin:12px 0 4px; font-size:15px; color:var(--warm); }
+  .lus { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-top:8px; }
+  .lu { position:relative; text-align:left; background:#2d1f33; border:2px solid var(--line); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:4px; min-height:170px; }
+  .lu:hover { border-color:var(--warm); transform:translateY(-2px); } .lu.new { border-color:#5fe3a1; }
+  .lu .li { font-size:34px; } .lu b { font-size:16px; } .lu .lvl { font-size:12px; color:var(--warm); font-weight:800; } .lu .key { position:absolute; top:8px; right:10px; font:800 12px ui-monospace, monospace; color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:0 6px; }
+  .lesson { background:#1a1220; border-left:4px solid var(--warm); border-radius:8px; padding:8px 12px; margin:10px 0; } .lesson b.t { color:var(--warm); }
+  .dbar { display:grid; grid-template-columns:220px 1fr 50px; gap:8px; align-items:center; font-size:13px; margin:3px 0; }
+  .dbar .bb { height:10px; background:#120d14; border-radius:5px; overflow:hidden; } .dbar .bb i { display:block; height:100%; }
+  .memg { font-weight:800; color:var(--warm); }
+  .cdx { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:6px; }
+  .ce { display:flex; gap:8px; align-items:flex-start; background:#18111b; border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:13px; } .ce.lock { opacity:.5; }
+  .ce .q { width:56px; text-align:center; font-size:28px; flex:none; } .ce canvas { flex:none; } .tag { font-size:10px; background:var(--red); color:#fff; border-radius:5px; padding:0 5px; }
+  .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#22172a; border:1px solid var(--warm); border-radius:12px; padding:7px 14px; z-index:60; box-shadow:0 8px 30px rgba(0,0,0,.5); }
 </style>
 </head>
 <body>
-<div class="wrap topbar"><div class="left"><a class="backlink" href="../">← Todos os jogos</a><h1>GULP! <small>a jornada de um macrófago</small></h1></div><button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button></div>
-
-<div class="wrap stage">
-  <canvas id="game" width="800" height="620" tabindex="0"></canvas>
-
-  <div class="overlay" id="intro">
-    <div class="card">
-      <h2>Você é um macrófago</h2>
-      <p class="muted">Em grego, <i>macrófago</i> quer dizer "grande comedor". Faça jus ao nome.</p>
-      <p>Uma infecção se espalhou pelo corpo. Avance por 5 tecidos, da ferida na pele até o linfonodo, e elimine a superbactéria <b>MRSA</b>.</p>
-      <ul>
-        <li><b>Esbarre</b> em um patógeno para fagocitá-lo. Ao digeri-lo, você recupera ATP, um pouco de vida e ganha biomassa.</li>
-        <li>Cada passo gasta <b>ATP</b>. Sem ATP, a célula se esgota e perde vida.</li>
-        <li>A <b>biomassa</b> sobe seu nível: escolha 1 entre 3 melhorias baseadas em mecanismos reais da imunidade inata.</li>
-        <li>Colete <b>itens</b> (glicose, anticorpos, complemento, interferon e quimiocina) e use com as teclas <kbd>1</kbd> a <kbd>5</kbd>.</li>
-        <li>Encontre o <b>vaso linfático</b> para descer de andar. A morte é permanente, e cada partida gera mapas novos.</li>
-      </ul>
-      <p class="muted"><kbd>←↑→↓</kbd>/<kbd>WASD</kbd> mover · <kbd>Q</kbd><kbd>E</kbd><kbd>Z</kbd><kbd>C</kbd> diagonais · <kbd>Espaço</kbd> esperar · <kbd>1</kbd>–<kbd>5</kbd> usar item (ou toque no item)</p>
-      <button class="big" id="startBtn">Começar (Enter)</button>
-    </div>
-  </div>
-
-  <div class="overlay" id="levelup" hidden>
-    <div class="card">
-      <h2 id="luTitle">Ativação celular!</h2>
-      <p class="muted">Escolha uma melhoria (teclas 1–3).</p>
-      <div class="choices" id="luChoices"></div>
-    </div>
-  </div>
-
-  <div class="overlay" id="end" hidden>
-    <div class="card" id="endCard"></div>
-  </div>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand"><svg width="40" height="40" viewBox="-20 -20 40 40" aria-hidden="true"><path d="M-15 0 C -15 -12, -4 -16, 5 -14 C 14 -12, 18 -3, 16 6 C 14 15, 0 17, -8 13 C -14 10, -15 6, -15 0 Z" fill="#cfe9ff" stroke="#4b7ea8" stroke-width="2.5"/><ellipse cx="-3" cy="0" rx="6" ry="4.5" fill="#7b5ea7"/><circle cx="9" cy="-6" r="3" fill="#f5b041"/><circle cx="7" cy="6" r="2.5" fill="#e8c547"/></svg>
+      <div><h1>GULP<span>!</span></h1><small>a jornada de um macrófago</small></div></div>
+    <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+  </header>
+  <main id="main"></main>
 </div>
-
-<div class="wrap touch">
-  <div class="dpad">
-    <button data-d="-1,-1">↖</button><button data-d="0,-1">↑</button><button data-d="1,-1">↗</button>
-    <button data-d="-1,0">←</button><button data-d="0,0">·</button><button data-d="1,0">→</button>
-    <button data-d="-1,1">↙</button><button data-d="0,1">↓</button><button data-d="1,1">↘</button>
-  </div>
-</div>
-
-<div class="wrap hint"><kbd>←↑→↓</kbd>/<kbd>WASD</kbd> mover · <kbd>Q</kbd><kbd>E</kbd><kbd>Z</kbd><kbd>C</kbd> diagonais · <kbd>Espaço</kbd> esperar · <kbd>1</kbd>–<kbd>5</kbd> itens · toque nos itens do painel para usar</div>
-
-<div class="wrap panel"><h3>Melhorias adquiridas</h3><div id="upgrades">nenhuma ainda</div></div>
-
-<div class="wrap panel">
-  <h3>Patógenos</h3>
-  <div class="grid">
-    <p><b>Estafilococo</b> <span>cocos em cachos, como uvas. Atacam corpo a corpo.</span></p>
-    <p><b>E. coli</b> <span>bacilo com flagelos: rápido, age duas vezes por turno.</span></p>
-    <p><b>Vírus</b> <span>frágil, mas se replica se você demorar a eliminá-lo.</span></p>
-    <p><b>Clostrídio</b> <span>libera toxinas à distância, em linha reta.</span></p>
-    <p><b>Candida</b> <span>fungo parado que brota leveduras.</span></p>
-    <p><b>M. tuberculosis</b> <span>parede cerosa (reduz 1 de dano) e lenta; resiste bem à digestão.</span></p>
-    <p><b>MRSA</b> <span>superbactéria resistente que gera estafilococos. É o chefe final.</span></p>
-  </div>
-</div>
-
+<div id="modalRoot"></div>
 <script>
 (() => {
   // ================= Som (gerado por código com a Web Audio API) =================
+  // Versão com instrumentos "orquestrais" simples: harpa, cordas, coro, flauta, tímpano e reverb.
   const Sound = (() => {
     let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    let C = null, BUS = null; // contexto e barramento usados pelas vozes da música (trocados na renderização offline)
     try { muted = localStorage.getItem('gulp-mudo') === '1'; } catch (e) {}
+    function makeReverb(ctx, secs = 3.2, decay = 2.6) {
+      const len = Math.floor(ctx.sampleRate * secs), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
+      const cv = ctx.createConvolver(); cv.buffer = buf; return cv;
+    }
+    function makeBus(ctx, dest, vol) {
+      const bus = ctx.createGain(); bus.gain.value = vol;
+      const dry = ctx.createGain(); dry.gain.value = .78;
+      const wet = ctx.createGain(); wet.gain.value = .42;
+      const rv = makeReverb(ctx);
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 45;
+      bus.connect(hp); hp.connect(dry); hp.connect(rv); rv.connect(wet); dry.connect(comp); wet.connect(comp); comp.connect(dest);
+      return bus;
+    }
     function ensure() {
       try {
         if (!ac) {
@@ -126,7 +95,8 @@
           if (!AC) return;
           ac = new AC();
           master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
-          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+          musicBus = makeBus(ac, master, .5);
+          C = ac; BUS = musicBus;
         }
         if (ac.state === 'suspended') ac.resume();
       } catch (e) { ac = null; }
@@ -159,17 +129,49 @@
     }
     const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
     function note(freq, time, dur, type = 'triangle', vol = 0.5) {
-      const osc = ac.createOscillator(), g = ac.createGain();
+      const osc = C.createOscillator(), g = C.createGain();
       osc.type = type; osc.frequency.value = freq;
       g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
-      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+      osc.connect(g); g.connect(BUS); osc.start(time); osc.stop(time + dur + 0.03);
     }
+    // voz genérica com envelope ADSR simples, vários osciladores desafinados, filtro, vibrato e pan
+    function voice(freq, t, dur, o = {}) {
+      const a = o.a ?? .02, r = o.r ?? .3, vol = o.vol ?? .2, end = t + dur + r;
+      const g = C.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + a);
+      if (o.decay) g.gain.exponentialRampToValueAtTime(Math.max(.0001, vol * (o.sustain ?? .0005)), t + o.decay);
+      else { g.gain.setValueAtTime(vol, t + Math.max(a, dur)); }
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      let out = g;
+      if (o.lp) { const f = C.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = o.q ?? .7; g.connect(f); out = f; }
+      if (o.formant) { const f2 = C.createBiquadFilter(); f2.type = 'peaking'; f2.frequency.value = o.formant; f2.gain.value = 9; f2.Q.value = 1.4; out.connect(f2); out = f2; }
+      if (C.createStereoPanner && o.pan) { const p = C.createStereoPanner(); p.pan.value = o.pan; out.connect(p); out = p; }
+      out.connect(BUS);
+      let lfo = null;
+      if (o.vib) { lfo = C.createOscillator(); lfo.frequency.value = o.vib[0]; const lg = C.createGain(); lg.gain.value = freq * (Math.pow(2, o.vib[1] / 1200) - 1); lfo.connect(lg); lfo._g = lg; lfo.start(t); lfo.stop(end + .05); }
+      for (const det of (o.det || [0])) {
+        const osc = C.createOscillator(); osc.type = o.wave || 'sine'; osc.frequency.value = freq; osc.detune.value = det;
+        if (o.drop) { osc.frequency.setValueAtTime(freq * o.drop, t); osc.frequency.exponentialRampToValueAtTime(freq, t + .06); }
+        if (lfo) lfo._g.connect(osc.frequency);
+        osc.connect(g); osc.start(t); osc.stop(end + .05);
+      }
+    }
+    const INST = {
+      harp:    (f, t, d, v = .16, pan = -.25) => { voice(f, t, d, { wave: 'triangle', a: .004, decay: 1.6, r: .4, vol: v, lp: 5000, pan }); voice(f * 2, t, d, { wave: 'sine', a: .003, decay: .5, r: .2, vol: v * .25, pan }); },
+      strings: (f, t, d, v = .05, pan = 0) => voice(f, t, d, { wave: 'sawtooth', det: [-7, 0, 6], a: .45, r: .9, vol: v, lp: 2600, vib: [5, 4], pan }),
+      choir:   (f, t, d, v = .045, pan = 0) => voice(f, t, d, { wave: 'sawtooth', det: [-9, 0, 8], a: .32, r: .8, vol: v, lp: 2200, formant: 820, vib: [5.2, 7], pan }),
+      flute:   (f, t, d, v = .13, pan = .2) => { voice(f, t, d, { wave: 'sine', a: .07, r: .35, vol: v, vib: [5, 9], pan }); voice(f * 2, t, d, { wave: 'sine', a: .1, r: .3, vol: v * .12, pan }); },
+      horn:    (f, t, d, v = .06, pan = .1) => voice(f, t, d, { wave: 'sawtooth', det: [-4, 4], a: .09, r: .45, vol: v, lp: 1100, vib: [4.5, 5], pan }),
+      bass:    (f, t, d, v = .1) => voice(f, t, d, { wave: 'triangle', a: .05, r: .6, vol: v, lp: 500 }),
+      timp:    (f, t, v = .32) => { voice(f, t, .05, { wave: 'sine', a: .003, decay: 1.1, r: .3, vol: v, drop: 1.5 }); voice(f * 1.5, t, .05, { wave: 'sine', a: .003, decay: .4, r: .1, vol: v * .25 }); },
+      roll:    (f, t, len, v = .1) => { for (let i = 0; i < len / .07; i++) voice(f, t + i * .07, .03, { wave: 'sine', a: .003, decay: .25, r: .05, vol: v * (0.3 + 0.7 * i * .07 / len), drop: 1.2 }); },
+    };
     function schedule() {
       if (!ac || !song) return;
       const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
       const stepDur = 60 / bpm / 2;
       if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
-      while (nextTime < ac.currentTime + 0.15) {
+      while (nextTime < ac.currentTime + 0.25) {
         if (!muted) song.play(step, nextTime, stepDur);
         step++; nextTime += stepDur;
       }
@@ -180,6 +182,15 @@
       step = 0; nextTime = ac.currentTime + 0.08;
       if (!timer) timer = setInterval(schedule, 40);
     }
+    // renderiza uma música fora do tempo real (usado para gerar a prévia em áudio)
+    async function render(s, secs) {
+      const oc = new OfflineAudioContext(2, Math.ceil(44100 * secs), 44100);
+      const pc = C, pb = BUS; C = oc; BUS = makeBus(oc, oc.destination, .5);
+      const sd = 60 / s.bpm / 2; let tt = .05, st = 0;
+      while (tt < secs - 1) { s.play(st, tt, sd); st++; tt += sd; }
+      C = pc; BUS = pb;
+      return oc.startRendering();
+    }
     function toggle() {
       muted = !muted;
       if (master) master.gain.value = muted ? 0 : 0.5;
@@ -187,7 +198,7 @@
       updateSoundButton();
       return muted;
     }
-    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+    return { ensure, tone, noise, arp, note, voice, INST, music, render, toggle, get muted() { return muted; } };
   })();
   function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
   const soundBtn = document.getElementById('soundBtn');
@@ -198,779 +209,939 @@
   // links "todos os jogos" só aparecem no site publicado
   for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
-  // ================= Constantes =================
-  const COLS = 40, ROWS = 25, TS = 20, W = 800, H = 620, MAP_H = ROWS * TS;
-  const WALL = 0, FLOOR = 1, EXIT = 2;
-  const DIRS8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-  const rand = n => Math.floor(Math.random() * n);
-  const pick = a => a[rand(a.length)];
-  const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+  // =====================================================================
+  // DADOS: armas (mecanismos imunes), passivas, patógenos, fases, lições
+  // =====================================================================
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const ri = (a, b) => Math.floor(rnd(a, b + 1));
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+  const lerp = (a, b, t) => a + (b - a) * t;
 
-  const FLOORS = [
-    { name: 'Ferida na pele',     floor: '#3b1f27', floor2: '#43242d', wall: '#c98b7a', wallDot: '#a86e60', decor: 'rgba(255,200,190,.08)',
-      enemies: { coco: 5, bacilo: 2 }, items: 4 },
-    { name: 'Tecido conjuntivo',  floor: '#33281f', floor2: '#3a2e23', wall: '#d9b98c', wallDot: '#b8956a', decor: 'rgba(255,230,190,.08)',
-      enemies: { coco: 4, bacilo: 3, virus: 4 }, items: 4 },
-    { name: 'Corrente sanguínea', floor: '#3a0c14', floor2: '#430f18', wall: '#b23a48', wallDot: '#8e2a37', decor: 'rgba(255,90,90,.16)',
-      enemies: { bacilo: 4, virus: 5, clostridio: 3, coco: 3 }, items: 5 },
-    { name: 'Alvéolo pulmonar',   floor: '#232a40', floor2: '#283048', wall: '#e8a8b8', wallDot: '#c98898', decor: 'rgba(200,220,255,.08)',
-      enemies: { myco: 4, fungo: 2, virus: 4, clostridio: 3, bacilo: 3 }, items: 5 },
-    { name: 'Linfonodo',          floor: '#221a38', floor2: '#281f40', wall: '#9575cd', wallDot: '#7a5bb5', decor: 'rgba(200,180,255,.1)',
-      enemies: { mrsa: 1, coco: 4, myco: 3, clostridio: 3, virus: 3 }, items: 5 },
-  ];
+  // cada arma tem 5 níveis; L(n) devolve os parâmetros do nível n (1..5)
+  const WEAPONS = {
+    fago: { n: 'Fagocitose', i: '🫧', col: '#ffd166', d: 'Pseudópodes engolem os patógenos mais próximos. Bactérias encapsuladas escapam, a não ser que estejam opsonizadas.',
+      L: n => ({ cd: [.8, .72, .64, .56, .48][n - 1], dmg: [14, 18, 22, 27, 32][n - 1], r: [90, 98, 106, 115, 125][n - 1], cnt: [2, 3, 3, 4, 5][n - 1] }),
+      up: ['', '+1 alvo, mais dano', 'mais rápido e alcance maior', '+1 alvo', '+1 alvo, muito mais rápido'] },
+    ros: { n: 'Explosão respiratória', i: '💥', col: '#ff8fab', d: 'A NADPH oxidase produz espécies reativas de oxigênio: uma aura que fere tudo o que chega perto.',
+      L: n => ({ cd: .5, dmg: [5, 6, 8, 10, 13][n - 1], r: [70, 82, 95, 110, 128][n - 1] }),
+      up: ['', 'aura maior', 'mais dano', 'aura maior', 'aura enorme e mais forte'] },
+    lisozima: { n: 'Lisozima', i: '🧪', col: '#9be7ff', d: 'Enzima que quebra o peptidoglicano da parede bacteriana. Um jato em leque; dano dobrado contra Gram-positivas.',
+      L: n => ({ cd: [1.3, 1.2, 1.05, .95, .85][n - 1], dmg: [16, 20, 25, 30, 36][n - 1], r: [140, 150, 165, 180, 200][n - 1], arc: [.7, .8, .9, 1.05, 1.2][n - 1] }),
+      up: ['', 'mais dano', 'leque mais largo', 'mais alcance', 'mais rápido e mais forte'] },
+    complemento: { n: 'Complemento (MAC)', i: '🗡️', col: '#c3a6ff', d: 'Proteínas do soro formam o complexo de ataque à membrana, que perfura os patógenos em linha. O C3b deixa os atingidos opsonizados.',
+      L: n => ({ cd: [1.6, 1.45, 1.3, 1.15, 1.0][n - 1], dmg: [20, 24, 28, 34, 40][n - 1], pierce: [2, 3, 3, 4, 6][n - 1], cnt: [1, 1, 2, 2, 3][n - 1], spd: 420 }),
+      up: ['', 'atravessa mais alvos', '+1 lança', 'mais dano', '+1 lança, atravessa tudo'] },
+    neutro: { n: 'Neutrófilos', i: '🔵', col: '#7fb8ff', d: 'Você libera quimiocinas e chama neutrófilos do sangue. Eles caçam sozinhos e, ao morrer, soltam redes de DNA (NETs) que prendem os patógenos.',
+      L: n => ({ cd: [7, 6.5, 6, 5.5, 5][n - 1], cnt: [1, 2, 2, 3, 4][n - 1], dmg: [14, 16, 20, 24, 28][n - 1], life: [7, 8, 8, 9, 10][n - 1] }),
+      up: ['', '+1 neutrófilo', 'mais dano', '+1 neutrófilo', '+1 neutrófilo, vivem mais'] },
+    anticorpo: { n: 'Anticorpos (IgG)', i: '🔱', col: '#ffe08a', d: 'Projéteis que perseguem o alvo. Opsonizam (a fagocitose ganha +60% de dano e engole encapsuladas) e neutralizam vírus (dano dobrado).',
+      L: n => ({ cd: [1.4, 1.3, 1.2, 1.05, .9][n - 1], dmg: [9, 11, 13, 15, 18][n - 1], cnt: [2, 3, 3, 4, 6][n - 1], spd: 300 }),
+      up: ['', '+1 anticorpo', 'mais dano', '+1 anticorpo', '+2 anticorpos, mais rápidos'] },
+    interferon: { n: 'Interferon', i: '📡', col: '#7bd389', d: 'Alerta antiviral: um pulso que destrói vírus (dano triplo), cura células infectadas e deixa os vírus lentos.',
+      L: n => ({ cd: [4.5, 4.2, 3.8, 3.4, 3], dmg: [12, 15, 18, 22, 26][n - 1], r: [170, 190, 210, 235, 265][n - 1] }),
+      up: ['', 'pulso maior', 'mais dano', 'mais frequente', 'pulso enorme'] },
+    cd8: { n: 'Linfócitos T CD8', i: '🟢', col: '#5fe3a1', d: 'Linfócitos citotóxicos giram ao seu redor e matam na hora as células infectadas por vírus.',
+      L: n => ({ cnt: [2, 2, 3, 3, 4][n - 1], dmg: [12, 15, 18, 21, 25][n - 1], r: [70, 78, 86, 94, 104][n - 1], spd: [2.4, 2.6, 2.8, 3.0, 3.3][n - 1] }),
+      up: ['', 'mais dano', '+1 linfócito', 'mais rápidos', '+1 linfócito'] },
+    eos: { n: 'Eosinófilos', i: '🔶', col: '#ff9f6b', only: 5, d: 'Chamados pelos linfócitos Th2 e guiados por IgE, grudam em vermes grandes demais para engolir e liberam o conteúdo dos grânulos (proteína básica principal). Dano triplo contra helmintos (e ainda mais se o verme estiver marcado por anticorpos).',
+      L: n => ({ cd: [1.5, 1.35, 1.2, 1.05, .9][n - 1], dmg: [14, 18, 22, 27, 33][n - 1], cnt: [2, 3, 3, 4, 5][n - 1], spd: 260 }),
+      up: ['', '+1 eosinófilo', 'mais dano', '+1 eosinófilo', '+1 eosinófilo, muito mais forte'] },
+    febre: { n: 'Febre (IL-1, TNF)', i: '🌡️', col: '#ff7b54', d: 'Citocinas avisam o cérebro e a temperatura sobe. A cada pulso, todos os patógenos na tela levam dano e ficam mais lentos, mas a febre também custa um pouco da sua vida.',
+      L: n => ({ cd: [3.5, 3.3, 3.1, 2.9, 2.6][n - 1], dmg: [5, 6, 8, 10, 12][n - 1], slow: [.2, .22, .25, .28, .32][n - 1], cost: [1, 1, 1, .5, .5][n - 1] }),
+      up: ['', 'mais dano', 'mais lentidão', 'custa menos vida', 'pulsos mais frequentes'] },
+  };
+  const PASSIVES = {
+    tlr: { n: 'Receptores Toll-like', i: '📶', d: 'Reconhecem padrões moleculares de patógenos (PAMPs): +15% de experiência e +20% de alcance para coletar antígenos.', max: 5 },
+    lisossomo: { n: 'Lisossomos', i: '🟣', d: 'Mais lisossomos para digerir o que foi engolido: +20 de vida máxima.', max: 5 },
+    pseudo: { n: 'Citoesqueleto ágil', i: '🦶', d: 'Actina se reorganizando mais rápido: +8% de velocidade.', max: 5 },
+    glicolise: { n: 'Glicólise', i: '🍬', d: 'Energia de sobra: regenera 0,5 de vida por segundo.', max: 5 },
+    integrina: { n: 'Integrinas', i: '🧲', d: 'Adesão e ativação mais rápidas: −7% no tempo de recarga de todas as armas.', max: 5 },
+    manose: { n: 'Receptor de manose', i: '🎯', d: 'Reconhece açúcares da superfície de bactérias e fungos: +10% de dano.', max: 5 },
+    ifng: { n: 'Ativação por IFN-γ', i: '⚡', d: 'Linfócitos T auxiliares liberam interferon-gama e "ativam" você: a fagocitose passa a matar patógenos que vivem dentro de macrófagos, como o bacilo da tuberculose. +10% de dano da fagocitose.', max: 3 },
+    mhc: { n: 'Apresentação de antígeno (MHC II)', i: '🪪', d: 'Você mostra pedaços dos patógenos a linfócitos T e B: +1 projétil para anticorpos, complemento e neutrófilos.', max: 2 },
+  };
 
+  // ---------------- patógenos ----------------
+  // tags: g+ (Gram-positiva), g- (Gram-negativa), caps (cápsula), virus, fungo, intra (vive dentro de macrófagos)
   const ENEMIES = {
-    coco:       { name: 'Estafilococo',    hp: 3,  dmg: 1, speed: 1,    xp: 2,  atp: 6,  bact: true,  fact: 'Estafilococos: cocos em cachos, como uvas. Atacam corpo a corpo.' },
-    bacilo:     { name: 'E. coli',         hp: 4,  dmg: 1, speed: 2,    xp: 3,  atp: 7,  bact: true,  fact: 'E. coli: bacilo com flagelos, rápido. Age duas vezes por turno.' },
-    virus:      { name: 'Vírus',           hp: 1,  dmg: 1, speed: 1,    xp: 1,  atp: 2,  replicate: 6, fact: 'Vírus: frágeis, mas se replicam se você demorar.' },
-    clostridio: { name: 'Clostrídio',      hp: 5,  dmg: 1, speed: 1,    xp: 5,  atp: 8,  bact: true,  ranged: 5, rangedDmg: 2, fact: 'Clostrídio: libera toxinas à distância, em linha reta.' },
-    fungo:      { name: 'Candida',         hp: 7,  dmg: 2, speed: 0,    xp: 5,  atp: 10, stationary: true, bud: 6, budType: 'levedura', fact: 'Candida: fungo parado que brota leveduras. Ataca quem encosta.' },
-    levedura:   { name: 'Levedura',        hp: 2,  dmg: 1, speed: 1,    xp: 1,  atp: 3,  fact: 'Levedura: broto da Candida.' },
-    myco:       { name: 'M. tuberculosis', hp: 9,  dmg: 2, speed: 0.5,  xp: 8,  atp: 12, bact: true, armor: 1, fact: 'M. tuberculosis: parede cerosa (reduz 1 de dano) e lenta.' },
-    mrsa:       { name: 'MRSA',            hp: 50, dmg: 3, speed: 1,    xp: 40, atp: 40, bact: true, armor: 1, boss: true, summon: 5, summonType: 'coco', fact: 'MRSA: superbactéria resistente que gera estafilococos. Fagocite-a para vencer!' },
+    coco:     { n: 'Staphylococcus', hp: 10, spd: 58, dmg: 6, r: 10, xp: 1, col: '#f5b041', tags: ['g+'], d: 'Cocos Gram-positivos em cachos. Parede grossa de peptidoglicano: a lisozima faz estrago.' },
+    bacilo:   { n: 'Escherichia coli', hp: 14, spd: 78, dmg: 6, r: 11, xp: 2, col: '#e67e22', tags: ['g-'], lps: true, d: 'Bacilo Gram-negativo e rápido. Ao morrer, solta endotoxina (LPS), que fere quem estiver perto.' },
+    pneumo:   { n: 'Pneumococo', hp: 28, spd: 50, dmg: 9, r: 13, xp: 3, col: '#a3cb38', tags: ['g+', 'caps'], d: 'Tem cápsula de polissacarídeo: escorrega dos pseudópodes. Só é bem fagocitado depois de opsonizado por anticorpos ou complemento.' },
+    virus:    { n: 'Vírus influenza', hp: 5, spd: 96, dmg: 4, r: 7, xp: 1, col: '#ff6b81', tags: ['virus'], d: 'Pequeno e rápido. Se encostar numa célula do tecido, infecta e a transforma numa fábrica de vírus.' },
+    candida:  { n: 'Candida albicans', hp: 42, spd: 42, dmg: 10, r: 15, xp: 4, col: '#f8efba', tags: ['fungo'], split: 'levedura', d: 'Fungo. Grande demais para engolir de uma vez; ao morrer, solta leveduras-filhas.' },
+    levedura: { n: 'Levedura', hp: 10, spd: 70, dmg: 5, r: 8, xp: 1, col: '#fff7d6', tags: ['fungo'], d: 'Célula-filha da Candida.' },
+    biofilme: { n: 'Biofilme', hp: 220, spd: 0, dmg: 8, r: 30, xp: 15, col: '#8e7cc3', tags: ['g+'], spawn: 'coco', d: 'Comunidade de bactérias presas numa matriz pegajosa. Não anda, mas solta bactérias sem parar e resiste à explosão respiratória.' },
+    proglote: { n: 'Proglote grávida', hp: 22, spd: 30, dmg: 8, r: 18, xp: 6, col: '#efe3c2', tags: ['helminto'], d: 'Segmento da tênia cheio de ovos. Solta-se da ponta do verme e rasteja sozinho; na vida real, sai nas fezes e espalha milhares de ovos.' },
+    tb:       { n: 'Mycobacterium tuberculosis', hp: 26, spd: 40, dmg: 9, r: 11, xp: 4, col: '#c0a080', tags: ['intra'], d: 'Sobrevive dentro de macrófagos que não foram ativados. Sem IFN-γ, engolir não adianta.' },
+  };
+  const BOSSES = {
+    staph:  { n: 'Colônia de S. aureus', hp: 1400, spd: 45, dmg: 14, r: 46, xp: 60, col: '#f39c12', tags: ['g+'], spawn: 'coco', splits: 3, d: 'Uma colônia enorme. Ao perder metade da vida, se divide.' },
+    sepse:  { n: 'Tempestade de LPS', hp: 2200, spd: 60, dmg: 16, r: 42, xp: 80, col: '#d35400', tags: ['g-'], lps: true, dash: true, d: 'Bactérias Gram-negativas no sangue. Dá investidas e espalha endotoxina: é a sepse.' },
+    tbboss: { n: 'Granuloma de tuberculose', hp: 2600, spd: 35, dmg: 15, r: 50, xp: 90, col: '#a1887f', tags: ['intra'], spawn: 'tb', d: 'Um aglomerado de bacilos da tuberculose. Sem ativação por IFN-γ, sua fagocitose quase não o fere.' },
+    mega:   { n: 'Biofilme gigante', hp: 3600, spd: 22, dmg: 16, r: 60, xp: 100, col: '#7d5fff', tags: ['fungo', 'g+'], spawn: 'levedura', shield: true, d: 'Fungos e bactérias juntos numa matriz. Protege os patógenos por perto.' },
+    tenia:  { n: 'Taenia solium (tênia)', hp: 12000, spd: 62, dmg: 14, r: 46, xp: 300, col: '#efe3c2', tags: ['helminto'], worm: 46, d: 'Um verme achatado com metros de comprimento, feito de centenas de segmentos (proglotes). Grande demais para qualquer fagócito: contra helmintos, o corpo usa a resposta Th2, com eosinófilos, IgE e mastócitos.' },
+    super:  { n: 'Superbactéria', hp: 5200, spd: 55, dmg: 18, r: 48, xp: 150, col: '#e84393', tags: ['g-'], adapt: true, d: 'A cada 15 segundos, fica resistente ao mecanismo que mais a feriu. É seleção natural em tempo real.' },
   };
 
-  const ITEMS = [
-    { id: 'glicose',     name: 'Glicose',     color: '#fff59d', desc: '+40 de ATP' },
-    { id: 'anticorpo',   name: 'Anticorpos',  color: '#80cbc4', desc: 'Opsonização: dano ×2 por 10 turnos' },
-    { id: 'complemento', name: 'Complemento', color: '#ce93d8', desc: 'Complexo de ataque à membrana: 4 de dano em todos os inimigos visíveis' },
-    { id: 'interferon',  name: 'Interferon',  color: '#90caf9', desc: 'Estado antiviral: bloqueia a replicação viral no andar e paralisa os vírus por 5 turnos' },
-    { id: 'quimiocina',  name: 'Quimiocina',  color: '#ffab91', desc: 'Revela o mapa e os patógenos por 30 turnos' },
+  // ---------------- fases ----------------
+  // mix: pesos dos patógenos ao longo do tempo (início → fim)
+  const STAGES = [
+    { id: 1, n: 'Ferida na pele', sub: 'Um prego enferrujado abriu a porta.', bg: ['#3a1f24', '#4a2a2f', '#5c3439'], T: 240, boss: 'staph',
+      mix: t => ({ coco: 6, bacilo: 1 + 3 * t }), cells: 0,
+      intro: 'Um corte na pele deixou bactérias entrarem. Você é um <b>macrófago</b> que mora no tecido: o primeiro a chegar. Mova-se com <b>WASD</b>, setas ou arrastando o dedo; as armas disparam sozinhas. Colete os <b>antígenos</b> (cristais) para subir de nível.',
+      outro: 'A infecção local foi contida. Na vida real, macrófagos e neutrófilos fazem isso em horas, e a inflamação (calor, rubor, inchaço, dor) é o sinal de que estão trabalhando.' },
+    { id: 2, n: 'Corrente sanguínea', sub: 'Algumas bactérias escaparam para o sangue.', bg: ['#4a0f17', '#5c141d', '#701a24'], T: 240, boss: 'sepse', flow: true,
+      mix: t => ({ bacilo: 6, coco: 3, pneumo: 1 + 4 * t }), cells: 0,
+      intro: 'Bactérias no sangue (bacteremia). As Gram-negativas soltam <b>endotoxina (LPS)</b> ao morrer. O pneumococo tem <b>cápsula</b>: para engoli-lo, ele precisa estar <b>opsonizado</b> por anticorpos ou complemento.',
+      outro: 'Você evitou a sepse, a resposta descontrolada a uma infecção no sangue. O LPS das Gram-negativas é um dos principais gatilhos dessa "tempestade".' },
+    { id: 3, n: 'Pulmão', sub: 'Gripe, e depois uma tosse que não passa.', bg: ['#2b1d2e', '#3a2840', '#4b3452'], T: 240, boss: 'tbboss',
+      mix: t => ({ virus: 7, pneumo: 2, tb: t > .4 ? 3 : 0 }), cells: 26,
+      intro: 'Alvéolos cheios de <b>células do tecido</b>. Os vírus as infectam e as transformam em fábricas de vírus. <b>Interferon</b> e <b>linfócitos T CD8</b> são a resposta certa. No fim, o bacilo da tuberculose: sem <b>ativação por IFN-γ</b>, ele sobrevive dentro de você.',
+      outro: 'A tuberculose mostra o limite da imunidade inata: o bacilo vive dentro do macrófago. Só com a ajuda dos linfócitos T (IFN-γ) o macrófago consegue matá-lo. Quando não consegue, o corpo o cerca num granuloma.' },
+    { id: 4, n: 'Linfonodo', sub: 'Onde a imunidade adaptativa nasce.', bg: ['#14262e', '#1b3340', '#234252'], T: 270, boss: 'super',
+      mix: t => ({ coco: 3, bacilo: 3, pneumo: 2, virus: 3, candida: 2, tb: 1 }), cells: 10,
+      intro: 'No linfonodo, macrófagos e células dendríticas apresentam antígenos aos linfócitos. No fim vem a <b>superbactéria</b>: ela fica resistente ao mecanismo que mais a fere. Diversifique.',
+      outro: 'Resistência a antibióticos é seleção natural: quando um único mecanismo mata quase tudo, os poucos resistentes sobrevivem e se multiplicam. Atacar por vários caminhos ao mesmo tempo atrasa a resistência. Vale para o sistema imune e para a terapia combinada com antibióticos.' },
+    { id: 5, n: 'Intestino', sub: 'A batalha final: algo enorme vive aqui.', bg: ['#2e2a14', '#3d371c', '#4f4624'], T: 270, boss: 'tenia',
+      mix: t => ({ candida: 4, coco: 3, bacilo: 3, biofilme: t > .25 ? .5 : 0, proglote: t > .5 ? 1 : 0 }), cells: 12,
+      intro: 'Antibióticos mataram a microbiota que protegia o intestino, e a <b>Candida</b> cresce; os <b>biofilmes</b> resistem à explosão respiratória. E alguém comeu carne de porco malcozida: no fim, vem algo grande demais para engolir.',
+      outro: 'Helmintos como a tênia são milhares de vezes maiores que um macrófago: fagocitar é impossível. Contra eles, o corpo usa a <b>resposta Th2</b>: linfócitos Th2 liberam IL-4, IL-5 e IL-13, plasmócitos produzem <b>IgE</b>, <b>eosinófilos</b> atacam com o conteúdo dos grânulos, mastócitos liberam histamina e o intestino produz mais muco e se contrai para expulsar o verme. A mesma via, desregulada, causa as alergias.' },
   ];
-  const ITEM_WEIGHTS = { glicose: 4, anticorpo: 2, complemento: 2, interferon: 1, quimiocina: 1 };
 
-  const UPGRADES = [
-    { id: 'burst',      max: 3, name: 'Explosão respiratória', desc: '+1 de dano em toda fagocitose.', bio: 'A NADPH oxidase gera espécies reativas de oxigênio dentro do fagossomo.' },
-    { id: 'lysozyme',   max: 2, name: 'Lisozima', desc: '+2 de dano contra bactérias.', bio: 'A lisozima quebra o peptidoglicano da parede bacteriana.' },
-    { id: 'membrane',   max: 3, name: 'Membrana reforçada', desc: '+6 de vida máxima e cura 6.', bio: 'Mais membrana e citoesqueleto para englobar alvos grandes.' },
-    { id: 'metabolism', max: 1, name: 'Metabolismo glicolítico', desc: 'Gasta ATP pela metade.', bio: 'Macrófagos ativados aumentam a glicólise para sustentar a resposta inflamatória.' },
-    { id: 'acid',       max: 2, name: 'Fagolisossomo ácido', desc: 'Cada digestão cura +2 de vida.', bio: 'A fusão com o lisossomo acidifica o fagossomo e ativa as hidrolases.' },
-    { id: 'pseudo',     max: 1, name: 'Pseudópodes longos', desc: 'Seus ataques também atingem o inimigo logo atrás do alvo.', bio: 'A polimerização de actina estende pseudópodes ao redor do alvo.' },
-    { id: 'chemo',      max: 2, name: 'Quimiotaxia', desc: '+2 de raio de visão.', bio: 'Gradientes de quimiocinas e de peptídeos bacterianos (fMLP) guiam a migração.' },
-    { id: 'opson',      max: 2, name: 'Receptores de opsoninas', desc: '+12% de chance de fagocitose completa (dano dobrado).', bio: 'Receptores Fc e de complemento (CR3) reconhecem patógenos opsonizados.' },
-    { id: 'nets',       max: 1, name: 'Armadilhas extracelulares', desc: 'Inimigos atingidos que sobrevivem ficam presos por 1 turno.', bio: 'Macrófagos e neutrófilos lançam redes de DNA e proteínas que aprisionam microrganismos.' },
-    { id: 'ifn',        max: 1, name: 'Interferon tipo I', desc: 'Vírus a até 5 casas de você não se replicam.', bio: 'Interferons induzem um estado antiviral nas células vizinhas.' },
-    { id: 'defensin',   max: 2, name: 'Defensinas', desc: 'Quem te ataca corpo a corpo sofre 1 de dano.', bio: 'Peptídeos antimicrobianos catiônicos que perfuram membranas.' },
-  ];
-
-  // ================= Estado =================
-  let tiles, explored, visible, distMap, rooms, exitPos, decor;
-  let p, up, inv, enemies, items, floorIdx, turn, msgs, floats, shots, parts;
-  let antibodyTurns, revealTurns, ifnFloor, atpAcc, pendingLevels, kills, seenTypes, nextId, cause, won, attackAnim;
-  let state = 'intro';
-
-  const grid = v => Array.from({ length: ROWS }, () => new Array(COLS).fill(v));
-  const inB = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
-  const walkable = (x, y) => inB(x, y) && tiles[y][x] !== WALL;
-  const canStep = (x, y, dx, dy) => walkable(x + dx, y + dy) && (dx === 0 || dy === 0 || (walkable(x + dx, y) && walkable(x, y + dy)));
-  const enemyAt = (x, y) => enemies.find(e => e.hp > 0 && e.x === x && e.y === y);
-  const itemAt = (x, y) => items.find(i => i.x === x && i.y === y);
-  const occupied = (x, y) => (p.x === x && p.y === y) || !!enemyAt(x, y);
-  const visionRadius = () => 6 + 2 * (up.chemo || 0);
-  const xpNeed = () => 8 + p.level * 7;
-
-  // ================= Mensagens e efeitos =================
-  function log(text, color = '#efe9f7') { msgs.push({ text, color }); if (msgs.length > 60) msgs.shift(); }
-  function floatText(x, y, text, color) { floats.push({ x: x * TS + TS / 2, y: y * TS, text, color, t: 0 }); }
-  function burst(x, y, color, n = 8) {
-    for (let i = 0; i < n; i++) parts.push({ x: x * TS + TS / 2, y: y * TS + TS / 2, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, color, t: 0 });
-  }
-
-  // ================= Geração do mapa =================
-  function carveRoom(r) { for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) tiles[y][x] = FLOOR; }
-  function hline(x0, x1, y) { for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) tiles[y][x] = FLOOR; }
-  function vline(y0, y1, x) { for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) tiles[y][x] = FLOOR; }
-  function corridor(a, b) {
-    if (Math.random() < 0.5) { hline(a.cx, b.cx, a.cy); vline(a.cy, b.cy, b.cx); }
-    else { vline(a.cy, b.cy, a.cx); hline(a.cx, b.cx, b.cy); }
-  }
-
-  function bfs(sx, sy) {
-    const d = grid(Infinity); d[sy][sx] = 0;
-    const q = [[sx, sy]];
-    for (let i = 0; i < q.length; i++) {
-      const [x, y] = q[i];
-      for (const [dx, dy] of DIRS8) {
-        if (!canStep(x, y, dx, dy)) continue;
-        const nx = x + dx, ny = y + dy;
-        if (d[ny][nx] > d[y][x] + 1) { d[ny][nx] = d[y][x] + 1; q.push([nx, ny]); }
-      }
-    }
-    return d;
-  }
-
-  function randomFloorTile(filter) {
-    for (let a = 0; a < 2000; a++) {
-      const x = rand(COLS), y = rand(ROWS);
-      if (tiles[y][x] === FLOOR && !occupied(x, y) && !itemAt(x, y) && (!filter || filter(x, y))) return { x, y };
-    }
-    return null;
-  }
-
-  function makeEnemy(type, x, y) {
-    const d = ENEMIES[type];
-    const hp = d.boss ? d.hp : Math.round(d.hp * (1 + 0.2 * floorIdx)); // patógenos mais virulentos nos tecidos profundos
-    return { id: nextId++, type, x, y, rx: x, ry: y, hp, maxHp: hp, dmg: d.dmg + (!d.boss && floorIdx >= 3 ? 1 : 0), energy: Math.random(), aware: !!d.boss, lost: 0, stun: 0,
-             timer: rand(d.replicate || d.bud || d.summon || 1), flash: 0, wob: Math.random() * 6 };
-  }
-
-  function genFloor(idx) {
-    const F = FLOORS[idx], boss = idx === FLOORS.length - 1;
-    tiles = grid(WALL); rooms = [];
-    if (boss) { const r = { x: COLS - 15, y: 7, w: 13, h: 11 }; r.cx = r.x + 6; r.cy = r.y + 5; rooms.push(r); carveRoom(r); }
-    for (let a = 0; a < 500 && rooms.length < 10; a++) {
-      const w = 5 + rand(7), h = 4 + rand(4), x = 1 + rand(COLS - w - 2), y = 1 + rand(ROWS - h - 2);
-      if (rooms.some(r => x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y)) continue;
-      const r = { x, y, w, h, cx: x + (w >> 1), cy: y + (h >> 1) };
-      rooms.push(r); carveRoom(r);
-    }
-    rooms.sort((a, b) => a.cx - b.cx);
-    for (let i = 1; i < rooms.length; i++) corridor(rooms[i - 1], rooms[i]);
-    for (let k = 0; k < 3; k++) corridor(pick(rooms), pick(rooms));
-
-    const start = rooms[0];
-    p.x = p.rx = start.cx; p.y = p.ry = start.cy;
-    const d = bfs(start.cx, start.cy);
-    let far = rooms[rooms.length - 1];
-    for (const r of rooms) if (d[r.cy][r.cx] !== Infinity && d[r.cy][r.cx] > d[far.cy][far.cx]) far = r;
-    exitPos = boss ? null : { x: far.cx, y: far.cy };
-    if (exitPos) tiles[exitPos.y][exitPos.x] = EXIT;
-
-    explored = grid(false); visible = grid(false);
-    decor = Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => Math.random()));
-    enemies = []; items = [];
-    const inStart = (x, y) => x >= start.x - 1 && x <= start.x + start.w && y >= start.y - 1 && y <= start.y + start.h;
-    for (const [type, n] of Object.entries(F.enemies)) {
-      for (let i = 0; i < n; i++) {
-        if (ENEMIES[type].boss) { enemies.push(makeEnemy(type, far.cx, far.cy)); continue; }
-        const pos = randomFloorTile((x, y) => !inStart(x, y) && Math.max(Math.abs(x - p.x), Math.abs(y - p.y)) >= 7);
-        if (pos) enemies.push(makeEnemy(type, pos.x, pos.y));
-      }
-    }
-    const pool = Object.entries(ITEM_WEIGHTS).filter(([k]) => k !== 'interferon' || idx >= 1);
-    const total = pool.reduce((s, [, w]) => s + w, 0);
-    for (let i = 0; i < F.items; i++) {
-      let r = Math.random() * total, id = pool[0][0];
-      for (const [k, w] of pool) { r -= w; if (r <= 0) { id = k; break; } }
-      const pos = randomFloorTile(); if (pos) items.push({ ...pos, id });
-    }
-    ifnFloor = false;
-    computeFOV(); computeDist(); noticeNew();
-  }
-
-  // ================= Visão e caminhos =================
-  function los(x0, y0, x1, y1) {
-    let dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
-    let x = x0, y = y0;
-    while (!(x === x1 && y === y1)) {
-      const e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x += sx; }
-      if (e2 <= dx) { err += dx; y += sy; }
-      if (x === x1 && y === y1) break;
-      if (!walkable(x, y)) return false;
-    }
-    return true;
-  }
-
-  function computeFOV() {
-    visible = grid(false);
-    const R = visionRadius();
-    for (let y = Math.max(0, p.y - R); y <= Math.min(ROWS - 1, p.y + R); y++)
-      for (let x = Math.max(0, p.x - R); x <= Math.min(COLS - 1, p.x + R); x++) {
-        const dx = x - p.x, dy = y - p.y;
-        if (dx * dx + dy * dy <= R * R + R && los(p.x, p.y, x, y)) { visible[y][x] = true; explored[y][x] = true; }
-      }
-  }
-  function computeDist() { distMap = bfs(p.x, p.y); }
-
-  function noticeNew() {
-    for (const e of enemies) if (e.hp > 0 && visible[e.y][e.x] && !seenTypes.has(e.type)) {
-      seenTypes.add(e.type); log('Novo patógeno: ' + ENEMIES[e.type].fact, '#ffe082');
-    }
-  }
-
-  // ================= Turnos =================
-  function playerAct(dx, dy) {
-    if (state !== 'play') return;
-    if (dx || dy) {
-      const nx = p.x + dx, ny = p.y + dy;
-      const e = enemyAt(nx, ny);
-      if (e) attack(e, dx, dy);
-      else if (canStep(p.x, p.y, dx, dy)) {
-        p.x = nx; p.y = ny;
-        Sound.tone(110, 0.05, { type: 'sine', vol: 0.07 });
-        const it = itemAt(nx, ny);
-        if (it) pickup(it);
-        if (tiles[ny][nx] === EXIT) { descend(); return; }
-      } else return; // parede: não gasta turno
-    }
-    endTurn();
-  }
-
-  function pickup(it) {
-    const def = ITEMS.find(i => i.id === it.id);
-    if ((inv[it.id] || 0) >= 3) { log(`Você já carrega 3 de ${def.name}.`, '#9e9e9e'); return; }
-    inv[it.id] = (inv[it.id] || 0) + 1;
-    Sound.arp([79, 86], 0.06, { type: 'sine', vol: 0.18 });
-    items = items.filter(i => i !== it);
-    log(`Você absorveu ${def.name} (${def.desc.toLowerCase()}).`, def.color);
-  }
-
-  function attack(e, dx, dy) {
-    attackAnim = { dx, dy, t: 0 };
-    const tx = e.x + dx, ty = e.y + dy;
-    hit(e);
-    if (up.pseudo) { const e2 = enemyAt(tx, ty); if (e2) hit(e2); }
-  }
-
-  function hit(e) {
-    const d = ENEMIES[e.type];
-    let dmg = p.atk + (d.bact ? 2 * (up.lysozyme || 0) : 0);
-    const crit = Math.random() < 0.12 + 0.12 * (up.opson || 0);
-    if (crit) dmg *= 2;
-    Sound.noise(0.07, { freq: 900, vol: 0.2 }); Sound.tone(200, 0.08, { vol: 0.08, slide: 0.6 });
-    if (crit) Sound.tone(900, 0.12, { vol: 0.08, slide: 1.5 });
-    if (antibodyTurns > 0) dmg *= 2;
-    dmg = Math.max(1, dmg - (d.armor || 0));
-    e.hp -= dmg; e.flash = 0.25; e.aware = true;
-    floatText(e.x, e.y, (crit ? 'Fagocitose completa! −' : '−') + dmg, crit ? '#ffe082' : '#ffffff');
-    if (e.hp <= 0) kill(e, true);
-    else if (up.nets) e.stun = Math.max(e.stun, 1);
-  }
-
-  function kill(e, byPlayer) {
-    const d = ENEMIES[e.type];
-    e.hp = 0;
-    // o "gulp" da fagocitose
-    Sound.tone(330, 0.15, { type: 'sine', vol: 0.3, slide: 0.4, delay: 0.04 }); Sound.tone(160, 0.22, { type: 'triangle', vol: 0.25, slide: 0.5, delay: 0.12 });
-    burst(e.x, e.y, '#ffffff', 10);
-    kills[e.type] = (kills[e.type] || 0) + 1;
-    p.xp += d.xp;
-    p.atp = Math.min(100, p.atp + d.atp);
-    const heal = 1 + 2 * (up.acid || 0);
-    p.hp = Math.min(p.maxHp, p.hp + heal);
-    log(`${byPlayer ? 'Você fagocitou' : 'Eliminado:'} ${d.name}! +${d.atp} ATP, +${heal} vida.`, '#a5d6a7');
-    while (p.xp >= xpNeed()) { p.xp -= xpNeed(); p.level++; p.maxHp += 2; p.hp = Math.min(p.maxHp, p.hp + 2); pendingLevels++; }
-    if (d.boss) won = true;
-  }
-
-  function damagePlayer(n, msg, src) {
-    p.hp -= n; p.flash = 0.3;
-    Sound.tone(150, 0.22, { type: 'sawtooth', vol: 0.14, slide: 0.5 });
-    floatText(p.x, p.y, '−' + n, '#ff8a80');
-    log(msg, '#ff8a80');
-    if (p.hp <= 0) { p.hp = 0; cause = src || msg; }
-  }
-
-  function spawnNear(e, type, msg) {
-    const opts = DIRS8.map(([dx, dy]) => [e.x + dx, e.y + dy]).filter(([x, y]) => walkable(x, y) && !occupied(x, y) && tiles[y][x] !== EXIT);
-    if (!opts.length) return;
-    const [x, y] = pick(opts);
-    const n = makeEnemy(type, x, y); n.aware = e.aware; n.rx = e.x; n.ry = e.y;
-    enemies.push(n);
-    if (visible[e.y][e.x]) {
-      log(msg, '#ffcc80');
-      if (ENEMIES[e.type].boss) Sound.tone(80, 0.4, { type: 'sawtooth', vol: 0.2, slide: 0.7 });
-      else Sound.tone(700, 0.12, { type: 'sine', vol: 0.06, slide: 1.6 });
-    }
-  }
-
-  const countType = t => enemies.filter(e => e.hp > 0 && e.type === t).length;
-
-  function enemyTurn(e) {
-    const d = ENEMIES[e.type];
-    if (e.hp <= 0 || p.hp <= 0) return;
-    if (d.replicate) {
-      if (++e.timer >= d.replicate) {
-        e.timer = 0;
-        const blocked = ifnFloor || (up.ifn && cheb(e, p) <= 5);
-        if (!blocked && countType('virus') < 30) spawnNear(e, 'virus', 'Um vírus se replicou!');
-      }
-    }
-    if (d.bud && ++e.timer >= d.bud) { e.timer = 0; if (countType(d.budType) < 8) spawnNear(e, d.budType, 'A Candida brotou uma levedura!'); }
-    if (d.summon && ++e.timer >= d.summon) { e.timer = 0; if (countType(d.summonType) < 7) spawnNear(e, d.summonType, 'O MRSA liberou um estafilococo!'); }
-    if (e.stun > 0) { e.stun--; return; }
-
-    if (visible[e.y][e.x] && cheb(e, p) <= 9) { e.aware = true; e.lost = 0; }
-    else if (e.aware && !d.boss && ++e.lost > 12) e.aware = false;
-
-    if (d.stationary) { if (cheb(e, p) === 1) enemyAttack(e, d); return; }
-    e.energy += d.speed;
-    while (e.energy >= 1 && e.hp > 0 && p.hp > 0) { e.energy -= 1; enemyAction(e, d); }
-  }
-
-  function enemyAttack(e, d) {
-    damagePlayer(e.dmg, `${d.name} te atacou (−${e.dmg}).`, `Vencido por ${d.name}`);
-    e.lunge = { dx: p.x - e.x, dy: p.y - e.y, t: 0 };
-    if (up.defensin && p.hp > 0) {
-      e.hp -= up.defensin; e.flash = 0.2; floatText(e.x, e.y, '−' + up.defensin, '#80deea');
-      if (e.hp <= 0) kill(e, false);
-    }
-  }
-
-  function enemyAction(e, d) {
-    const c = cheb(e, p);
-    if (c === 1 && canStep(e.x, e.y, p.x - e.x, p.y - e.y)) { enemyAttack(e, d); return; }
-    const dx = p.x - e.x, dy = p.y - e.y;
-    if (d.ranged && e.aware && c <= d.ranged && c > 1 && (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) && los(e.x, e.y, p.x, p.y)) {
-      shots.push({ x0: e.x, y0: e.y, x1: p.x, y1: p.y, t: 0, color: '#ffb74d' });
-      Sound.noise(0.2, { freq: 3000, sweep: 600, vol: 0.2 });
-      damagePlayer(d.rangedDmg, `${d.name} lançou uma toxina (−${d.rangedDmg})!`, `Toxina de ${d.name}`);
-      return;
-    }
-    const moves = DIRS8.filter(([mx, my]) => canStep(e.x, e.y, mx, my) && !occupied(e.x + mx, e.y + my));
-    if (!moves.length) return;
-    let choice = null;
-    if (e.aware) {
-      let bestD = distMap[e.y][e.x];
-      for (const [mx, my] of moves.sort(() => Math.random() - 0.5)) {
-        const nd = distMap[e.y + my][e.x + mx];
-        if (nd < bestD) { bestD = nd; choice = [mx, my]; }
-      }
-    } else if (Math.random() < 0.4) choice = pick(moves);
-    if (choice && tiles[e.y + choice[1]][e.x + choice[0]] !== EXIT) { e.x += choice[0]; e.y += choice[1]; }
-  }
-
-  function endTurn() {
-    turn++;
-    atpAcc += up.metabolism ? 0.5 : 1;
-    if (atpAcc >= 2) { atpAcc -= 2; p.atp = Math.max(0, p.atp - 1); }
-    if (p.atp === 0 && turn % 3 === 0) damagePlayer(1, 'Sem ATP: a célula está se esgotando!', 'Esgotamento de ATP');
-    if (antibodyTurns > 0) antibodyTurns--;
-    if (revealTurns > 0) revealTurns--;
-    computeFOV(); computeDist();
-    for (const e of enemies.slice()) enemyTurn(e);
-    enemies = enemies.filter(e => e.hp > 0);
-    computeFOV(); noticeNew();
-    if (p.hp <= 0) { finish(false); return; }
-    if (won) { finish(true); return; }
-    if (pendingLevels > 0) openLevelUp();
-  }
-
-  function descend() {
-    Sound.noise(0.6, { freq: 300, sweep: 2000, vol: 0.2 }); Sound.arp([79, 76, 72, 67], 0.08, { type: 'triangle', vol: 0.18 });
-    floorIdx++;
-    p.hp = Math.min(p.maxHp, p.hp + 3);
-    genFloor(floorIdx);
-    log(`Você seguiu pelo vaso linfático até: ${FLOORS[floorIdx].name} (andar ${floorIdx + 1}/${FLOORS.length}).`, '#81d4fa');
-    if (floorIdx === FLOORS.length - 1) log('O MRSA está entrincheirado neste linfonodo. Encontre-o e fagocite-o!', '#ff8a80');
-    turn++;
-    if (pendingLevels > 0) openLevelUp();
-  }
-
-  // ================= Itens =================
-  const ITEM_SOUND = {
-    glicose: () => Sound.arp([72, 76, 79], 0.06, { type: 'triangle', vol: 0.2 }),
-    anticorpo: () => Sound.arp([67, 74, 79, 86], 0.05, { type: 'square', vol: 0.1 }),
-    complemento: () => { Sound.noise(0.3, { freq: 1500, sweep: 300, vol: 0.25 }); Sound.tone(500, 0.3, { vol: 0.1, slide: 0.4 }); },
-    interferon: () => Sound.arp([84, 79, 84, 91], 0.07, { type: 'triangle', vol: 0.18 }),
-    quimiocina: () => { Sound.tone(400, 0.6, { type: 'sine', vol: 0.18, slide: 2 }); Sound.tone(600, 0.6, { type: 'sine', vol: 0.12, slide: 2, delay: 0.1 }); },
+  // ---------------- memória imunológica (melhorias permanentes) ----------------
+  const META = {
+    vida: { n: 'Vida', i: '❤️', d: '+10% de vida máxima', max: 5, cost: l => 20 + 15 * l },
+    dano: { n: 'Dano', i: '⚔️', d: '+6% de dano', max: 5, cost: l => 25 + 20 * l },
+    veloc: { n: 'Velocidade', i: '🦶', d: '+5% de velocidade', max: 3, cost: l => 20 + 20 * l },
+    xp: { n: 'Aprendizado', i: '📈', d: '+10% de experiência', max: 3, cost: l => 25 + 25 * l },
+    reroll: { n: 'Rerrolar', i: '🎲', d: '+1 troca das opções ao subir de nível', max: 3, cost: l => 30 + 30 * l },
+    vacina: { n: 'Vacina', i: '💉', d: 'Uma vez por partida, você volta à vida com metade da vida máxima', max: 1, cost: () => 120 },
   };
-  function useItem(i) {
-    if (state !== 'play') return;
-    const it = ITEMS[i];
-    if (!inv[it.id]) { log(`Você não tem ${it.name}.`, '#9e9e9e'); return; }
-    inv[it.id]--;
-    ITEM_SOUND[it.id]();
-    switch (it.id) {
-      case 'glicose': p.atp = Math.min(100, p.atp + 40); log('Glicose metabolizada: +40 ATP.', it.color); break;
-      case 'anticorpo': antibodyTurns += 10; log('Patógenos opsonizados por anticorpos: dano ×2 por 10 turnos!', it.color); break;
-      case 'complemento': {
-        const targets = enemies.filter(e => e.hp > 0 && visible[e.y][e.x]);
-        log(`O complemento formou poros em ${targets.length} patógeno(s)!`, it.color);
-        for (const e of targets) {
-          shots.push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: 0, color: it.color });
-          e.hp -= 4; e.flash = 0.3; e.aware = true; floatText(e.x, e.y, '−4', it.color);
-          if (e.hp <= 0) kill(e, true);
-        }
-        break;
-      }
-      case 'interferon': {
-        ifnFloor = true;
-        let n = 0; for (const e of enemies) if (e.type === 'virus' && e.hp > 0) { e.stun = Math.max(e.stun, 5); n++; }
-        log(`Estado antiviral: a replicação viral parou neste andar (${n} vírus paralisados).`, it.color);
-        break;
-      }
-      case 'quimiocina': explored = grid(true); revealTurns = 30; log('Gradiente de quimiocinas: mapa e patógenos revelados.', it.color); break;
-    }
-    endTurn();
-  }
 
-  // ================= Melhorias =================
-  const luEl = document.getElementById('levelup'), luChoices = document.getElementById('luChoices');
-  let luOptions = [];
-  function openLevelUp() {
-    const avail = UPGRADES.filter(u => (up[u.id] || 0) < u.max).sort(() => Math.random() - 0.5).slice(0, 3);
-    if (!avail.length) { pendingLevels = 0; return; }
-    Sound.arp([72, 76, 79, 84, 88], 0.07, { type: 'triangle', vol: 0.2 });
-    luOptions = avail;
-    state = 'levelup';
-    document.getElementById('luTitle').textContent = `Ativação celular! Nível ${p.level - pendingLevels + 1}`;
-    luChoices.innerHTML = avail.map((u, i) => `<button class="choice" data-i="${i}"><b>${i + 1}. ${u.name}${up[u.id] ? ` (${up[u.id] + 1}/${u.max})` : ''}</b><span>${u.desc}</span><em>${u.bio}</em></button>`).join('');
-    for (const b of luChoices.querySelectorAll('button')) b.addEventListener('click', () => chooseUpgrade(+b.dataset.i));
-    luEl.hidden = false;
-  }
-  function chooseUpgrade(i) {
-    const u = luOptions[i]; if (!u) return;
-    up[u.id] = (up[u.id] || 0) + 1;
-    Sound.arp([84, 91], 0.08, { type: 'sine', vol: 0.2 });
-    if (u.id === 'burst') p.atk++;
-    if (u.id === 'membrane') { p.maxHp += 6; p.hp = Math.min(p.maxHp, p.hp + 6); }
-    if (u.id === 'chemo') computeFOV();
-    log(`Melhoria: ${u.name}.`, '#ffe082');
-    pendingLevels--;
-    luEl.hidden = true; state = 'play';
-    updateUpgradesPanel();
-    if (pendingLevels > 0) openLevelUp();
-    canvas.focus();
-  }
-  function updateUpgradesPanel() {
-    const list = UPGRADES.filter(u => up[u.id]).map(u => `${u.name}${u.max > 1 ? ` ×${up[u.id]}` : ''}`);
-    document.getElementById('upgrades').textContent = list.length ? list.join(' · ') : 'nenhuma ainda';
-  }
-
-  // ================= Início e fim =================
-  const introEl = document.getElementById('intro'), endEl = document.getElementById('end');
-  // Música: pulsação lenta em lá menor; no linfonodo (chefe) acelera e fica mais tensa
-  const GULP_SONG = { bpm: () => floorIdx === FLOORS.length - 1 ? 116 : 84, play(step, t, d) {
-    if (state !== 'play' && state !== 'levelup') return;
-    const boss = floorIdx === FLOORS.length - 1;
-    const ROOTS = boss ? [45, 46, 45, 44] : [45, 41, 43, 40];
-    const bar = Math.floor(step / 8) % 4, s = step % 8, r = ROOTS[bar];
-    if (s % 2 === 0 || boss) Sound.note(midi(r - 12), t, d * (boss ? 0.8 : 1.8), boss ? 'sawtooth' : 'triangle', boss ? 0.25 : 0.6);
-    if (s === 0 || s === 3 || s === 6) Sound.note(midi(r + 12 + [0, 3, 5, 7, 10][(step * 7 + bar) % 5]), t, d * 2.2, 'sine', 0.22);
-  } };
-
-  function start() {
-    Sound.ensure(); Sound.music(GULP_SONG);
-    p = { x: 0, y: 0, rx: 0, ry: 0, hp: 20, maxHp: 20, atp: 100, xp: 0, level: 1, atk: 2, flash: 0 };
-    up = {}; inv = {}; floorIdx = 0; turn = 0; msgs = []; floats = []; shots = []; parts = [];
-    antibodyTurns = 0; revealTurns = 0; ifnFloor = false; atpAcc = 0; pendingLevels = 0;
-    kills = {}; seenTypes = new Set(); nextId = 1; cause = ''; won = false; attackAnim = null;
-    genFloor(0);
-    log('Sinais de inflamação detectados. Você saiu do vaso e chegou à ferida na pele.', '#81d4fa');
-    log('Esbarre nos patógenos para fagocitá-los. Encontre o vaso linfático para avançar.', '#a99bc0');
-    updateUpgradesPanel();
-    state = 'play'; introEl.hidden = true; endEl.hidden = true; luEl.hidden = true;
-    canvas.focus();
-  }
-
-  function finish(victory) {
-    state = victory ? 'won' : 'dead';
-    Sound.music(null);
-    if (victory) Sound.arp([72, 76, 79, 84, 79, 84, 88, 91], 0.11, { type: 'square', vol: 0.14, dur: 0.22 });
-    else Sound.arp([69, 65, 62, 57, 53], 0.2, { type: 'triangle', vol: 0.22, dur: 0.4 });
-    const totalKills = Object.values(kills).reduce((s, n) => s + n, 0);
-    const killList = Object.entries(kills).map(([t, n]) => `${ENEMIES[t].name} ×${n}`).join(', ') || 'nenhum';
-    const ups = UPGRADES.filter(u => up[u.id]).map(u => u.name).join(', ') || 'nenhuma';
-    document.getElementById('endCard').innerHTML = victory ? `
-      <h2>Infecção contida!</h2>
-      <p>O MRSA foi fagocitado e o linfonodo está seguro. Agora você apresenta os antígenos aos linfócitos T, e a imunidade adaptativa assume daqui.</p>` : `
-      <h2>Apoptose</h2>
-      <p>A célula foi vencida pela infecção. <span class="muted">(${cause})</span></p>
-      <p class="muted">Cada partida gera mapas novos. Os macrófagos derivam de monócitos, e sempre chega mais um do sangue.</p>`;
-    document.getElementById('endCard').innerHTML += `
-      <div class="stats">
-        <span>Andar alcançado <b>${floorIdx + 1}/${FLOORS.length}</b></span>
-        <span>Nível <b>${p.level}</b></span>
-        <span>Turnos <b>${turn}</b></span>
-        <span>Patógenos fagocitados <b>${totalKills}</b></span>
-      </div>
-      <p class="muted"><b>Fagocitados:</b> ${killList}</p>
-      <p class="muted"><b>Melhorias:</b> ${ups}</p>
-      <button class="big" id="againBtn">Nova partida (Enter)</button>`;
-    document.getElementById('againBtn').addEventListener('click', start);
-    endEl.hidden = false;
-  }
-
-  // ================= Entrada =================
-  const KEYMAP = {
-    ArrowUp: [0, -1], KeyW: [0, -1], Numpad8: [0, -1],
-    ArrowDown: [0, 1], KeyS: [0, 1], Numpad2: [0, 1], KeyX: [0, 1],
-    ArrowLeft: [-1, 0], KeyA: [-1, 0], Numpad4: [-1, 0],
-    ArrowRight: [1, 0], KeyD: [1, 0], Numpad6: [1, 0],
-    KeyQ: [-1, -1], Numpad7: [-1, -1], KeyE: [1, -1], Numpad9: [1, -1],
-    KeyZ: [-1, 1], Numpad1: [-1, 1], KeyC: [1, 1], Numpad3: [1, 1],
-    Space: [0, 0], Period: [0, 0], Numpad5: [0, 0],
+  const CODEX_EXTRA = {
+    opson: ['Opsonização', 'Anticorpos e o fragmento C3b do complemento "cobrem" o patógeno. O macrófago tem receptores para eles (receptores Fc e de complemento) e engole o alvo opsonizado com muito mais facilidade. É o jeito de vencer bactérias com cápsula.'],
+    memoria: ['Memória imunológica e vacinas', 'Depois de uma infecção, sobram linfócitos de memória que respondem mais rápido e mais forte na próxima vez. Vacinas criam essa memória sem a doença. Neste jogo, cada partida deixa pontos de memória que tornam o próximo macrófago mais forte.'],
   };
-  addEventListener('keydown', e => {
-    const k = e.code;
-    if (KEYMAP[k] || /^Digit[1-5]$/.test(k) || k === 'Enter') e.preventDefault();
-    if (state === 'intro') { if (k === 'Enter' || k === 'Space') start(); return; }
-    if (state === 'dead' || state === 'won') { if (k === 'Enter' || k === 'KeyR') start(); return; }
-    if (state === 'levelup') { const m = k.match(/^Digit([1-3])$/); if (m) chooseUpgrade(+m[1] - 1); return; }
-    if (KEYMAP[k]) { playerAct(...KEYMAP[k]); return; }
-    const m = k.match(/^Digit([1-5])$/); if (m) useItem(+m[1] - 1);
-  });
-  document.getElementById('startBtn').addEventListener('click', start);
-  for (const b of document.querySelectorAll('.dpad button')) {
-    b.addEventListener('click', () => { if (state === 'intro') { start(); return; } const [dx, dy] = b.dataset.d.split(',').map(Number); playerAct(dx, dy); });
+  // =====================================================================
+  // SIMULAÇÃO DA PARTIDA
+  // =====================================================================
+  let G = null;
+  const SAVE = 'gulp-v2';
+  let prog = { unlocked: 1, mem: 0, meta: {}, codex: [], best: {}, runs: 0 };
+  try { const p = JSON.parse(localStorage.getItem(SAVE)); if (p) prog = Object.assign(prog, p); } catch (e) {}
+  const saveProg = () => { try { localStorage.setItem(SAVE, JSON.stringify(prog)); } catch (e) {} };
+  const metaLv = k => prog.meta[k] || 0;
+
+  function stats() {
+    const P = G.pas, m = metaLv;
+    return {
+      might: (1 + .1 * (P.manose || 0)) * (1 + .06 * m('dano')),
+      cd: Math.pow(.93, P.integrina || 0),
+      spd: 170 * (1 + .08 * (P.pseudo || 0)) * (1 + .05 * m('veloc')),
+      maxhp: (100 + 20 * (P.lisossomo || 0)) * (1 + .1 * m('vida')),
+      regen: .5 * (P.glicolise || 0),
+      xpm: (1 + .15 * (P.tlr || 0)) * (1 + .1 * m('xp')),
+      pick: 90 * (1 + .2 * (P.tlr || 0)),
+      amount: P.mhc || 0,
+      ifng: P.ifng || 0,
+    };
   }
+  function newRun(stageId) {
+    const st = STAGES[stageId - 1];
+    G = { st, t: 0, p: { x: 0, y: 0, hp: 100, r: 22, inv: 0, fx: 1, fy: 0, hurt: 0, wob: 0 }, en: [], pr: [], gems: [], picks: [], allies: [], nets: [], clouds: [], cells: [], fx: [], nums: [],
+      wep: { fago: 1 }, pas: {}, wt: {}, lvl: 1, xp: 0, kills: 0, dmgBy: {}, spawnAcc: 0, boss: null, bossOn: false, ended: false, pending: 0,
+      rerolls: metaLv('reroll'), revived: false, orbA: 0, cleared: false, seen: {}, bossWin: [], resist: {}, adaptT: 0 };
+    const S = stats(); G.p.hp = S.maxhp;
+    for (let i = 0; i < st.cells; i++) G.cells.push(newCell(rnd(150, 900)));
+    prog.runs++; saveProg();
+  }
+  function newCell(d) { const a = rnd(0, 6.283), p = G ? G.p : { x: 0, y: 0 }; return { x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d, r: 26, inf: false, sp: rnd(1, 3), hp: 30 }; }
+  const xpNext = l => Math.round(2 + 3 * l + .5 * l * l);
 
-  // ================= Desenho =================
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-  const SLOT = { x0: 228, y: 506, w: 56, h: 56, gap: 6 };
-
-  canvas.addEventListener('pointerdown', ev => {
-    canvas.focus();
-    if (state !== 'play') return;
-    const r = canvas.getBoundingClientRect();
-    const x = (ev.clientX - r.left) * W / r.width, y = (ev.clientY - r.top) * H / r.height;
-    for (let i = 0; i < ITEMS.length; i++) {
-      const sx = SLOT.x0 + i * (SLOT.w + SLOT.gap);
-      if (x >= sx && x <= sx + SLOT.w && y >= SLOT.y && y <= SLOT.y + SLOT.h) { useItem(i); return; }
+  // ---------------- inimigos ----------------
+  function spawnEnemy(k, x, y, o = {}) {
+    const D = ENEMIES[k] || BOSSES[k], sc = (1 + .55 * (G.t / G.st.T)) * (1 + .35 * (G.st.id - 1));
+    const boss = !!BOSSES[k];
+    const hpm = boss ? (1 + .04 * (G.lvl - 1)) : sc * (o.elite ? 5 : 1);
+    const e = { k, x, y, hp: D.hp * hpm * (o.hpf || 1), spd: D.spd * (o.elite ? .85 : 1) * rnd(.9, 1.1), dmg: D.dmg * (o.elite ? 1.6 : 1), r: D.r * (o.elite ? 1.5 : 1) * (o.rf || 1), xp: D.xp * (o.elite ? 8 : 1), tags: D.tags, boss, elite: !!o.elite,
+      op: 0, slow: 0, sf: 1, flash: 0, hitCd: 0, kx: 0, ky: 0, cd: rnd(1, 3), ang: rnd(0, 6.28), cd8: 0, child: !!o.child, split: false, dash: 0 };
+    e.maxhp = e.hp;
+    G.en.push(e);
+    if (!G.seen[k]) { G.seen[k] = true; if (!prog.codex.includes(k)) { prog.codex.push(k); saveProg(); G.newCodex = k; } }
+    return e;
+  }
+  function spawnRing(k, o) {
+    const a = rnd(0, 6.283), R = viewR() + 60;
+    return spawnEnemy(k, G.p.x + Math.cos(a) * R, G.p.y + Math.sin(a) * R, o);
+  }
+  function spawner(dt) {
+    const f = G.t / G.st.T;
+    const rate = (G.bossOn ? .5 : 1) * (.7 + 3.4 * Math.pow(Math.min(f, 1.2), 1.3)) * (1 + .12 * (G.st.id - 1));
+    G.spawnAcc += rate * dt;
+    while (G.spawnAcc >= 1) {
+      G.spawnAcc--;
+      if (G.en.length > 300) break;
+      const mix = G.st.mix(Math.min(f, 1)); let tot = 0; for (const v of Object.values(mix)) tot += v;
+      let r = Math.random() * tot, k = 'coco';
+      for (const [kk, v] of Object.entries(mix)) { r -= v; if (r <= 0) { k = kk; break; } }
+      const elite = Math.random() < .012 + .01 * f && k !== 'biofilme';
+      if (k === 'coco' && Math.random() < .3) { const a = rnd(0, 6.283), R = viewR() + 60, x = G.p.x + Math.cos(a) * R, y = G.p.y + Math.sin(a) * R; for (let i = 0; i < 3; i++) spawnEnemy('coco', x + rnd(-25, 25), y + rnd(-25, 25)); }
+      else spawnRing(k, { elite });
     }
-  });
-
-  function rr(x, y, w, h, r) {
-    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-  }
-  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
-  function capsule(cx, cy, len, rad, ang) {
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
-    rr(-len / 2, -rad, len, rad * 2, rad); ctx.restore();
-  }
-
-  function drawItemIcon(id, cx, cy, s, now) {
-    const def = ITEMS.find(i => i.id === id);
-    ctx.save(); ctx.strokeStyle = def.color; ctx.fillStyle = def.color; ctx.lineWidth = Math.max(1.5, s * 0.12); ctx.lineCap = 'round';
-    if (id === 'glicose') {
-      ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; ctx.lineTo(cx + Math.cos(a) * s * 0.38, cy + Math.sin(a) * s * 0.38); } ctx.closePath(); ctx.stroke();
-      circle(cx, cy, s * 0.08); ctx.fill();
-    } else if (id === 'anticorpo') {
-      ctx.beginPath(); ctx.moveTo(cx, cy + s * 0.4); ctx.lineTo(cx, cy); ctx.lineTo(cx - s * 0.3, cy - s * 0.35); ctx.moveTo(cx, cy); ctx.lineTo(cx + s * 0.3, cy - s * 0.35); ctx.stroke();
-    } else if (id === 'complemento') {
-      circle(cx, cy, s * 0.34); ctx.stroke(); circle(cx, cy, s * 0.14); ctx.stroke();
-    } else if (id === 'interferon') {
-      ctx.beginPath(); for (let i = 0; i < 12; i++) { const a = -Math.PI / 2 + i * Math.PI / 6, r = i % 2 ? s * 0.18 : s * 0.4; ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
-    } else if (id === 'quimiocina') {
-      for (let i = 1; i <= 3; i++) { ctx.globalAlpha = 1 - i * 0.22; ctx.beginPath(); ctx.arc(cx - s * 0.3, cy, s * 0.17 * i, -0.9, 0.9); ctx.stroke(); }
+    if (!G.bossOn && G.t >= G.st.T) {
+      G.bossOn = true; const b = spawnRing(G.st.boss); G.boss = b;
+      G.banner = { t: `⚠️ ${BOSSES[G.st.boss].n}`, s: BOSSES[G.st.boss].d, life: 5 };
+      if (BOSSES[G.st.boss].worm) makeWorm(b);
+      sfx.boss();
     }
-    ctx.restore();
+  }
+  // ---------------- tênia: cabeça (escólex) + segmentos que seguem ----------------
+  const SEGN = 46;
+  function segR(i) { // pescoço fino, proglotes crescem até a ponta
+    if (i < 4) return 22 + i * 4;
+    return Math.min(90, 38 + (i - 4) * 3.2);
+  }
+  function makeWorm(b) {
+    b.worm = true; b.r = 64; b.heading = Math.atan2(G.p.y - b.y, G.p.x - b.x); b.lunge = 0; b.lcd = 5; b.detached = 0; b.segs = [];
+    let x = b.x, y = b.y, pr = b.r; const back = b.heading + Math.PI;
+    for (let i = 0; i < SEGN; i++) {
+      const r = segR(i), gap = (r + pr) * .62; x += Math.cos(back) * gap; y += Math.sin(back) * gap; pr = r;
+      const s = { k: 'seg', par: b, i, x, y, r, hp: 1, maxhp: 1, dmg: b.dmg * .8, tags: b.tags, op: 0, slow: 0, sf: 1, flash: 0, hitCd: 0, kx: 0, ky: 0, cd8: 0, ang: back, xp: 0 };
+      b.segs.push(s); G.en.push(s);
+    }
+    // a resposta Th2 chega
+    G.wep.eos = Math.min(5, (G.wep.eos || 0) + 2); G.wt.eos = .5;
+    setTimeout(() => { if (G && !G.ended) G.banner = { t: '🔶 Resposta Th2: eosinófilos a caminho!', s: 'Linfócitos Th2 liberam IL-5 e chamam eosinófilos; a IgE marca o verme. Fagocitar não adianta.', life: 6 }; }, 5200);
+  }
+  function wormStep(e, dt) {
+    const p = G.p, dist = Math.hypot(p.y - e.y, p.x - e.x);
+    // fora da investida, circula o jogador e vai fechando o cerco com o corpo
+    const want = Math.atan2(p.y - e.y, p.x - e.x) + (e.lunge > 0 || dist > 520 ? 0 : (e.odir || 1) * (dist < 260 ? 1.45 : 1.1));
+    if (Math.random() < dt * .08) e.odir = -(e.odir || 1);
+    let da = want - e.heading; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+    e.lcd -= dt;
+    if (e.lunge > 0) e.lunge -= dt; else if (e.lcd <= 0) { e.lunge = 1.3; e.lcd = rnd(4, 6); G.fx.push({ k: 'ring', x: e.x, y: e.y, r: e.r * 2.2, life: .5, c: '#ffcf7a' }); }
+    const turn = e.lunge > 0 ? .9 : 1.7;
+    e.heading += clamp(da, -turn * dt, turn * dt) + Math.sin(G.t * 2.2) * 1.1 * dt;
+    const sp = e.spd * e.sf * (e.lunge > 0 ? 3.1 : 1);
+    e.x += Math.cos(e.heading) * sp * dt; e.y += Math.sin(e.heading) * sp * dt;
+    e.ang = e.heading;
+    let px = e.x, py = e.y, pr = e.r;
+    for (const s of e.segs) {
+      if (s.hp <= 0) continue;
+      const gap = (s.r + pr) * .62, dx = s.x - px, dy = s.y - py, d = Math.hypot(dx, dy) || 1;
+      if (d > gap) { s.x = px + dx / d * gap; s.y = py + dy / d * gap; }
+      s.ang = Math.atan2(py - s.y, px - s.x);
+      px = s.x; py = s.y; pr = s.r;
+    }
+    // proglotes grávidas se soltam da ponta
+    const th = [.75, .5, .25], f = e.hp / e.maxhp;
+    while (e.detached < 3 && f < th[e.detached]) {
+      e.detached++;
+      const live = e.segs.filter(s => s.hp > 0), cut = live.slice(-7);
+      for (const s of cut) { s.hp = 0; const q = spawnEnemy('proglote', s.x, s.y, { child: true, rf: Math.min(s.r, 70) / 18 * .6 }); q.ang = s.ang; }
+      G.banner = { t: '🥚 Proglotes grávidas se soltaram!', s: 'Cada segmento da ponta carrega milhares de ovos. Elimine-os antes que se espalhem.', life: 3.5 };
+    }
+  }
+  // ---------------- dano ----------------
+  const HELM = { fago: .1, ros: .3, lisozima: .2, anticorpo: .8, interferon: .3, cd8: .5, febre: .5, neutro: .7, complemento: .6, eos: 3, vacina: 1 };
+  function hit(e, dmg, src, o = {}) {
+    if (e.hp <= 0) return;
+    if (e.par) { // segmento da tênia: o dano vai para o verme inteiro
+      const b = e.par; if (b.hp <= 0) return;
+      e.flash = .1; if (o.op) e.op = Math.max(e.op, o.op);
+      if (b.hf !== G.frame) { b.hf = G.frame; b.hfs = {}; }
+      const n = b.hfs[src] = (b.hfs[src] || 0) + 1;
+      return hit(b, dmg * (n === 1 ? 1 : .12), src, { seg: e, op: e.op });
+    }
+    const S = stats(), T = e.tags;
+    let m = S.might;
+    if (T.includes('helminto')) { m *= HELM[src] ?? 1; if (src === 'eos' && (e.op > 0 || (o.op || 0) > 0)) m *= 1.5; }
+    else if (src === 'eos') m *= .5;
+    if (src === 'fago') {
+      if (T.includes('caps') && e.op <= 0) m *= .25;
+      if (e.op > 0) m *= 1.6;
+      if (T.includes('intra')) m *= S.ifng ? 1 + .1 * S.ifng : .15;
+      else if (S.ifng) m *= 1 + .1 * S.ifng;
+    }
+    if (src === 'lisozima') m *= T.includes('g+') ? 2 : T.includes('g-') ? .6 : T.includes('virus') ? .3 : 1;
+    if (src === 'anticorpo' && T.includes('virus')) m *= 2;
+    if (src === 'interferon') m *= T.includes('virus') ? 3 : .5;
+    if (src === 'ros' && (e.k === 'biofilme' || e.k === 'mega')) m *= .4;
+    // biofilme gigante protege quem está perto
+    if (G.boss && G.boss.hp > 0 && BOSSES[G.boss.k].shield && e !== G.boss && dist2(e, G.boss) < 160 * 160) m *= .5;
+    if (e.boss && G.resist[src]) m *= .25;
+    const d = dmg * m;
+    e.hp -= d; e.flash = .1;
+    G.dmgBy[src] = (G.dmgBy[src] || 0) + d;
+    if (e.boss) G.bossWin.push([G.t, src, d]);
+    if (o.kb && !e.worm) { const a = Math.atan2(e.y - G.p.y, e.x - G.p.x); e.kx += Math.cos(a) * o.kb; e.ky += Math.sin(a) * o.kb; }
+    const at = o.seg || e;
+    if (G.nums.length < 60 && (d >= 8 || (e.boss && d >= 1))) G.nums.push({ x: at.x + rnd(-6, 6), y: at.y - at.r, v: Math.round(d), life: .6, c: e.boss && G.resist[src] ? '#9aa' : (e.tags.includes('helminto') && HELM[src] < .5) ? '#9aa' : src === 'eos' ? '#ffb27a' : '#fff' });
+    if (e.hp <= 0) die(e, src);
+  }
+  function die(e, src) {
+    G.kills++;
+    const D = ENEMIES[e.k] || BOSSES[e.k];
+    if (src === 'fago' && !e.tags.includes('helminto')) G.fx.push({ k: 'gulp', x: e.x, y: e.y, r: e.r, life: .3, c: D.col });
+    else for (let i = 0; i < 5; i++) G.fx.push({ k: 'pt', x: e.x, y: e.y, vx: rnd(-80, 80), vy: rnd(-80, 80), life: .4, c: D.col });
+    G.gems.push({ x: e.x, y: e.y, v: e.xp, m: false });
+    if (Math.random() < (e.elite ? 1 : .012)) G.picks.push({ k: e.elite ? 'bau' : Math.random() < .7 ? 'glicose' : 'quimio', x: e.x, y: e.y });
+    if (D.lps) G.clouds.push({ x: e.x, y: e.y, r: e.boss ? 90 : 38, life: e.boss ? 3 : 1.4 });
+    if (D.split && !e.child) for (let i = 0; i < 2; i++) spawnEnemy(D.split, e.x + rnd(-10, 10), e.y + rnd(-10, 10), { child: true });
+    if (e.segs) for (const s of e.segs) { if (s.hp > 0) { s.hp = 0; for (let i = 0; i < 3; i++) G.fx.push({ k: 'pt', x: s.x, y: s.y, vx: rnd(-120, 120), vy: rnd(-120, 120), life: .9, c: '#efe3c2' }); G.gems.push({ x: s.x, y: s.y, v: 4, m: false }); } }
+    if (e.boss) {
+      sfx.bossDie();
+      const alive = G.en.some(x => x.boss && x.hp > 0 && x !== e);
+      if (!alive) { G.cleared = true; G.ended = true; for (let i = 0; i < 30; i++) G.fx.push({ k: 'pt', x: e.x, y: e.y, vx: rnd(-200, 200), vy: rnd(-200, 200), life: 1, c: D.col }); }
+    } else sfx.kill(src);
+  }
+  function hurtPlayer(d) {
+    const p = G.p; if (p.inv > 0 || G.ended) return;
+    p.hp -= d; p.inv = .45; p.hurt = .25; sfx.hurt();
+    if (p.hp <= 0) {
+      if (metaLv('vacina') && !G.revived) { G.revived = true; p.hp = stats().maxhp / 2; p.inv = 2; G.banner = { t: '💉 A vacina salvou você!', s: 'Células de memória responderam a tempo.', life: 3 }; for (const e of G.en) if (dist2(e, p) < 250 * 250 && !e.boss) hit(e, 9999, 'vacina'); return; }
+      G.ended = true; G.cleared = false;
+    }
   }
 
-  function drawEnemy(e, now) {
-    const d = ENEMIES[e.type];
-    let cx = e.rx * TS + TS / 2, cy = e.ry * TS + TS / 2;
-    if (e.lunge && e.lunge.t < 0.15) { const k = Math.sin(e.lunge.t / 0.15 * Math.PI) * 5; cx += Math.sign(e.lunge.dx) * k; cy += Math.sign(e.lunge.dy) * k; }
-    const wob = Math.sin(now / 300 + e.wob);
-    ctx.save();
-    switch (e.type) {
-      case 'coco':
-        ctx.fillStyle = '#ffd54f';
-        for (const [ox, oy] of [[-3, -3], [3, -3], [0, 2], [-5, 3], [5, 3]]) { circle(cx + ox, cy + oy + wob * 0.5, 3.6); ctx.fill(); }
-        break;
-      case 'bacilo': {
-        const ang = Math.sin(now / 400 + e.wob) * 0.5;
-        ctx.strokeStyle = '#a5d6a7'; ctx.lineWidth = 1;
-        for (let k = -1; k <= 1; k += 2) { ctx.beginPath(); for (let i = 0; i <= 8; i++) ctx.lineTo(cx - Math.cos(ang) * (7 + i) , cy - Math.sin(ang) * (7 + i) + Math.sin(now / 60 + i) * 1.5 + k * 2); ctx.stroke(); }
-        ctx.fillStyle = '#81c784'; capsule(cx, cy, 15, 4, ang); ctx.fill();
-        break;
+  // ---------------- armas ----------------
+  function nearest(n, R, filter) {
+    const p = G.p, out = [];
+    for (const e of G.en) { if (e.hp <= 0 || (filter && !filter(e))) continue; const d = dist2(e, p); if (d <= R * R) out.push([d, e]); }
+    out.sort((a, b) => a[0] - b[0]);
+    return out.slice(0, n).map(x => x[1]);
+  }
+  function fire(k, L, S) {
+    const p = G.p;
+    if (k === 'fago') {
+      const tg = nearest(L.cnt, L.r);
+      for (const e of tg) { G.fx.push({ k: 'tend', x: e.x, y: e.y, life: .22, e }); hit(e, L.dmg, 'fago'); }
+      if (tg.length) sfx.gulp();
+      return tg.length > 0;
+    }
+    if (k === 'ros') { for (const e of G.en) if (e.hp > 0 && dist2(e, p) < (L.r + e.r) ** 2) hit(e, L.dmg, 'ros'); return true; }
+    if (k === 'lisozima') {
+      const a0 = Math.atan2(p.fy, p.fx);
+      G.fx.push({ k: 'cone', a: a0, r: L.r, arc: L.arc, life: .25 });
+      for (const e of G.en) { if (e.hp <= 0) continue; const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy); if (d > L.r + e.r) continue; let da = Math.atan2(dy, dx) - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; if (Math.abs(da) < L.arc / 2) hit(e, L.dmg, 'lisozima', { kb: 60 }); }
+      sfx.spray(); return true;
+    }
+    if (k === 'complemento') {
+      const n = L.cnt + S.amount, tg = nearest(n, 600);
+      for (let i = 0; i < n; i++) { const e = tg[i % Math.max(1, tg.length)]; const a = e ? Math.atan2(e.y - p.y, e.x - p.x) + (i >= tg.length ? rnd(-.4, .4) : 0) : rnd(0, 6.28); G.pr.push({ k, x: p.x, y: p.y, vx: Math.cos(a) * L.spd, vy: Math.sin(a) * L.spd, dmg: L.dmg, pierce: L.pierce, life: 1.6, hit: new Set(), r: 8 }); }
+      sfx.shoot(); return true;
+    }
+    if (k === 'anticorpo') {
+      const n = L.cnt + S.amount, tg = nearest(n, 650);
+      for (let i = 0; i < n; i++) { const a = rnd(0, 6.283); G.pr.push({ k, x: p.x, y: p.y, vx: Math.cos(a) * 160, vy: Math.sin(a) * 160, dmg: L.dmg, life: 3, tgt: tg[i % Math.max(1, tg.length)] || null, r: 7, spd: L.spd }); }
+      sfx.shoot2(); return true;
+    }
+    if (k === 'eos') {
+      const n = L.cnt + S.amount, hel = nearest(n, 900, e => e.tags.includes('helminto')), tg = hel.length ? hel : nearest(n, 600);
+      if (!tg.length) return false;
+      for (let i = 0; i < n; i++) { const a = rnd(0, 6.283); G.pr.push({ k, x: p.x, y: p.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, dmg: L.dmg, life: 3.5, tgt: tg[i % tg.length], r: 9, spd: L.spd }); }
+      sfx.call(); return true;
+    }
+    if (k === 'neutro') {
+      for (let i = 0; i < L.cnt + S.amount; i++) G.allies.push({ x: p.x + rnd(-20, 20), y: p.y + rnd(-20, 20), life: L.life, dmg: L.dmg, tick: 0, r: 11, tgt: null });
+      sfx.call(); return true;
+    }
+    if (k === 'interferon') {
+      G.fx.push({ k: 'ring', x: p.x, y: p.y, r: L.r, life: .5, c: '#7bd389' });
+      for (const e of G.en) if (e.hp > 0 && dist2(e, p) < (L.r + e.r) ** 2) { hit(e, L.dmg, 'interferon'); if (e.tags.includes('virus')) { e.slow = 2; e.sf = .4; } }
+      for (const c of G.cells) if (c.inf && dist2(c, p) < L.r * L.r) { c.inf = false; G.fx.push({ k: 'ring', x: c.x, y: c.y, r: 30, life: .4, c: '#7bd389' }); G.cured = (G.cured || 0) + 1; }
+      sfx.pulse(); return true;
+    }
+    if (k === 'febre') {
+      const R = viewR() + 50;
+      for (const e of G.en) if (e.hp > 0 && dist2(e, p) < R * R) { hit(e, L.dmg, 'febre'); e.slow = 1.5; e.sf = 1 - L.slow; }
+      p.hp -= L.cost; G.flash = .25; sfx.fever(); return true;
+    }
+    return false;
+  }
+  function updWeapons(dt, S) {
+    for (const [k, lv] of Object.entries(G.wep)) {
+      const W = WEAPONS[k], L = W.L(lv);
+      if (k === 'cd8') continue;
+      G.wt[k] = (G.wt[k] ?? .3) - dt;
+      if (G.wt[k] <= 0) { const ok = fire(k, L, S); G.wt[k] = ok ? L.cd * S.cd : .15; }
+    }
+    // linfócitos CD8 em órbita
+    if (G.wep.cd8) {
+      const L = WEAPONS.cd8.L(G.wep.cd8); G.orbA += L.spd * dt;
+      G.orbs = [];
+      for (let i = 0; i < L.cnt; i++) {
+        const a = G.orbA + i * 2 * Math.PI / L.cnt, o = { x: G.p.x + Math.cos(a) * L.r, y: G.p.y + Math.sin(a) * L.r, r: 12 };
+        G.orbs.push(o);
+        for (const e of G.en) if (e.hp > 0 && e.cd8 <= 0 && dist2(e, o) < (e.r + o.r) ** 2) { hit(e, L.dmg, 'cd8', { kb: 40 }); e.cd8 = .45; }
+        for (const c of G.cells) if (c.inf && dist2(c, o) < (c.r + o.r) ** 2) { killCell(c); }
       }
-      case 'virus':
-        ctx.strokeStyle = '#ef9a9a'; ctx.lineWidth = 1.4;
-        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + now / 900; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 4, cy + Math.sin(a) * 4); ctx.lineTo(cx + Math.cos(a) * 7.5, cy + Math.sin(a) * 7.5); ctx.stroke(); }
-        ctx.fillStyle = '#ef5350'; circle(cx, cy, 4.5); ctx.fill();
-        break;
-      case 'clostridio':
-        ctx.fillStyle = '#ffb74d'; capsule(cx, cy, 16, 4, 0.3 + wob * 0.1); ctx.fill();
-        ctx.fillStyle = '#fff3e0'; ctx.beginPath(); ctx.ellipse(cx + 5 * Math.cos(0.3), cy + 5 * Math.sin(0.3), 3, 2.4, 0.3, 0, Math.PI * 2); ctx.fill();
-        break;
-      case 'fungo':
-        ctx.fillStyle = '#ba68c8'; circle(cx - 1, cy + 1, 7 + wob * 0.4); ctx.fill();
-        ctx.fillStyle = '#ce93d8'; circle(cx + 6, cy - 5, 3.2); ctx.fill();
-        ctx.fillStyle = '#7b1fa2'; circle(cx - 2, cy + 1, 2.4); ctx.fill();
-        break;
-      case 'levedura':
-        ctx.fillStyle = '#ce93d8'; ctx.beginPath(); ctx.ellipse(cx, cy, 5, 4, wob * 0.3, 0, Math.PI * 2); ctx.fill();
-        break;
-      case 'myco':
-        ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 2;
-        ctx.fillStyle = '#90a4ae';
-        capsule(cx - 2, cy - 3, 15, 2.6, 0.5 + wob * 0.05); ctx.fill(); ctx.stroke();
-        capsule(cx + 2, cy + 3, 15, 2.6, 0.2 + wob * 0.05); ctx.fill(); ctx.stroke();
-        break;
-      case 'mrsa': {
-        const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 20);
-        g.addColorStop(0, 'rgba(255,82,82,.45)'); g.addColorStop(1, 'rgba(255,82,82,0)');
-        ctx.fillStyle = g; circle(cx, cy, 20); ctx.fill();
-        ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d32f2f'; ctx.lineWidth = 1.5;
-        for (const [ox, oy] of [[0, 0], [-6, -5], [6, -5], [-8, 3], [8, 3], [-3, 8], [4, 8], [0, -10]]) { circle(cx + ox, cy + oy + wob, 4.8); ctx.fill(); ctx.stroke(); }
-        break;
-      }
-    }
-    if (e.flash > 0) { ctx.globalAlpha = Math.min(1, e.flash * 3); ctx.fillStyle = '#fff'; circle(cx, cy, d.boss ? 14 : 8); ctx.fill(); ctx.globalAlpha = 1; }
-    if (e.stun > 0) { ctx.strokeStyle = '#80deea'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]); circle(cx, cy, 9.5); ctx.stroke(); ctx.setLineDash([]); }
-    if (e.hp < e.maxHp) {
-      const bw = d.boss ? 30 : 16, by = cy - (d.boss ? 22 : 12);
-      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(cx - bw / 2, by, bw, 3);
-      ctx.fillStyle = d.boss ? '#ff5252' : '#ffab91'; ctx.fillRect(cx - bw / 2, by, bw * e.hp / e.maxHp, 3);
-    }
-    ctx.restore();
+    } else G.orbs = [];
   }
+  function killCell(c) { G.fx.push({ k: 'ring', x: c.x, y: c.y, r: 34, life: .4, c: '#5fe3a1' }); Object.assign(c, newCell(rnd(700, 1000))); G.killedCells = (G.killedCells || 0) + 1; }
 
-  function drawPlayer(now) {
-    let cx = p.rx * TS + TS / 2, cy = p.ry * TS + TS / 2;
-    const R = TS * 0.46;
-    let ax = 0, ay = 0;
-    if (attackAnim && attackAnim.t < 0.18) { const k = Math.sin(attackAnim.t / 0.18 * Math.PI); ax = attackAnim.dx * k; ay = attackAnim.dy * k; }
-    ctx.save();
-    const glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, R * 2.2);
-    glow.addColorStop(0, antibodyTurns > 0 ? 'rgba(128,203,196,.35)' : 'rgba(129,212,250,.25)'); glow.addColorStop(1, 'rgba(129,212,250,0)');
-    ctx.fillStyle = glow; circle(cx, cy, R * 2.2); ctx.fill();
-    ctx.beginPath();
-    const n = 14;
-    for (let i = 0; i <= n; i++) {
-      const a = i / n * Math.PI * 2;
-      let r = R + Math.sin(now / 250 + i * 1.7) * 1.4;
-      const dot = Math.cos(a) * ax + Math.sin(a) * ay; // pseudópode na direção do ataque
-      if (dot > 0.3) r += dot * 9;
-      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = p.flash > 0 ? '#ffcdd2' : '#b3e5fc'; ctx.fill();
-    ctx.strokeStyle = '#e1f5fe'; ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.fillStyle = '#4fc3f7'; ctx.beginPath(); ctx.ellipse(cx - 1, cy + 1, 4.2, 3, 0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.6)'; for (const [ox, oy] of [[4, -3], [-4, -4], [3, 4]]) { circle(cx + ox, cy + oy, 1.1); ctx.fill(); }
-    ctx.restore();
-  }
-
-  function drawBar(x, y, w, h, frac, color, text) {
-    ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(x, y, w, h, 5); ctx.fill();
-    if (frac > 0) { ctx.fillStyle = color; rr(x, y, Math.max(h, w * Math.min(1, frac)), h, 5); ctx.fill(); }
-    ctx.fillStyle = '#100a18'; ctx.font = '700 11px system-ui, sans-serif'; ctx.fillText(text, x + 7, y + h - 4);
-  }
-
-  function fitText(text, maxW) {
-    if (ctx.measureText(text).width <= maxW) return text;
-    let t = text;
-    while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
-    return t + '…';
-  }
-
-  function render(now) {
-    ctx.fillStyle = '#0b0710'; ctx.fillRect(0, 0, W, H);
-    if (state === 'intro' || !tiles) { requestAnimationFrame(frame); return; }
-    const F = FLOORS[floorIdx];
-
-    // mapa
-    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
-      if (!explored[y][x]) continue;
-      const px = x * TS, py = y * TS, v = visible[y][x];
-      const t = tiles[y][x];
-      if (t === WALL) {
-        const nearFloor = DIRS8.some(([dx, dy]) => walkable(x + dx, y + dy));
-        if (!nearFloor) continue;
-        ctx.fillStyle = F.wall; ctx.fillRect(px, py, TS, TS);
-        ctx.fillStyle = F.wallDot; circle(px + 6 + decor[y][x] * 8, py + 7 + (1 - decor[y][x]) * 6, 3); ctx.fill();
-        ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(px, py + TS - 3, TS, 3);
-      } else {
-        ctx.fillStyle = (x + y) % 2 ? F.floor : F.floor2; ctx.fillRect(px, py, TS, TS);
-        if (decor[y][x] > 0.82) {
-          ctx.fillStyle = F.decor;
-          if (floorIdx === 2) { ctx.beginPath(); ctx.ellipse(px + TS / 2, py + TS / 2, 6, 4, decor[y][x] * 6, 0, Math.PI * 2); ctx.fill(); }
-          else { circle(px + 5 + decor[y][x] * 10, py + 5 + (1 - decor[y][x]) * 10, 2.5); ctx.fill(); }
-        }
-        if (t === EXIT) {
-          const g = ctx.createRadialGradient(px + TS / 2, py + TS / 2, 1, px + TS / 2, py + TS / 2, TS * 0.6);
-          g.addColorStop(0, '#e0f7fa'); g.addColorStop(0.5, '#26c6da'); g.addColorStop(1, 'rgba(38,198,218,0)');
-          ctx.fillStyle = g; circle(px + TS / 2, py + TS / 2, TS * 0.6); ctx.fill();
-          ctx.strokeStyle = '#006064'; ctx.lineWidth = 2; ctx.beginPath();
-          for (let i = 0; i < 20; i++) { const a = i * 0.6 + now / 400, r = i * 0.4; ctx.lineTo(px + TS / 2 + Math.cos(a) * r, py + TS / 2 + Math.sin(a) * r); }
-          ctx.stroke();
-        }
-      }
-      if (!v) { ctx.fillStyle = 'rgba(8,5,14,.62)'; ctx.fillRect(px, py, TS, TS); }
-    }
-
-    // itens
-    for (const it of items) {
-      if (!explored[it.y][it.x]) continue;
-      ctx.globalAlpha = visible[it.y][it.x] ? 1 : 0.4;
-      drawItemIcon(it.id, it.x * TS + TS / 2, it.y * TS + TS / 2 + Math.sin(now / 300 + it.x) * 1.5, 16, now);
-      ctx.globalAlpha = 1;
-    }
-
+  // ---------------- passo ----------------
+  function step(dt, inp) {
+    if (G.ended) return;
+    const S = stats(), p = G.p;
+    G.t += dt; G.frame = (G.frame || 0) + 1;
+    // jogador
+    let mx = inp.x, my = inp.y; const ml = Math.hypot(mx, my);
+    if (ml > 0) { mx /= Math.max(1, ml); my /= Math.max(1, ml); p.x += mx * S.spd * dt; p.y += my * S.spd * dt; p.fx = mx / Math.max(ml, 1e-6) * Math.min(1, ml); p.fy = my / Math.max(ml, 1e-6) * Math.min(1, ml); const n = Math.hypot(p.fx, p.fy) || 1; p.fx /= n; p.fy /= n; }
+    p.inv = Math.max(0, p.inv - dt); p.hurt = Math.max(0, p.hurt - dt); p.wob += dt;
+    p.hp = Math.min(S.maxhp, p.hp + S.regen * dt);
+    spawner(dt);
+    updWeapons(dt, S);
     // inimigos
-    for (const e of enemies) {
+    for (const e of G.en) {
       if (e.hp <= 0) continue;
-      const v = visible[e.y][e.x];
-      if (!v && revealTurns <= 0) continue;
-      ctx.globalAlpha = v ? 1 : 0.45; drawEnemy(e, now); ctx.globalAlpha = 1;
+      e.op = Math.max(0, e.op - dt); e.flash = Math.max(0, e.flash - dt); e.hitCd = Math.max(0, e.hitCd - dt); e.cd8 = Math.max(0, e.cd8 - dt);
+      if (e.slow > 0) e.slow -= dt; else e.sf = 1;
+      if (e.par) { if (dist2(e, p) < (e.r * .85 + p.r) ** 2 && e.hitCd <= 0) { hurtPlayer(e.dmg); e.hitCd = .6; } continue; }
+      if (e.worm) { wormStep(e, dt); if (dist2(e, p) < (e.r + p.r) ** 2 && e.hitCd <= 0) { hurtPlayer(e.dmg * 1.3); e.hitCd = .6; } continue; }
+      let sp = e.spd * e.sf;
+      for (const n of G.nets) if (dist2(e, n) < n.r * n.r) { sp *= .45; }
+      const B = BOSSES[e.k], D = ENEMIES[e.k];
+      if (B && B.dash) { e.cd -= dt; if (e.dash > 0) { e.dash -= dt; sp *= 3.2; } else if (e.cd <= 0) { e.dash = .6; e.cd = 4; } if (Math.random() < dt * 1.5) G.clouds.push({ x: e.x, y: e.y, r: 50, life: 2 }); }
+      const spawnK = (B && B.spawn) || (D && D.spawn);
+      if (spawnK) { e.cd -= dt; if (e.cd <= 0) { e.cd = B ? 3 : 4.5; if (G.en.length < 320) for (let i = 0; i < (B ? 3 : 1); i++) spawnEnemy(spawnK, e.x + rnd(-e.r, e.r), e.y + rnd(-e.r, e.r), { child: true }); } }
+      if (B && B.splits && !e.split && e.hp < e.maxhp / 2) { e.split = true; e.hp = 0; for (let i = 0; i < B.splits; i++) { const c = spawnEnemy(e.k, e.x + rnd(-40, 40), e.y + rnd(-40, 40), { hpf: .3, rf: .6 }); c.split = true; } continue; }
+      // vírus procuram células do tecido
+      let tx = p.x, ty = p.y;
+      if (e.tags.includes('virus') && G.cells.length) { let best = null, bd = 260 * 260; for (const c of G.cells) if (!c.inf) { const d = dist2(c, e); if (d < bd) { bd = d; best = c; } } if (best) { tx = best.x; ty = best.y; if (bd < (best.r + e.r) ** 2) { best.inf = true; best.sp = 2.5; e.hp = 0; continue; } } }
+      const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy) || 1;
+      e.x += (dx / d * sp + e.kx) * dt; e.y += (dy / d * sp + e.ky) * dt;
+      e.kx *= Math.pow(.02, dt); e.ky *= Math.pow(.02, dt);
+      e.ang += dt * (e.spd ? .8 : .2);
+      if (dist2(e, p) < (e.r + p.r) ** 2 && e.hitCd <= 0) { hurtPlayer(e.dmg * (e.boss ? 1 : 1)); e.hitCd = .6; }
+      // reposiciona quem ficou muito longe
+      if (!e.boss && d > 1400) { const a = rnd(0, 6.283), R = viewR() + 60; e.x = p.x + Math.cos(a) * R; e.y = p.y + Math.sin(a) * R; }
     }
-    drawPlayer(now);
-
-    for (const s of shots) {
-      ctx.globalAlpha = Math.max(0, 1 - s.t / 0.3); ctx.strokeStyle = s.color; ctx.lineWidth = 2.5; ctx.setLineDash([4, 3]);
-      ctx.beginPath(); ctx.moveTo(s.x0 * TS + TS / 2, s.y0 * TS + TS / 2); ctx.lineTo(s.x1 * TS + TS / 2, s.y1 * TS + TS / 2); ctx.stroke();
-      ctx.setLineDash([]);
+    // separação simples entre inimigos (grade)
+    separate();
+    // superbactéria se adapta
+    if (G.boss && G.boss.hp > 0 && BOSSES[G.boss.k].adapt) {
+      G.adaptT += dt;
+      if (G.adaptT >= 15) {
+        G.adaptT = 0; const w = {}; for (const [t, s, d] of G.bossWin) if (G.t - t < 15) w[s] = (w[s] || 0) + d;
+        const top = Object.entries(w).sort((a, b) => b[1] - a[1])[0];
+        if (top) { const ks = Object.keys(G.resist); if (ks.length >= 2) delete G.resist[ks[0]]; G.resist[top[0]] = true; G.banner = { t: `🧬 A superbactéria ficou resistente a: ${(WEAPONS[top[0]] || { n: top[0] }).n}`, s: 'Seleção natural: as que resistem sobrevivem. Use outros mecanismos!', life: 4 }; sfx.adapt(); }
+        G.bossWin = G.bossWin.filter(x => G.t - x[0] < 15);
+      }
     }
-    for (const q of parts) { ctx.globalAlpha = Math.max(0, 1 - q.t / 0.5); ctx.fillStyle = q.color; ctx.fillRect(q.x - 1.5, q.y - 1.5, 3, 3); }
-    ctx.globalAlpha = 1;
-    ctx.textAlign = 'center';
-    for (const f of floats) {
-      ctx.globalAlpha = Math.max(0, 1 - f.t / 1); ctx.font = '800 12px system-ui, sans-serif';
-      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,6,16,.85)'; ctx.strokeText(f.text, f.x, f.y - f.t * 18);
-      ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y - f.t * 18);
+    // projéteis
+    for (const b of G.pr) {
+      b.life -= dt;
+      if (b.k === 'anticorpo' || b.k === 'eos') {
+        if (!b.tgt || b.tgt.hp <= 0) b.tgt = (b.k === 'eos' && nearest(1, 700, e => e.tags.includes('helminto'))[0]) || nearest(1, 500)[0] || null;
+        if (b.tgt) { const a = Math.atan2(b.tgt.y - b.y, b.tgt.x - b.x), cv = Math.hypot(b.vx, b.vy); const tvx = Math.cos(a) * b.spd, tvy = Math.sin(a) * b.spd; b.vx = lerp(b.vx, tvx, Math.min(1, dt * 6)); b.vy = lerp(b.vy, tvy, Math.min(1, dt * 6)); }
+      }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      for (const e of G.en) {
+        if (e.hp <= 0 || (b.hit && b.hit.has(e))) continue;
+        if (dist2(e, b) < (e.r + b.r) ** 2) {
+          if (b.k === 'complemento') { e.op = Math.max(e.op, 3); hit(e, b.dmg, 'complemento'); b.hit.add(e); if (--b.pierce < 0) b.life = 0; }
+          else if (b.k === 'eos') { hit(e, b.dmg, 'eos'); b.life = 0; G.fx.push({ k: 'ring', x: b.x, y: b.y, r: 26, life: .35, c: '#ff9f6b' }); for (let i = 0; i < 4; i++) G.fx.push({ k: 'pt', x: b.x, y: b.y, vx: rnd(-90, 90), vy: rnd(-90, 90), life: .4, c: '#ff7043' }); }
+          else { e.op = Math.max(e.op, 4); hit(e, b.dmg, 'anticorpo'); b.life = 0; }
+          if (b.life <= 0) break;
+        }
+      }
     }
-    ctx.globalAlpha = 1; ctx.textAlign = 'left';
-
-    // HUD
-    ctx.fillStyle = '#150e22'; ctx.fillRect(0, MAP_H, W, H - MAP_H);
-    ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(0, MAP_H, W, 1);
-    drawBar(12, 508, 204, 16, p.hp / p.maxHp, p.hp / p.maxHp < 0.3 ? '#ef5350' : '#81d4fa', `Membrana ${p.hp}/${p.maxHp}`);
-    drawBar(12, 530, 204, 16, p.atp / 100, p.atp < 20 ? '#ffb74d' : '#fff59d', `ATP ${p.atp}/100`);
-    drawBar(12, 552, 204, 16, p.xp / xpNeed(), '#ce93d8', `Nível ${p.level} · biomassa ${p.xp}/${xpNeed()}`);
-    ctx.fillStyle = '#efe9f7'; ctx.font = '700 12px system-ui, sans-serif';
-    ctx.fillText(`Andar ${floorIdx + 1}/${FLOORS.length} · ${F.name}`, 12, 590);
-    ctx.fillStyle = '#a99bc0'; ctx.font = '12px system-ui, sans-serif';
-    const effects = [`Turno ${turn}`, `Dano ${p.atk}`];
-    if (antibodyTurns > 0) effects.push(`Anticorpos ${antibodyTurns}`);
-    if (revealTurns > 0) effects.push(`Quimiocina ${revealTurns}`);
-    if (ifnFloor) effects.push('Antiviral');
-    ctx.fillText(fitText(effects.join(' · '), 520), 12, 608);
-
-    for (let i = 0; i < ITEMS.length; i++) {
-      const it = ITEMS[i], sx = SLOT.x0 + i * (SLOT.w + SLOT.gap), n = inv[it.id] || 0;
-      ctx.fillStyle = n ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.03)'; rr(sx, SLOT.y, SLOT.w, SLOT.h, 8); ctx.fill();
-      ctx.globalAlpha = n ? 1 : 0.3; drawItemIcon(it.id, sx + SLOT.w / 2, SLOT.y + 22, 22, now); ctx.globalAlpha = 1;
-      ctx.fillStyle = '#a99bc0'; ctx.font = '700 10px system-ui, sans-serif'; ctx.fillText(String(i + 1), sx + 5, SLOT.y + 12);
-      if (n) { ctx.fillStyle = '#efe9f7'; ctx.font = '800 11px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('×' + n, sx + SLOT.w - 5, SLOT.y + 12); ctx.textAlign = 'left'; }
-      ctx.fillStyle = n ? '#efe9f7' : '#5c5070'; ctx.font = '600 9.5px system-ui, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(it.name, sx + SLOT.w / 2, SLOT.y + SLOT.h - 6); ctx.textAlign = 'left';
+    G.pr = G.pr.filter(b => b.life > 0);
+    // neutrófilos
+    for (const a of G.allies) {
+      a.life -= dt; a.tick -= dt;
+      if (!a.tgt || a.tgt.hp <= 0) { let best = null, bd = 400 * 400; for (const e of G.en) if (e.hp > 0) { const d = dist2(e, a); if (d < bd) { bd = d; best = e; } } a.tgt = best; }
+      const tx = a.tgt ? a.tgt.x : G.p.x, ty = a.tgt ? a.tgt.y : G.p.y, dx = tx - a.x, dy = ty - a.y, d = Math.hypot(dx, dy) || 1;
+      a.x += dx / d * 190 * dt; a.y += dy / d * 190 * dt;
+      if (a.tgt && a.tick <= 0 && d < a.tgt.r + a.r + 2) { hit(a.tgt, a.dmg, 'neutro'); a.tick = .35; }
+      for (const c of G.cells) if (c.inf && dist2(c, a) < (c.r + a.r) ** 2 && Math.random() < dt * 2) { c.inf = false; }
+      if (a.life <= 0) G.nets.push({ x: a.x, y: a.y, r: 60, life: 4, tick: 0 });
     }
+    G.allies = G.allies.filter(a => a.life > 0);
+    for (const n of G.nets) { n.life -= dt; n.tick -= dt; if (n.tick <= 0) { n.tick = .5; for (const e of G.en) if (e.hp > 0 && dist2(e, n) < n.r * n.r) hit(e, 3, 'neutro'); } }
+    G.nets = G.nets.filter(n => n.life > 0);
+    // nuvens de LPS
+    for (const c of G.clouds) { c.life -= dt; if (dist2(c, p) < (c.r + p.r * .5) ** 2 && Math.random() < dt * 3) hurtPlayer(2); }
+    G.clouds = G.clouds.filter(c => c.life > 0);
+    // células do tecido
+    for (const c of G.cells) {
+      if (dist2(c, p) > 1300 * 1300) Object.assign(c, newCell(rnd(600, 1000)));
+      if (c.inf) { c.sp -= dt; if (c.sp <= 0) { c.sp = 2.6; if (G.en.length < 320) spawnEnemy('virus', c.x + rnd(-10, 10), c.y + rnd(-10, 10), { child: true }); } }
+    }
+    // antígenos (experiência)
+    for (const g of G.gems) {
+      const d2 = dist2(g, p);
+      if (g.m || d2 < S.pick * S.pick) { g.m = true; const d = Math.sqrt(d2) || 1, sp = 420 + 300 * (1 - Math.min(1, d / 300)); g.x += (p.x - g.x) / d * sp * dt; g.y += (p.y - g.y) / d * sp * dt; }
+      if (d2 < (p.r + 6) ** 2) { g.got = true; gainXP(g.v * S.xpm); }
+    }
+    G.gems = G.gems.filter(g => !g.got);
+    if (G.gems.length > 350) { // junta antígenos distantes para não pesar
+      const far = G.gems.filter(g => dist2(g, p) > 900 * 900); if (far.length > 100) { const v = far.reduce((a, g) => a + g.v, 0); G.gems = G.gems.filter(g => dist2(g, p) <= 900 * 900); G.gems.push({ x: far[0].x, y: far[0].y, v, m: false, big: true }); }
+    }
+    for (const k of G.picks) if (dist2(k, p) < (p.r + 14) ** 2) {
+      k.got = true;
+      if (k.k === 'glicose') { p.hp = Math.min(S.maxhp, p.hp + 30); sfx.heal(); }
+      if (k.k === 'quimio') { for (const g of G.gems) g.m = true; sfx.magnet(); }
+      if (k.k === 'bau') { G.pending++; sfx.chest(); }
+    }
+    G.picks = G.picks.filter(k => !k.got);
+    // efeitos
+    for (const f of G.fx) { f.life -= dt; if (f.vx) { f.x += f.vx * dt; f.y += f.vy * dt; } }
+    G.fx = G.fx.filter(f => f.life > 0);
+    for (const n of G.nums) { n.life -= dt; n.y -= 30 * dt; }
+    G.nums = G.nums.filter(n => n.life > 0);
+    G.en = G.en.filter(e => e.hp > 0);
+    if (G.banner) { G.banner.life -= dt; if (G.banner.life <= 0) G.banner = null; }
+    if (G.flash) G.flash = Math.max(0, G.flash - dt);
+    if (p.hp <= 0 && !G.ended) hurtPlayer(0);
+  }
+  function gainXP(v) {
+    G.xp += v; sfx.xp();
+    while (G.xp >= xpNext(G.lvl)) { G.xp -= xpNext(G.lvl); G.lvl++; G.pending++; }
+  }
+  const GRID = 48, HASH = new Map();
+  function separate() {
+    HASH.clear();
+    for (const e of G.en) { if (e.hp <= 0) continue; const k = (Math.floor(e.x / GRID) * 73856093) ^ (Math.floor(e.y / GRID) * 19349663); let b = HASH.get(k); if (!b) HASH.set(k, b = []); b.push(e); }
+    for (const e of G.en) {
+      if (e.hp <= 0 || e.boss || e.par) continue;
+      const cx = Math.floor(e.x / GRID), cy = Math.floor(e.y / GRID);
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        const b = HASH.get(((cx + i) * 73856093) ^ ((cy + j) * 19349663)); if (!b) continue;
+        for (const o of b) { if (o === e) continue; const dx = e.x - o.x, dy = e.y - o.y, d2 = dx * dx + dy * dy, rr = (e.r + o.r) * .85; if (d2 < rr * rr && d2 > .01) { const d = Math.sqrt(d2), push = (rr - d) * .25; e.x += dx / d * push; e.y += dy / d * push; } }
+      }
+    }
+  }
+  // ---------------- subir de nível ----------------
+  function choices() {
+    const out = [], nW = Object.keys(G.wep).length, nP = Object.keys(G.pas).length;
+    for (const [k, W] of Object.entries(WEAPONS)) { const lv = G.wep[k] || 0; if (lv >= 5) continue; if (W.only && W.only !== G.st.id) continue; if (!lv && nW >= 6 && !W.only) continue; out.push({ t: 'w', k, lv, w: W.only ? 4 : lv ? 3 : 2 }); }
+    for (const [k, P] of Object.entries(PASSIVES)) { const lv = G.pas[k] || 0; if (lv >= P.max) continue; if (!lv && nP >= 6) continue; out.push({ t: 'p', k, lv, w: (k === 'ifng' && (G.st.id === 3 || G.st.id === 4) ? 5 : 2) }); }
+    const res = [];
+    while (res.length < 3 && out.length) { let tot = out.reduce((a, c) => a + c.w, 0), r = Math.random() * tot; for (let i = 0; i < out.length; i++) { r -= out[i].w; if (r <= 0) { res.push(out.splice(i, 1)[0]); break; } } }
+    if (!res.length) res.push({ t: 'heal' });
+    return res;
+  }
+  function applyChoice(c) {
+    if (c.t === 'w') G.wep[c.k] = (G.wep[c.k] || 0) + 1;
+    else if (c.t === 'p') { G.pas[c.k] = (G.pas[c.k] || 0) + 1; if (c.k === 'lisossomo') G.p.hp += 20; }
+    else G.p.hp = Math.min(stats().maxhp, G.p.hp + 40);
+    G.pending--;
+  }
+  function memEarned() { return Math.floor(G.kills / 10 + G.lvl * 2 + (G.cleared ? 25 * G.st.id : Math.min(G.t, G.st.T) / 20)); }
+  // =====================================================================
+  // DESENHO
+  // =====================================================================
+  let CV = null, CX = null, VW = 960, VH = 600, ZOOM = 1, DPR = 1;
+  const EZ = () => ZOOM * ((typeof G !== 'undefined' && G && G.zm) || 1);
+  const viewR = () => Math.hypot(VW, VH) / 2 / EZ();
+  function resize() {
+    if (!CV) return;
+    const box = CV.parentElement.getBoundingClientRect();
+    VW = Math.max(300, box.width); VH = VW < 700 ? Math.max(320, Math.min(window.innerHeight - 150, VW * 1.45)) : Math.max(320, Math.min(window.innerHeight - 110, VW * .62));
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    CV.width = VW * DPR; CV.height = VH * DPR; CV.style.height = VH + 'px';
+    ZOOM = clamp(Math.min(VW / 1050, VH / 640), .55, 1.1);
+  }
+  // ---------- sprites prontos ----------
+  const SPR = {};
+  function sprite(k, r) {
+    const key = k + ':' + Math.round(r); if (SPR[key]) return SPR[key];
+    const D = ENEMIES[k] || BOSSES[k], s = Math.ceil(r * 2.8) + 8, c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d'); g.translate(s / 2, s / 2); g.lineWidth = Math.max(1.5, r / 9); g.strokeStyle = 'rgba(0,0,0,.55)';
+    const col = D.col, base = k.replace(/^(staph)$/, 'coco').replace(/^(sepse|super)$/, 'bacilo').replace(/^tbboss$/, 'tb').replace(/^mega$/, 'biofilme');
+    const circ = (x, y, rr, f) => { g.beginPath(); g.arc(x, y, rr, 0, 6.283); g.fillStyle = f; g.fill(); g.stroke(); };
+    if (base === 'coco') { const q = r * .55; [[-q * .6, -q * .5], [q * .6, -q * .4], [0, q * .55], [-q * .9, q * .5], [q * .9, q * .5]].slice(0, k === 'staph' ? 5 : 4).forEach(([x, y]) => circ(x, y, q, col)); }
+    else if (base === 'bacilo') { g.rotate(-.4); g.strokeStyle = 'rgba(255,230,200,.6)'; g.lineWidth = 1.2; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(-r, i * r * .3); g.bezierCurveTo(-r * 1.3, i * r * .3 - 4, -r * 1.5, i * r * .3 + 4, -r * 1.9, i * r * .3); g.stroke(); } g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = Math.max(1.5, r / 9); g.beginPath(); g.roundRect(-r, -r * .5, r * 2, r, r * .5); g.fillStyle = col; g.fill(); g.stroke(); if (k === 'super') { g.fillStyle = '#fff'; g.font = `900 ${r * .7}px system-ui`; g.textAlign = 'center'; g.fillText('R', 0, r * .25); } }
+    else if (base === 'pneumo') { g.beginPath(); g.ellipse(0, 0, r * 1.15, r * .85, 0, 0, 6.283); g.fillStyle = 'rgba(220,255,200,.25)'; g.fill(); g.setLineDash([3, 3]); g.strokeStyle = 'rgba(220,255,200,.7)'; g.stroke(); g.setLineDash([]); g.strokeStyle = 'rgba(0,0,0,.55)'; circ(-r * .4, 0, r * .45, col); circ(r * .4, 0, r * .45, col); }
+    else if (base === 'virus') { g.strokeStyle = col; g.lineWidth = 1.5; for (let i = 0; i < 10; i++) { const a = i * .628; g.beginPath(); g.moveTo(Math.cos(a) * r * .8, Math.sin(a) * r * .8); g.lineTo(Math.cos(a) * r * 1.35, Math.sin(a) * r * 1.35); g.stroke(); circ(Math.cos(a) * r * 1.4, Math.sin(a) * r * 1.4, 1.6, col); } g.strokeStyle = 'rgba(0,0,0,.55)'; circ(0, 0, r * .85, col); circ(0, 0, r * .35, 'rgba(120,0,30,.6)'); }
+    else if (base === 'candida' || base === 'levedura') { g.beginPath(); g.ellipse(0, 0, r, r * .78, .3, 0, 6.283); g.fillStyle = col; g.fill(); g.stroke(); if (base === 'candida') { circ(r * .85, -r * .55, r * .38, col); g.beginPath(); g.moveTo(-r * .8, r * .4); g.quadraticCurveTo(-r * 1.4, r * .9, -r * 1.3, r * 1.3); g.strokeStyle = col; g.lineWidth = r * .25; g.stroke(); } circ(-r * .2, 0, r * .25, 'rgba(120,100,60,.5)'); }
+    else if (base === 'biofilme') { g.beginPath(); for (let i = 0; i <= 14; i++) { const a = i / 14 * 6.283, rr = r * (1 + .12 * Math.sin(i * 2.7)); i ? g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : g.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); } g.closePath(); g.fillStyle = col; g.globalAlpha = .85; g.fill(); g.globalAlpha = 1; g.stroke(); for (let i = 0; i < 9; i++) circ(rnd(-r * .6, r * .6), rnd(-r * .6, r * .6), r * .14, k === 'mega' ? '#f8efba' : '#f5b041'); }
+    else if (base === 'proglote') { g.beginPath(); g.roundRect(-r * 1.1, -r * .75, r * 2.2, r * 1.5, r * .35); g.fillStyle = col; g.fill(); g.stroke(); g.strokeStyle = 'rgba(150,110,70,.75)'; g.lineWidth = Math.max(1, r / 10); g.beginPath(); g.moveTo(-r * .8, 0); g.lineTo(r * .8, 0); for (let i = -3; i <= 3; i++) { g.moveTo(i * r * .22, 0); g.lineTo(i * r * .22 + r * .12, -r * .5); g.moveTo(i * r * .22, 0); g.lineTo(i * r * .22 + r * .12, r * .5); } g.stroke(); }
+    else if (base === 'tb') { g.rotate(.6); g.beginPath(); g.roundRect(-r * 1.1, -r * .3, r * 2.2, r * .6, r * .3); g.fillStyle = col; g.fill(); g.strokeStyle = '#fff3e0'; g.stroke(); if (k === 'tbboss') { for (let i = 0; i < 6; i++) { g.rotate(1.05); g.beginPath(); g.roundRect(-r * .9, -r * .2, r * 1.8, r * .4, r * .2); g.fillStyle = col; g.fill(); g.stroke(); } } }
+    SPR[key] = c; return c;
+  }
+  // ---------- fundo ----------
+  const BGT = {};
+  function bgTile(st) {
+    if (BGT[st.id]) return BGT[st.id];
+    const s = 512, c = document.createElement('canvas'); c.width = c.height = s; const g = c.getContext('2d');
+    g.fillStyle = st.bg[0]; g.fillRect(0, 0, s, s);
+    const rndS = (() => { let x = st.id * 9973; return () => (x = (x * 16807) % 2147483647) / 2147483647; })();
+    for (let i = 0; i < 26; i++) {
+      const x = rndS() * s, y = rndS() * s, r = 20 + rndS() * 45;
+      for (const [dx, dy] of [[0, 0], [s, 0], [-s, 0], [0, s], [0, -s]]) {
+        g.beginPath();
+        if (st.id === 2) g.ellipse(x + dx, y + dy, r * .9, r * .55, rndS() * 3, 0, 6.283); else g.arc(x + dx, y + dy, r, 0, 6.283);
+        g.fillStyle = i % 2 ? st.bg[1] : st.bg[2]; g.globalAlpha = .4; g.fill(); g.globalAlpha = .25; g.strokeStyle = '#000'; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1;
+        if (st.id !== 2) { g.beginPath(); g.arc(x + dx + r * .2, y + dy - r * .1, r * .25, 0, 6.283); g.fillStyle = 'rgba(0,0,0,.15)'; g.fill(); }
+      }
+    }
+    BGT[st.id] = c; return c;
+  }
+  function drawBG(g, cx, cy) {
+    const t = bgTile(G.st), s = 512, ox = G.st.flow ? (G.t * 40) % s : 0;
+    const Z = EZ(), x0 = Math.floor((cx - VW / 2 / Z - ox) / s) * s + ox, y0 = Math.floor((cy - VH / 2 / Z) / s) * s;
+    for (let x = x0; x < cx + VW / 2 / Z; x += s) for (let y = y0; y < cy + VH / 2 / Z; y += s) g.drawImage(t, x, y);
+  }
+  function drawPlayer(g, p) {
+    const S = stats(), r = p.r, t = p.wob;
+    g.save(); g.translate(p.x, p.y);
+    // pseudópode na direção do movimento
+    g.beginPath();
+    for (let i = 0; i <= 24; i++) {
+      const a = i / 24 * 6.283, dirv = Math.max(0, Math.cos(a - Math.atan2(p.fy, p.fx)));
+      const rr = r * (1 + .08 * Math.sin(t * 3 + i * 1.7) + .07 * Math.sin(t * 5.3 + i * .9) + .35 * Math.pow(dirv, 6));
+      i ? g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : g.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    g.closePath();
+    g.fillStyle = p.hurt > 0 ? '#ffb3b3' : '#cfe9ff'; g.globalAlpha = .9; g.fill(); g.globalAlpha = 1;
+    g.lineWidth = 3; g.strokeStyle = '#4b7ea8'; g.stroke();
+    g.beginPath(); g.ellipse(-r * .15, -r * .05, r * .42, r * .32, .4, 0, 6.283); g.fillStyle = '#7b5ea7'; g.fill();
+    for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(Math.cos(i * 1.6 + t * .3) * r * .55, Math.sin(i * 1.6 + t * .3) * r * .5, 3.5, 0, 6.283); g.fillStyle = '#e8c547'; g.fill(); }
+    g.restore();
+    // barra de vida
+    g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(p.x - 24, p.y + r + 10, 48, 6);
+    g.fillStyle = p.hp / S.maxhp > .3 ? '#5fe3a1' : '#ff6b6b'; g.fillRect(p.x - 24, p.y + r + 10, 48 * clamp(p.hp / S.maxhp, 0, 1), 6);
+  }
+  function drawWorm(g, e) {
+    const segs = e.segs.filter(s => s.hp > 0), n = segs.length;
+    for (let j = n - 1; j >= 0; j--) {
+      const s = segs[j], r = s.r, mature = s.i > 24, L = r * 1.25, W = r * (s.i < 4 ? .85 : 1);
+      g.save(); g.translate(s.x, s.y); g.rotate(s.ang + Math.sin(G.t * 3 + s.i * .5) * .05);
+      g.beginPath(); g.roundRect(-L * .55, -W, L * 1.1, W * 2, Math.min(r * .35, 14));
+      g.fillStyle = s.flash > 0 ? '#fffaf0' : mature ? '#ead9b0' : '#f1e6c8'; g.fill();
+      g.lineWidth = 3; g.strokeStyle = 'rgba(90,70,40,.7)'; g.stroke();
+      // poro genital lateral
+      g.beginPath(); g.arc(0, (s.i % 2 ? 1 : -1) * W * .82, Math.max(2, r * .08), 0, 6.283); g.fillStyle = 'rgba(120,85,50,.8)'; g.fill();
+      if (mature) { // útero ramificado cheio de ovos
+        g.strokeStyle = 'rgba(160,110,70,.65)'; g.lineWidth = Math.max(1.5, r / 14); g.beginPath(); g.moveTo(-L * .4, 0); g.lineTo(L * .4, 0);
+        for (let k = -3; k <= 3; k++) { const x = k * L * .12; g.moveTo(x, 0); g.lineTo(x + L * .05, -W * .7); g.moveTo(x, 0); g.lineTo(x + L * .05, W * .7); }
+        g.stroke();
+      } else if (s.i >= 4) { g.fillStyle = 'rgba(170,130,90,.35)'; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(-L * .3 + k * L * .15, (k % 2 ? .35 : -.35) * W, r * .09, 0, 6.283); g.fill(); } }
+      if (s.op > 0) { g.fillStyle = '#ffe08a'; g.font = `700 ${Math.max(10, r * .4)}px system-ui`; g.textAlign = 'center'; g.fillText('Y', 0, -W - 4); }
+      g.restore();
+    }
+    // escólex: ganchos e ventosas
+    const r = e.r; g.save(); g.translate(e.x, e.y); g.rotate(e.heading);
+    if (e.lunge > 0) { g.beginPath(); g.arc(0, 0, r * 1.5, 0, 6.283); g.fillStyle = 'rgba(255,120,80,.18)'; g.fill(); }
+    g.beginPath(); g.ellipse(0, 0, r * 1.05, r * .95, 0, 0, 6.283); g.fillStyle = e.flash > 0 ? '#fffaf0' : '#f4ead0'; g.fill(); g.lineWidth = 3.5; g.strokeStyle = 'rgba(90,70,40,.8)'; g.stroke();
+    for (const [x, y] of [[-r * .15, -r * .5], [-r * .15, r * .5], [r * .35, -r * .25], [r * .35, r * .25]]) { g.beginPath(); g.arc(x, y, r * .27, 0, 6.283); g.fillStyle = '#d9c49a'; g.fill(); g.stroke(); g.beginPath(); g.arc(x, y, r * .12, 0, 6.283); g.fillStyle = '#7a5a36'; g.fill(); }
+    // rostelo com coroa de ganchos
+    g.beginPath(); g.arc(r * .82, 0, r * .28, 0, 6.283); g.fillStyle = '#e8d6ae'; g.fill(); g.stroke();
+    g.strokeStyle = '#5a4026'; g.lineWidth = 2.5;
+    for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283 + (e.lunge > 0 ? G.t * 6 : 0), cx = r * .82 + Math.cos(a) * r * .28, cy = Math.sin(a) * r * .28; g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(cx + Math.cos(a) * r * .22, cy + Math.sin(a) * r * .22, cx + Math.cos(a + .9) * r * .18, cy + Math.sin(a + .9) * r * .18); g.stroke(); }
+    g.restore();
+    // barra de vida sobre a cabeça
+    g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(e.x - r, e.y - r - 16, r * 2, 6); g.fillStyle = '#ff6b81'; g.fillRect(e.x - r, e.y - r - 16, r * 2 * clamp(e.hp / e.maxhp, 0, 1), 6);
+  }
+  function render(rdt) {
+    const g = CX; if (!G) return;
+    const p = G.p, cx = p.x, cy = p.y;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const wormOn = G.boss && G.boss.worm && G.boss.hp > 0; G.zm = lerp(G.zm || 1, wormOn ? .78 : 1, Math.min(1, (rdt || .016) * 1.5));
+    const Z = ZOOM * G.zm;
+    g.save(); g.translate(VW / 2, VH / 2); g.scale(Z, Z); g.translate(-cx, -cy);
+    drawBG(g, cx, cy);
+    const S = stats();
+    // células do tecido
+    for (const c of G.cells) { g.beginPath(); g.arc(c.x, c.y, c.r, 0, 6.283); g.fillStyle = c.inf ? 'rgba(255,90,120,.55)' : 'rgba(255,220,230,.22)'; g.fill(); g.lineWidth = 2; g.strokeStyle = c.inf ? '#ff6b81' : 'rgba(255,255,255,.35)'; g.stroke(); g.beginPath(); g.arc(c.x - 4, c.y - 3, 8, 0, 6.283); g.fillStyle = c.inf ? '#a8324e' : 'rgba(120,80,140,.45)'; g.fill(); if (c.inf) { g.font = '700 12px system-ui'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('🦠', c.x + 8, c.y + 12); } }
+    // redes de neutrófilos e nuvens de LPS
+    for (const n of G.nets) { g.globalAlpha = Math.min(.6, n.life / 2); g.strokeStyle = '#a8d4ff'; g.lineWidth = 1.2; for (let i = 0; i < 8; i++) { const a = i * .785; g.beginPath(); g.moveTo(n.x - Math.cos(a) * n.r, n.y - Math.sin(a) * n.r); g.lineTo(n.x + Math.cos(a) * n.r, n.y + Math.sin(a) * n.r); g.stroke(); } g.beginPath(); g.arc(n.x, n.y, n.r * .6, 0, 6.283); g.stroke(); g.globalAlpha = 1; }
+    for (const c of G.clouds) { const gr = g.createRadialGradient(c.x, c.y, 2, c.x, c.y, c.r); gr.addColorStop(0, 'rgba(180,255,90,.35)'); gr.addColorStop(1, 'rgba(180,255,90,0)'); g.fillStyle = gr; g.globalAlpha = Math.min(1, c.life); g.beginPath(); g.arc(c.x, c.y, c.r, 0, 6.283); g.fill(); g.globalAlpha = 1; }
+    // aura de ROS
+    if (G.wep.ros) { const L = WEAPONS.ros.L(G.wep.ros); g.beginPath(); g.arc(p.x, p.y, L.r, 0, 6.283); g.fillStyle = `rgba(255,143,171,${.08 + .04 * Math.sin(G.t * 8)})`; g.fill(); g.strokeStyle = 'rgba(255,143,171,.35)'; g.lineWidth = 2; g.stroke(); }
+    // antígenos
+    for (const gm of G.gems) { const s = gm.big ? 9 : gm.v >= 10 ? 7 : gm.v >= 3 ? 5.5 : 4.5; g.save(); g.translate(gm.x, gm.y); g.rotate(.785); g.fillStyle = gm.big ? '#ff4d6d' : gm.v >= 10 ? '#ffd166' : gm.v >= 3 ? '#7bd3ff' : '#5fe3a1'; g.fillRect(-s / 2, -s / 2, s, s); g.strokeStyle = 'rgba(0,0,0,.4)'; g.lineWidth = 1; g.strokeRect(-s / 2, -s / 2, s, s); g.restore(); }
+    for (const k of G.picks) { g.font = '20px system-ui'; g.textAlign = 'center'; g.fillText(k.k === 'glicose' ? '🍬' : k.k === 'quimio' ? '🧲' : '🎁', k.x, k.y + 7); }
+    // tênia (desenhada da cauda para a cabeça)
+    for (const e of G.en) if (e.worm && e.hp > 0) drawWorm(g, e);
+    // inimigos
+    for (const e of G.en) {
+      if (e.par || e.worm) continue;
+      const spr = sprite(e.k, e.r);
+      g.save(); g.translate(e.x, e.y); g.rotate(e.ang * .3);
+      g.drawImage(spr, -spr.width / 2, -spr.height / 2);
+      g.restore();
+      if (e.elite || e.boss) { g.beginPath(); g.arc(e.x, e.y, e.r + 5, 0, 6.283); g.strokeStyle = e.boss ? 'rgba(255,80,120,.8)' : 'rgba(255,215,0,.8)'; g.lineWidth = 2.5; g.stroke(); }
+      if (e.flash > 0) { g.beginPath(); g.arc(e.x, e.y, e.r, 0, 6.283); g.fillStyle = 'rgba(255,255,255,.6)'; g.fill(); }
+      if (e.op > 0) { g.fillStyle = '#ffe08a'; for (let i = 0; i < 3; i++) { const a = G.t * 2 + i * 2.09; g.font = '700 10px system-ui'; g.textAlign = 'center'; g.fillText('Y', e.x + Math.cos(a) * (e.r + 6), e.y + Math.sin(a) * (e.r + 6) + 3); } }
+      if (e.slow > 0) { g.beginPath(); g.arc(e.x, e.y, e.r + 2, 0, 6.283); g.strokeStyle = 'rgba(120,200,255,.6)'; g.lineWidth = 1.5; g.stroke(); }
+      if (e.boss || e.elite) { g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(e.x - e.r, e.y - e.r - 12, e.r * 2, 5); g.fillStyle = '#ff6b81'; g.fillRect(e.x - e.r, e.y - e.r - 12, e.r * 2 * clamp(e.hp / e.maxhp, 0, 1), 5); }
+    }
+    // aliados, órbitas e projéteis
+    for (const a of G.allies) { g.beginPath(); g.arc(a.x, a.y, a.r, 0, 6.283); g.fillStyle = '#9ec9ff'; g.fill(); g.strokeStyle = '#2f5d8a'; g.lineWidth = 2; g.stroke(); g.fillStyle = '#5b4fa0'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(a.x - 5 + i * 5, a.y + (i % 2 ? 2 : -2), 2.6, 0, 6.283); g.fill(); } }
+    for (const o of G.orbs || []) { g.beginPath(); g.arc(o.x, o.y, o.r, 0, 6.283); g.fillStyle = '#5fe3a1'; g.fill(); g.strokeStyle = '#1d6b45'; g.lineWidth = 2; g.stroke(); g.beginPath(); g.arc(o.x, o.y, o.r * .55, 0, 6.283); g.fillStyle = '#2f8f5f'; g.fill(); }
+    for (const b of G.pr) {
+      if (b.k === 'eos') { g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.283); g.fillStyle = '#ffd9c2'; g.fill(); g.strokeStyle = '#c0583a'; g.lineWidth = 2; g.stroke(); g.fillStyle = '#ff7043'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + G.t * 3; g.beginPath(); g.arc(b.x + Math.cos(a) * b.r * .5, b.y + Math.sin(a) * b.r * .5, 2.2, 0, 6.283); g.fill(); } g.beginPath(); g.arc(b.x - 2, b.y, 2.6, 0, 6.283); g.arc(b.x + 3, b.y, 2.6, 0, 6.283); g.fillStyle = '#7a3b8f'; g.fill(); continue; }
+      if (b.k === 'complemento') { const a = Math.atan2(b.vy, b.vx); g.save(); g.translate(b.x, b.y); g.rotate(a); g.fillStyle = '#c3a6ff'; g.beginPath(); g.moveTo(14, 0); g.lineTo(-10, -5); g.lineTo(-6, 0); g.lineTo(-10, 5); g.closePath(); g.fill(); g.restore(); }
+      else { const a = Math.atan2(b.vy, b.vx); g.save(); g.translate(b.x, b.y); g.rotate(a + Math.PI / 2); g.strokeStyle = '#ffe08a'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, 8); g.lineTo(0, 0); g.lineTo(-5, -7); g.moveTo(0, 0); g.lineTo(5, -7); g.stroke(); g.restore(); }
+    }
+    // efeitos
+    for (const f of G.fx) {
+      if (f.k === 'tend') { g.strokeStyle = `rgba(207,233,255,${f.life * 4})`; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(p.x, p.y); const mx = (p.x + f.x) / 2 + Math.sin(G.t * 20) * 10, my = (p.y + f.y) / 2; g.quadraticCurveTo(mx, my, f.x, f.y); g.stroke(); }
+      else if (f.k === 'gulp') { g.beginPath(); g.arc(f.x, f.y, f.r * (1 + (.3 - f.life) * 3), 0, 6.283); g.strokeStyle = `rgba(255,255,255,${f.life * 3})`; g.lineWidth = 2; g.stroke(); }
+      else if (f.k === 'pt') { g.fillStyle = f.c; g.globalAlpha = Math.min(1, f.life * 2.5); g.fillRect(f.x - 2, f.y - 2, 4, 4); g.globalAlpha = 1; }
+      else if (f.k === 'ring') { g.beginPath(); g.arc(f.x, f.y, f.r * (1 - f.life * 1.2 + .4), 0, 6.283); g.strokeStyle = f.c; g.globalAlpha = Math.min(1, f.life * 2.5); g.lineWidth = 4; g.stroke(); g.globalAlpha = 1; }
+      else if (f.k === 'cone') { g.beginPath(); g.moveTo(p.x, p.y); g.arc(p.x, p.y, f.r, f.a - f.arc / 2, f.a + f.arc / 2); g.closePath(); g.fillStyle = `rgba(155,231,255,${f.life * 1.4})`; g.fill(); }
+    }
+    drawPlayer(g, p);
+    for (const n of G.nums) { g.globalAlpha = Math.min(1, n.life * 2.5); g.font = '800 13px system-ui'; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.7)'; g.strokeText(n.v, n.x, n.y); g.fillStyle = n.c; g.fillText(n.v, n.x, n.y); g.globalAlpha = 1; }
+    g.restore();
+    // tela: febre, seta para o chefe
+    if (G.flash) { g.fillStyle = `rgba(255,120,60,${G.flash * .6})`; g.fillRect(0, 0, VW, VH); }
+    if (G.boss && G.boss.hp > 0) {
+      const dx = G.boss.x - cx, dy = G.boss.y - cy;
+      if (Math.abs(dx) * Z > VW / 2 || Math.abs(dy) * Z > VH / 2) { const a = Math.atan2(dy, dx), rr = Math.min(VW, VH) / 2 - 28; g.save(); g.translate(VW / 2 + Math.cos(a) * rr, VH / 2 + Math.sin(a) * rr); g.rotate(a); g.fillStyle = '#ff6b81'; g.beginPath(); g.moveTo(14, 0); g.lineTo(-8, -9); g.lineTo(-8, 9); g.closePath(); g.fill(); g.restore(); }
+    }
+    hud(g);
+  }
+  function hud(g) {
+    const S = stats();
+    // barra de experiência
+    g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 0, VW, 14);
+    g.fillStyle = '#5fe3a1'; g.fillRect(0, 0, VW * clamp(G.xp / xpNext(G.lvl), 0, 1), 14);
+    g.font = '800 11px system-ui'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText(`Nível ${G.lvl}`, VW / 2, 11);
+    // tempo e abates
+    const left = Math.max(0, G.st.T - G.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
+    g.font = '900 24px ui-monospace, monospace'; g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,.6)';
+    const tt = G.bossOn ? 'CHEFE!' : `${mm}:${String(ss).padStart(2, '0')}`;
+    g.strokeText(tt, VW / 2, 44); g.fillStyle = G.bossOn ? '#ff6b81' : '#fff'; g.fillText(tt, VW / 2, 44);
+    g.textAlign = 'right'; g.font = '800 14px system-ui'; g.strokeText(`🦠 ${G.kills}`, VW - 12, 34); g.fillStyle = '#fff'; g.fillText(`🦠 ${G.kills}`, VW - 12, 34);
+    // armas e passivas
+    g.textAlign = 'left'; let x = 10;
+    for (const [k, lv] of Object.entries(G.wep)) { g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(x, 20, 32, 32); g.font = '20px system-ui'; g.fillText(WEAPONS[k].i, x + 5, 44); g.font = '800 10px system-ui'; g.fillStyle = G.resist[k] ? '#ff6b81' : '#ffd166'; g.fillText(lv, x + 24, 50); x += 35; }
+    x = 10;
+    for (const [k, lv] of Object.entries(G.pas)) { g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(x, 56, 24, 24); g.font = '15px system-ui'; g.fillText(PASSIVES[k].i, x + 4, 74); g.font = '800 9px system-ui'; g.fillStyle = '#9be7ff'; g.fillText(lv, x + 17, 78); x += 27; }
+    // chefe
+    if (G.boss && G.en.some(e => e.boss)) {
+      const tot = G.en.filter(e => e.boss).reduce((a, e) => a + Math.max(0, e.hp), 0), mx = G.boss.maxhp;
+      g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(VW * .2, VH - 30, VW * .6, 14); g.fillStyle = '#ff6b81'; g.fillRect(VW * .2, VH - 30, VW * .6 * clamp(tot / mx, 0, 1), 14);
+      g.font = '800 12px system-ui'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText(BOSSES[G.boss.k].n + (Object.keys(G.resist).length ? `  ·  resistente a: ${Object.keys(G.resist).map(k => WEAPONS[k] ? WEAPONS[k].i : k).join(' ')}` : ''), VW / 2, VH - 36);
+    }
+    if (G.banner) {
+      g.globalAlpha = Math.min(1, G.banner.life); g.fillStyle = 'rgba(10,20,30,.82)'; g.fillRect(VW / 2 - 300, 64, 600, 54);
+      g.textAlign = 'center'; g.font = '800 17px system-ui'; g.fillStyle = '#ffd166'; g.fillText(G.banner.t, VW / 2, 86); g.font = '13px system-ui'; g.fillStyle = '#ddd'; g.fillText(G.banner.s, VW / 2, 106); g.globalAlpha = 1;
+    }
+    if (joy.on) { g.beginPath(); g.arc(joy.ox, joy.oy, 46, 0, 6.283); g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 3; g.stroke(); g.beginPath(); g.arc(joy.ox + joy.dx * 40, joy.oy + joy.dy * 40, 20, 0, 6.283); g.fillStyle = 'rgba(255,255,255,.35)'; g.fill(); }
+  }
+  // =====================================================================
+  // INTERFACE, ENTRADA, SOM E LAÇO
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let screen = 'menu', paused = false, modalOpen = false, keys = {}, lastT = 0, curChoices = null;
+  const joy = { on: false, ox: 0, oy: 0, dx: 0, dy: 0, id: null };
 
-    const LX = 546, LW = 246;
-    ctx.fillStyle = 'rgba(255,255,255,.04)'; rr(LX - 6, 504, LW + 10, 110, 8); ctx.fill();
-    ctx.font = '11.5px system-ui, sans-serif';
-    const last = msgs.slice(-6);
-    last.forEach((m, i) => {
-      ctx.globalAlpha = 0.45 + 0.55 * (i + 1) / last.length;
-      ctx.fillStyle = m.color; ctx.fillText(fitText(m.text, LW), LX, 520 + i * 17.5);
-    });
-    ctx.globalAlpha = 1;
+  // ---------------- som ----------------
+  const last = {};
+  const thr = (k, ms) => { const n = performance.now(); if (last[k] && n - last[k] < ms) return false; last[k] = n; return true; };
+  const sfx = {
+    gulp: () => thr('gulp', 90) && (Sound.tone(300, .12, { type: 'sine', vol: .16, slide: .45 }), Sound.tone(150, .14, { type: 'triangle', vol: .12, slide: .5, delay: .05 })),
+    kill: s => thr('kill', 45) && Sound.tone(500 + Math.random() * 300, .05, { type: 'sine', vol: .05, slide: 1.6 }),
+    xp: () => thr('xp', 35) && Sound.tone(900 + Math.min(600, (G ? G.xp : 0) * 4), .04, { type: 'sine', vol: .04 }),
+    hurt: () => thr('hurt', 120) && Sound.tone(140, .18, { type: 'sawtooth', vol: .12, slide: .5 }),
+    spray: () => thr('spray', 100) && Sound.noise(.14, { freq: 3000, sweep: 1200, vol: .07 }),
+    shoot: () => thr('shoot', 80) && Sound.tone(700, .08, { type: 'square', vol: .04, slide: .6 }),
+    shoot2: () => thr('shoot2', 80) && Sound.tone(1100, .06, { type: 'triangle', vol: .05, slide: 1.3 }),
+    call: () => Sound.arp([67, 72], .06, { type: 'triangle', vol: .08 }),
+    pulse: () => Sound.tone(400, .4, { type: 'sine', vol: .12, slide: 2 }),
+    fever: () => Sound.noise(.4, { freq: 300, sweep: 900, vol: .1, filter: 'lowpass' }),
+    heal: () => Sound.arp([72, 76, 79], .06, { type: 'triangle', vol: .12 }),
+    magnet: () => Sound.tone(300, .6, { type: 'sine', vol: .12, slide: 3 }),
+    chest: () => Sound.arp([72, 76, 79, 84, 88], .06, { type: 'square', vol: .07 }),
+    lvl: () => Sound.arp([72, 76, 79, 84], .07, { type: 'triangle', vol: .14 }),
+    pick: () => Sound.arp([84, 91], .07, { type: 'sine', vol: .12 }),
+    boss: () => { Sound.tone(80, 1, { type: 'sawtooth', vol: .2, slide: .6 }); Sound.noise(1, { freq: 200, sweep: 80, vol: .2, filter: 'lowpass' }); },
+    bossDie: () => { Sound.noise(1.2, { freq: 600, sweep: 100, vol: .25 }); Sound.arp([60, 64, 67, 72, 76, 79, 84], .08, { type: 'triangle', vol: .14 }); },
+    adapt: () => Sound.arp([60, 59, 58, 57], .1, { type: 'sawtooth', vol: .08 }),
+    win: () => Sound.arp([67, 71, 74, 79, 83, 86], .1, { type: 'triangle', vol: .14, dur: .3 }),
+    lose: () => Sound.arp([64, 60, 57, 52], .16, { type: 'sawtooth', vol: .1, dur: .4 }),
+  };
+  // trilha: lá menor, pulsante; no chefe fica mais rápida e densa
+  const RUN_CH = [[45, 52, 57, 60], [41, 48, 53, 57], [48, 55, 60, 64], [43, 50, 55, 59]];
+  const RUN_MEL = [[76, 0, 74, 72, 0, 74, 76, 0], [77, 0, 76, 74, 0, 72, 74, 0], [76, 0, 79, 0, 76, 74, 72, 0], [74, 0, 71, 0, 67, 0, 71, 74]];
+  const SONG_RUN = { bpm: () => (G && G.bossOn ? 144 : 128), play(step, t, d) {
+    if (screen !== 'play' || paused || modalOpen) return;
+    const V = Sound.voice, bar = Math.floor(step / 8) % 4, s = step % 8, ch = RUN_CH[bar], sec = Math.floor(step / 32) % 4, boss = G && G.bossOn;
+    // bumbo
+    if (s % 4 === 0 || (boss && s % 2 === 0)) V(midi(36), t, .05, { wave: 'sine', a: .002, decay: .22, r: .05, vol: .5, drop: 3 });
+    // caixa (tom curto e grave + harmônico)
+    if (s === 4 && sec > 0) { V(midi(50), t, .03, { wave: 'triangle', a: .002, decay: .12, r: .04, vol: .2 }); V(midi(86), t, .02, { wave: 'square', a: .001, decay: .05, r: .02, vol: .03 }); }
+    // chimbal fake
+    if (s % 2 === 1) V(midi(108), t, .01, { wave: 'square', a: .001, decay: .025, r: .01, vol: .015 });
+    // baixo em colcheias
+    V(midi(ch[0] - 12 + (s % 2 ? 12 : 0)), t, d * .8, { wave: 'sawtooth', a: .005, r: .05, vol: .09, lp: 700 });
+    // arpejo
+    if (sec !== 0 || boss) V(midi(ch[(s * 3) % 4] + 12), t, d * .7, { wave: 'square', a: .003, decay: .15, r: .05, vol: .035, lp: 2500, pan: s % 2 ? .3 : -.3 });
+    // melodia nas seções 2 e 3
+    if ((sec >= 2 || boss) && RUN_MEL[bar][s]) V(midi(RUN_MEL[bar][s] + (boss ? 0 : 0)), t, d * 1.6, { wave: 'sawtooth', det: [-5, 5], a: .02, r: .2, vol: .045, lp: 2200, vib: [5.5, 6] });
+    // pad
+    if (s === 0) for (const n of ch.slice(1)) V(midi(n), t, d * 7.5, { wave: 'sawtooth', det: [-8, 8], a: .3, r: .5, vol: .015, lp: 1200 });
+  } };
+  const SONG_MENU = { bpm: 72, play(step, t, d) {
+    if (screen === 'play') return;
+    const V = Sound.voice, bar = Math.floor(step / 8) % 4, s = step % 8, ch = RUN_CH[bar];
+    if (s === 0) { V(midi(ch[0] - 12), t, d * 7.5, { wave: 'sine', a: .2, r: .8, vol: .14 }); for (const n of ch.slice(1)) V(midi(n), t, d * 7.5, { wave: 'sawtooth', det: [-8, 8], a: .6, r: 1, vol: .018, lp: 1100 }); }
+    if (s % 2 === 0) V(midi(ch[(s / 2 + bar) % 4] + 24), t, d * 2, { wave: 'triangle', a: .005, decay: 1.2, r: .3, vol: .05, lp: 4000 });
+  } };
+  let musicOn = false;
+  const wake = () => { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(screen === 'play' ? SONG_RUN : SONG_MENU); } };
+  const setMusic = s => { Sound.ensure(); musicOn = true; Sound.music(s); };
+
+  // ---------------- modais ----------------
+  function openModal(html, wide) { modalOpen = true; $('#modalRoot').innerHTML = `<div class="modalbg"><div class="modal ${wide ? 'wide' : ''}">${html}</div></div>`; }
+  function closeModal() { modalOpen = false; $('#modalRoot').innerHTML = ''; }
+  const lessonBox = (t, h) => `<div class="lesson"><b class="t">📘 ${t}</b><br>${h}</div>`;
+
+  // ---------------- menu ----------------
+  function renderMenu() {
+    screen = 'menu'; G = null; setMusic(SONG_MENU);
+    $('#main').innerHTML = `<div class="hero"><h2>GULP!</h2><p class="sub">a jornada de um macrófago</p>
+      <p>Você é um <b>macrófago</b>, o "grande comedor" do sistema imune. Sobreviva às ondas de bactérias, vírus e fungos, colete antígenos e evolua seus mecanismos de defesa: fagocitose, explosão respiratória, complemento, anticorpos, neutrófilos, interferon, febre e linfócitos T.</p></div>
+      <div class="stages">${STAGES.map(st => { const ok = st.id <= prog.unlocked, b = prog.best[st.id]; return `<button class="stc" data-act="stage" data-v="${st.id}" ${ok ? '' : 'disabled'} style="--a:${st.bg[2]}"><span class="num">FASE ${st.id}</span><b>${st.n}</b><span class="meta">${st.sub}</span><span class="stx">${ok ? (b ? (b.clear ? '✅ vencida' : `melhor: ${Math.floor(b.t / 60)}:${String(Math.floor(b.t % 60)).padStart(2, '0')}`) : 'nova') : '🔒'}</span></button>`; }).join('')}</div>
+      <div class="row2">
+        <div class="panel"><h3>🧠 Memória imunológica <span class="mem">${prog.mem} pontos</span></h3><p class="meta">Cada partida deixa células de memória. Gaste em melhorias permanentes.</p>
+          <div class="shop">${Object.entries(META).map(([k, M]) => { const l = metaLv(k), c = M.cost(l); return `<div class="si"><span class="ic">${M.i}</span><div><b>${M.n}</b> <span class="meta">${'●'.repeat(l)}${'○'.repeat(M.max - l)}</span><br><span class="meta">${M.d}</span></div><button class="btn" data-act="buy" data-v="${k}" ${l >= M.max || prog.mem < c ? 'disabled' : ''}>${l >= M.max ? 'máx.' : c + ' 🧠'}</button></div>`; }).join('')}</div></div>
+        <div class="panel"><h3>📖 Imunopédia</h3><p class="meta">${prog.codex.length} de ${Object.keys(ENEMIES).length + Object.keys(BOSSES).length} patógenos encontrados.</p>
+          <div class="btns"><button class="btn" data-act="codex">Abrir a Imunopédia</button><button class="btn" data-act="help">Como jogar</button></div></div>
+      </div>`;
+  }
+  function codex() {
+    const all = { ...ENEMIES, ...BOSSES };
+    openModal(`<h2>📖 Imunopédia</h2>
+      <h3>Patógenos</h3><div class="cdx">${Object.entries(all).map(([k, D]) => prog.codex.includes(k) ? `<div class="ce"><canvas data-spr="${k}" width="56" height="56"></canvas><div><b>${D.n}</b>${BOSSES[k] ? ' <span class="tag">chefe</span>' : ''}<br><span class="meta">${D.d}</span></div></div>` : `<div class="ce lock"><span class="q">?</span><div><b>???</b><br><span class="meta">Ainda não encontrado.</span></div></div>`).join('')}</div>
+      <h3>Mecanismos de defesa</h3><div class="cdx">${Object.entries(WEAPONS).map(([k, W]) => `<div class="ce"><span class="q">${W.i}</span><div><b>${W.n}</b><br><span class="meta">${W.d}</span></div></div>`).join('')}${Object.entries(PASSIVES).map(([k, W]) => `<div class="ce"><span class="q">${W.i}</span><div><b>${W.n}</b><br><span class="meta">${W.d}</span></div></div>`).join('')}</div>
+      ${Object.values(CODEX_EXTRA).map(([t, h]) => lessonBox(t, h)).join('')}
+      <div class="btns"><button class="btn primary" data-act="close">Fechar</button></div>`, true);
+    document.querySelectorAll('canvas[data-spr]').forEach(cv => { const k = cv.dataset.spr, D = ENEMIES[k] || BOSSES[k], s = sprite(k, Math.min(18, D.r)), g = cv.getContext('2d'); g.drawImage(s, (56 - s.width) / 2, (56 - s.height) / 2); });
+  }
+  function help() {
+    openModal(`<h2>Como jogar</h2>
+      <p>🕹️ <b>Mover:</b> WASD ou setas. No celular, toque e arraste em qualquer lugar da tela. <b>Esc</b> ou <b>P</b> pausa.</p>
+      <p>⚔️ As armas disparam <b>sozinhas</b>. Você só precisa se mover, desviar e se posicionar.</p>
+      <p>💎 Patógenos derrotados deixam <b>antígenos</b>. Colete para subir de nível e escolher um novo mecanismo de defesa ou melhorar um que já tem (até o nível 5). Você pode ter até 6 armas e 6 passivas.</p>
+      <p>⏱️ Cada fase dura 4 minutos. Depois chega o <b>chefe</b>: derrote-o para liberar a próxima fase.</p>
+      <p>🧬 Preste atenção nas fraquezas: lisozima contra Gram-positivas, anticorpos e complemento contra encapsuladas, interferon e linfócitos T contra vírus, IFN-γ contra a tuberculose.</p>
+      <p>🎁 Bactérias douradas (elite) deixam um presente: um nível grátis. 🍬 Glicose cura, 🧲 quimiocina atrai todos os antígenos.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`);
+  }
+
+  // ---------------- partida ----------------
+  function startStage(id) {
+    newRun(id); screen = 'play'; paused = false;
+    $('#main').innerHTML = `<div class="gamewrap"><canvas id="cv"></canvas></div>
+      <div class="ctrl"><button class="ghost" data-act="pause">⏸ Pausar (Esc)</button><button class="ghost" data-act="quit">Desistir</button><span class="meta">${G.st.n}</span></div>`;
+    CV = $('#cv'); CX = CV.getContext('2d'); resize(); bindJoy();
+    const st = G.st;
+    openModal(`<h2>Fase ${st.id}: ${st.n}</h2><p class="meta">${st.sub}</p><p>${st.intro}</p>
+      <div class="btns"><button class="btn primary big" data-act="go">Começar</button></div>`);
+  }
+  function levelUp() {
+    curChoices = choices(); sfx.lvl();
+    const card = c => {
+      if (c.t === 'heal') return `<button class="lu" data-act="choose" data-v="0"><span class="li">🍬</span><b>Glicose</b><span class="meta">Recupera 40 de vida.</span></button>`;
+      const W = c.t === 'w' ? WEAPONS[c.k] : PASSIVES[c.k], i = curChoices.indexOf(c);
+      const nl = c.lv + 1;
+      return `<button class="lu ${c.lv ? '' : 'new'}" data-act="choose" data-v="${i}"><span class="li">${W.i}</span><b>${W.n}</b><span class="lvl">${c.lv ? `nível ${c.lv} → ${nl}` : c.t === 'w' ? 'NOVA ARMA' : 'NOVA PASSIVA'}</span>
+        <span class="meta">${c.lv && c.t === 'w' ? W.up[c.lv] + '. ' : ''}${c.lv ? '' : W.d}</span><span class="key">${i + 1}</span></button>`;
+    };
+    openModal(`<h2>⬆️ Nível ${G.lvl}!</h2><p class="meta">Escolha uma melhoria (teclas 1, 2, 3).</p><div class="lus">${curChoices.map(card).join('')}</div>
+      ${G.rerolls ? `<div class="btns"><button class="btn" data-act="reroll">🎲 Trocar opções (${G.rerolls})</button></div>` : ''}`, true);
+  }
+  function pickChoice(i) {
+    if (!curChoices || !curChoices[i]) return;
+    applyChoice(curChoices[i]); curChoices = null; sfx.pick(); closeModal();
+  }
+  function endRun() {
+    const won = G.cleared, st = G.st, earned = memEarned();
+    prog.mem += earned;
+    const b = prog.best[st.id] || { t: 0, clear: false };
+    prog.best[st.id] = { t: Math.max(b.t, G.t), clear: b.clear || won };
+    if (won && st.id === prog.unlocked && st.id < STAGES.length) prog.unlocked = st.id + 1;
+    saveProg();
+    won ? sfx.win() : sfx.lose();
+    const tot = Object.values(G.dmgBy).reduce((a, b) => a + b, 0) || 1;
+    const rows = Object.entries(G.dmgBy).filter(([k]) => WEAPONS[k]).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="dbar"><span>${WEAPONS[k].i} ${WEAPONS[k].n}</span><span class="bb"><i style="width:${(v / tot * 100).toFixed(1)}%;background:${WEAPONS[k].col}"></i></span><span class="meta">${Math.round(v / tot * 100)}%</span></div>`).join('');
+    const mm = Math.floor(G.t / 60), ss = Math.floor(G.t % 60);
+    openModal(`<h2>${won ? `✅ ${st.n}: infecção controlada!` : '💀 O macrófago caiu'}</h2>
+      <p>${won ? st.outro : 'Macrófagos morrem aos montes numa infecção: o pus é feito, em boa parte, de células de defesa mortas. Outros virão no seu lugar, e mais preparados.'}</p>
+      <p class="meta">Tempo: ${mm}:${String(ss).padStart(2, '0')} · nível ${G.lvl} · ${G.kills} patógenos eliminados${G.cured ? ` · ${G.cured} células curadas pelo interferon` : ''}${G.killedCells ? ` · ${G.killedCells} células infectadas eliminadas pelos linfócitos T` : ''}</p>
+      <h3>Quem fez o trabalho</h3>${rows || '<p class="meta">—</p>'}
+      <p class="memg">🧠 +${earned} pontos de memória imunológica</p>
+      ${won && st.id === STAGES.length ? lessonBox(...CODEX_EXTRA.memoria) : ''}
+      <div class="btns">${won && st.id < STAGES.length ? `<button class="btn primary big" data-act="stage" data-v="${st.id + 1}">Próxima fase →</button>` : ''}<button class="btn ${won ? '' : 'primary'}" data-act="stage" data-v="${st.id}">↻ Jogar de novo</button><button class="btn" data-act="menu">Menu</button></div>`, true);
+    screen = 'over';
+  }
+  function pauseMenu() {
+    paused = true;
+    openModal(`<h2>⏸ Pausa</h2>
+      <h3>Armas</h3>${Object.entries(G.wep).map(([k, lv]) => `<p>${WEAPONS[k].i} <b>${WEAPONS[k].n}</b> (nível ${lv}): <span class="meta">${WEAPONS[k].d}</span></p>`).join('')}
+      ${Object.keys(G.pas).length ? `<h3>Passivas</h3>${Object.entries(G.pas).map(([k, lv]) => `<p>${PASSIVES[k].i} <b>${PASSIVES[k].n}</b> (nível ${lv}): <span class="meta">${PASSIVES[k].d}</span></p>`).join('')}` : ''}
+      <div class="btns"><button class="btn primary" data-act="resume">Continuar</button><button class="btn" data-act="quit">Desistir</button></div>`, true);
+  }
+
+  // ---------------- laço ----------------
+  function frame(ts) {
     requestAnimationFrame(frame);
-  }
-
-  // ================= Loop =================
-  let lastT = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
-    if (p) {
-      const k = Math.min(1, dt * 18);
-      p.rx += (p.x - p.rx) * k; p.ry += (p.y - p.ry) * k; p.flash = Math.max(0, p.flash - dt);
-      for (const e of enemies) { e.rx += (e.x - e.rx) * k; e.ry += (e.y - e.ry) * k; e.flash = Math.max(0, e.flash - dt); if (e.lunge) e.lunge.t += dt; }
-      if (attackAnim) attackAnim.t += dt;
-      for (const f of floats) f.t += dt; floats = floats.filter(f => f.t < 1);
-      for (const s of shots) s.t += dt; shots = shots.filter(s => s.t < 0.3);
-      for (const q of parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; } parts = parts.filter(q => q.t < 0.5);
+    const dt = Math.min(.05, (ts - lastT) / 1000 || 0); lastT = ts;
+    if (screen !== 'play' || !G) return;
+    if (!paused && !modalOpen) {
+      let ix = (keys.r ? 1 : 0) - (keys.l ? 1 : 0), iy = (keys.d ? 1 : 0) - (keys.u ? 1 : 0);
+      if (joy.on) { ix = joy.dx; iy = joy.dy; }
+      step(dt, { x: ix, y: iy });
+      if (G.newCodex) { toast(`📖 Novo na Imunopédia: <b>${(ENEMIES[G.newCodex] || BOSSES[G.newCodex]).n}</b>`); G.newCodex = null; }
+      if (G.ended) { render(dt); endRun(); return; }
+      if (G.pending > 0) levelUp();
     }
-    render(now);
+    render(dt);
   }
+  function toast(h) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = h; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+
+  // ---------------- entrada ----------------
+  function bindJoy() {
+    CV.addEventListener('pointerdown', e => { wake(); const r = CV.getBoundingClientRect(); joy.on = true; joy.id = e.pointerId; joy.ox = e.clientX - r.left; joy.oy = e.clientY - r.top; joy.dx = joy.dy = 0; CV.setPointerCapture(e.pointerId); });
+    CV.addEventListener('pointermove', e => { if (!joy.on || e.pointerId !== joy.id) return; const r = CV.getBoundingClientRect(), dx = e.clientX - r.left - joy.ox, dy = e.clientY - r.top - joy.oy, d = Math.hypot(dx, dy); const m = Math.min(1, d / 40); joy.dx = d ? dx / d * m : 0; joy.dy = d ? dy / d * m : 0; });
+    const up = e => { if (e.pointerId === joy.id) { joy.on = false; joy.dx = joy.dy = 0; } };
+    CV.addEventListener('pointerup', up); CV.addEventListener('pointercancel', up);
+  }
+  const KM = { KeyW: 'u', ArrowUp: 'u', KeyS: 'd', ArrowDown: 'd', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r' };
+  addEventListener('keydown', e => {
+    if (KM[e.code]) { keys[KM[e.code]] = true; if (screen === 'play') e.preventDefault(); wake(); }
+    if (screen === 'play' && (e.code === 'Escape' || e.code === 'KeyP')) { if (curChoices) return; if (paused) { paused = false; closeModal(); } else if (!modalOpen) pauseMenu(); }
+    if (curChoices && ['Digit1', 'Digit2', 'Digit3'].includes(e.code)) pickChoice(+e.code.slice(-1) - 1);
+  });
+  addEventListener('keyup', e => { if (KM[e.code]) keys[KM[e.code]] = false; });
+  addEventListener('blur', () => { keys = {}; if (screen === 'play' && !modalOpen) pauseMenu(); });
+  addEventListener('resize', resize);
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    wake();
+    const a = b.dataset.act, v = b.dataset.v;
+    switch (a) {
+      case 'stage': closeModal(); startStage(+v); break;
+      case 'go': closeModal(); setMusic(SONG_RUN); break;
+      case 'menu': closeModal(); renderMenu(); break;
+      case 'close': closeModal(); break;
+      case 'help': help(); break;
+      case 'codex': codex(); break;
+      case 'buy': { const M = META[v], l = metaLv(v), c = M.cost(l); if (l < M.max && prog.mem >= c) { prog.mem -= c; prog.meta[v] = l + 1; saveProg(); sfx.pick(); renderMenu(); } break; }
+      case 'choose': pickChoice(+v); break;
+      case 'reroll': if (G.rerolls > 0) { G.rerolls--; closeModal(); curChoices = null; levelUp(); } break;
+      case 'pause': if (!modalOpen) pauseMenu(); break;
+      case 'resume': paused = false; closeModal(); break;
+      case 'quit': paused = false; closeModal(); G.ended = true; G.cleared = false; endRun(); break;
+    }
+  });
+  window.__G = { sim(sec, pickRandom) { for (let i = 0; i < sec * 30 && !G.ended; i++) { const p = G.p; let vx = 0, vy = 0, near = null, nd = 1e9; for (const e of G.en) { const dx = p.x - e.x, dy = p.y - e.y, d2 = dx * dx + dy * dy; if (d2 < nd) { nd = d2; near = e; } const R = 55 + e.r; if (d2 < R * R) { const w = 1 / Math.max(Math.sqrt(d2), 5); vx += dx * w; vy += dy * w; } } let ix = vx * 3, iy = vy * 3; if (near && Math.hypot(ix, iy) < .3) { const d = Math.sqrt(nd), dx = near.x - p.x, dy = near.y - p.y; if (d > 85) { ix += dx / d; iy += dy / d; } } else if (!near) { let gx = 0, gy = 0, gb = 1e9; for (const g of G.gems) { const d2 = dist2(g, p); if (d2 < gb) { gb = d2; gx = g.x - p.x; gy = g.y - p.y; } } const gl = Math.hypot(gx, gy) || 1; ix += gx / gl; iy += gy / gl; } step(1 / 30, { x: ix, y: iy }); while (G.pending > 0) { const c = choices(); applyChoice(pickRandom ? pick(c) : c[0]); } } return { t: G.t, lvl: G.lvl, kills: G.kills, hp: G.p.hp, en: G.en.length, ended: G.ended, cleared: G.cleared, wep: G.wep, pas: G.pas, boss: G.boss && Math.round(G.boss.hp) }; }, get G() { return G; }, startStage, get prog() { return prog; }, pickChoice, get choices() { return curChoices; } };
+  renderMenu();
   requestAnimationFrame(frame);
+
 })();
 </script>
 </body>
