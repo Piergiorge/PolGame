@@ -8,10 +8,13 @@ Jogos que rodam direto no navegador, no computador ou no celular. Não precisa i
 |---|---|---|---|
 | 🧬 **Fita Molde** | Plataforma | Replicação do DNA, pareamento de bases, mutações e código genético | [▶️ Jogar](https://piergiorge.github.io/PolGame/fita-molde/) |
 | 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/PolGame/genoblocos/) |
-| 🦠 **GULP!** | Roguelike | Imunidade inata: fagocitose, patógenos, citocinas e anticorpos | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
+| 🦠 **GULP!** | Sobrevivência | Imunidade inata e o início da adaptativa: fagocitose, opsonização, complemento, interferon, linfócitos T, febre e resistência | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
 | 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/PolGame/locus-astra/) |
 | 🩺 **Surto** | RPG investigativo | Heredogramas humanos: modos de herança, consanguinidade, penetrância incompleta, início tardio e fenocópias | [▶️ Jogar](https://piergiorge.github.io/PolGame/surto/) |
 | 🌳 **Linhagem** | RPG de gerações | Herança poligênica, endogamia, vantagem do heterozigoto, herança ligada ao X e história da genética | [▶️ Jogar](https://piergiorge.github.io/PolGame/linhagem/) |
+| 🎡 **Herança** | Jogo de tabuleiro (1 a 4 jogadores) | Genética humana: ABO e Rh, lactase, daltonismo, ACTN3, portadores, vantagem do heterozigoto, teste do pezinho | [▶️ Jogar](https://piergiorge.github.io/PolGame/heranca/) |
+| 🦠 **Operon** | Simulação em tempo real | Regulação gênica em bactérias: óperons lac e trp, repressor, indutor, CAP-AMPc, diauxia, atenuação e diagnóstico de mutantes (IPTG, merodiploides F′) | [▶️ Jogar](https://piergiorge.github.io/PolGame/operon/) |
+| 🏝️ **Fundadores** | Estratégia por turnos (anos) | Genética de populações: efeito fundador, gargalo, deriva, endogamia, fluxo gênico, seleção balanceadora | [▶️ Jogar](https://piergiorge.github.io/PolGame/fundadores/) |
 
 Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** liga e desliga) e funcionam no celular.
 
@@ -98,7 +101,17 @@ Cada peça é um nucleotídeo. Complete linhas para eliminá-las e encaixe **bas
 
 # 🦠 GULP!
 
-Em grego, *macrófago* quer dizer "grande comedor". Você é um macrófago e atravessa cinco tecidos fagocitando bactérias, vírus e fungos, evolui com mecanismos reais da imunidade inata e enfrenta a superbactéria **MRSA**. Os mapas mudam a cada partida e a morte é permanente.
+Em grego, *macrófago* quer dizer "grande comedor". Você é um macrófago cercado por ondas de patógenos, num jogo de sobrevivência no estilo *Vampire Survivors*: você só se move (teclado ou toque) e as defesas disparam sozinhas. Os patógenos derrotados deixam **antígenos**; a cada nível, você escolhe um mecanismo novo ou melhora um que já tem (até o nível 5).
+
+| Fase | Patógenos | O que ensina |
+|---|---|---|
+| Ferida na pele | Staphylococcus, E. coli; chefe: colônia de *S. aureus* | Inflamação; lisozima contra Gram-positivas |
+| Corrente sanguínea | Gram-negativas, pneumococo; chefe: tempestade de LPS | Endotoxina e sepse; cápsula e **opsonização** |
+| Pulmão | Influenza, células infectadas, tuberculose | **Interferon** e linfócitos **T CD8**; macrófagos precisam de **IFN-γ** contra a tuberculose |
+| Linfonodo | Tudo junto; chefe: superbactéria | **Resistência** como seleção natural: ela fica imune ao mecanismo que mais a fere |
+| Intestino | Candida, biofilmes; chefe final: uma **tênia** gigante que ocupa quase a tela toda | Microbiota como defesa; helmintos são grandes demais para fagocitar, e o corpo responde com **Th2**, **IgE** e **eosinófilos** |
+
+Armas: fagocitose, explosão respiratória, lisozima, complemento (MAC), neutrófilos (com NETs), anticorpos IgG, interferon, linfócitos T CD8, febre e, na fase final, eosinófilos. Passivas: receptores Toll-like, lisossomos, receptor de manose, integrinas, glicólise, ativação por IFN-γ e apresentação de antígeno (MHC II). No fim de cada partida, um gráfico mostra quanto cada mecanismo contribuiu, e os pontos de **memória imunológica** compram melhorias permanentes (inclusive uma "vacina" que revive uma vez). Uma Imunopédia registra os patógenos encontrados.
 
 ### ▶️ [Jogar o GULP!](https://piergiorge.github.io/PolGame/gulp/)
 
@@ -148,7 +161,7 @@ As famílias são geradas aleatoriamente a cada partida, sempre com um heredogra
 
 # 🌳 Linhagem
 
-**Um RPG de gerações.** Você guia a família de um fundador ruivo do Vale do Sereno por **nove gerações**, de 1780 até o século XXI. Em cada geração, o herdeiro realiza dois feitos (a chance depende de Força, Mente e Vista), escolhe com quem casar e decide qual filho herda a casa. Os filhos herdam metade dos alelos de cada genitor, sorteados.
+**Um RPG de gerações.** Você guia a família de um fundador ruivo do Vale do Sereno por **nove gerações**, de 1780 até o século XXI. Em cada geração, o herdeiro vive um evento na infância, realiza dois feitos (a chance depende de Força, Mente e Vista), escolhe com quem casar, vive um evento na vida adulta e decide qual filho herda a casa. Os filhos herdam metade dos alelos de cada genitor, sorteados.
 
 | No jogo | O que ensina |
 |---|---|
@@ -159,11 +172,83 @@ As famílias são geradas aleatoriamente a cada partida, sempre com um heredogra
 | Casar com primos | Endogamia: o jogo calcula o coeficiente F e doenças recessivas escondidas do fundador reaparecem |
 | Febre do pântano | Vantagem do heterozigoto (alelo S e malária) |
 | Treinar e educar o herdeiro | O ambiente muda o fenótipo, mas não se herda (contra Lamarck) |
+| Eventos de infância e vida adulta | Febre (traço falciforme), pitangas e exame de maquinista (daltonismo), vacina, guerra, gripe espanhola, doação de sangue e teste de ancestralidade |
 | Eras históricas | Mendel (1866), Hardy-Weinberg (1908), DNA (1953), testes de portador (anos 1980) e genoma (2003) liberam ferramentas novas |
 
 A árvore da família é um heredograma de verdade, colorido pela característica escolhida, com portadores obrigatórios marcados e casais aparentados em linha dupla. Cada partida sorteia três ambições para a casa.
 
 ### ▶️ [Jogar o Linhagem](https://piergiorge.github.io/PolGame/linhagem/)
+
+---
+
+# 🎡 Herança
+
+**Uma vida inteira num tabuleiro de roleta e carrinho.** Até 4 jogadores no mesmo computador (pessoas ou computador) percorrem as etapas da vida: infância (teste do pezinho, vacinas, escola e esporte), adolescência (ENEM, pressão dos amigos), juventude (🪖 serviço militar, 🎓 faculdade ou 💼 trabalho direto), vida adulta (casamento, filhos, casa, pós-graduação), 🏛️ serviço público ou 🏢 iniciativa privada, meia-idade, aposentadoria aos 65 e velhice até os 90.
+
+Cada jogador escolhe seu peão (carro, pipeta, DNA, célula, ervilha de Mendel, drosófila ou cromossomo). O tabuleiro tem 134 casas grandes em serpentina, com a idade marcada em cada uma, e há um modo de **partida rápida** (+3 casas por jogada) para caber numa aula.
+
+Cada jogador recebe **6 cartas viradas para baixo**: genes (traço falciforme, falso O/Bombay, APOE ε4, hipercolesterolemia familiar, FOXO3…), riscos poligênicos (diabetes, hipertensão), hábitos (sedentarismo, tabagismo, álcool, dieta) e crenças (negacionismo). Elas só se revelam com o laboratório, check-ups, exames do quartel, doação de sangue e as surpresas da vida.
+
+| No jogo | O que ensina |
+|---|---|
+| Casas de saúde 🫀 | Doenças multifatoriais: risco = base + genes + hábitos (diabetes, hipertensão, infarto, câncer de pulmão, fígado, Alzheimer) |
+| Check-up | Hábitos se mudam (com recaídas); genes não, mas saber o genótipo muda o desfecho |
+| Hemocentro e REDOME | ABO, Rh, fenótipo Bombay e cadastro de doadores de medula |
+| Transplantes 🫘 | Compatibilidade ABO e HLA: irmãos têm 25% de chance de ser idênticos; gêmeos idênticos sempre são |
+| Bebês e gêmeos | Cada filho herda um alelo de cada genitor; gêmeos idênticos × fraternos; incompatibilidade Rh |
+| 80 anos e legado 🏆 | Início tardio (Alzheimer e APOE) e longevidade: a idade final soma genes, hábitos e doenças |
+| Eventos globais 🌍 | Pandemias, desinformação, mar subindo, chuvas, calor, secas e crises alagam casas do tabuleiro, mudam salários e preços |
+| Carreira, setor e investimentos | Estabilidade × salário, previdência e juros compostos |
+
+Vence quem chegar ao fim com o maior legado: dinheiro + casa + investimentos + filhos + anos vividos acima da média + doações − dívidas com juros. No fim, todas as cartas e genótipos da família são revelados.
+
+### ▶️ [Jogar o Herança](https://piergiorge.github.io/PolGame/heranca/)
+
+---
+
+# 🦠 Operon
+
+**Seja uma *Escherichia coli* no intestino.** Nade (clique, toque ou WASD) atrás de nuvens de glicose, lactose e triptofano, cresça e se divida mais rápido que as cepas rivais. Tudo custa ATP, principalmente transcrever e traduzir genes. Por isso, ligar o gene certo na hora certa faz a diferença.
+
+O painel mostra os óperons por dentro, em tempo real: RNA polimerase, repressores LacI e TrpR, CAP-AMPc, alolactose, mRNA e o grampo do atenuador.
+
+| Fase | O que ensina |
+|---|---|
+| 1. Primeira refeição | Energia, crescimento e fissão binária |
+| 2. Liga e desliga | Óperon lac no controle manual: custo e atraso da expressão gênica |
+| 3. O repressor | Controle negativo induzível: LacI, operador, alolactose, expressão basal |
+| 4. Glicose primeiro | Controle positivo por CAP-AMPc, repressão catabólica, exclusão do indutor e diauxia |
+| 5. Triptofano | Vias biossintéticas: importar ou fabricar |
+| 6. Repressão e atenuação | Óperon trp reprimível (Trp como correpressor) e atenuação (grampos 2:3 e 3:4) |
+| 7. Intestino | Tudo junto, com refeições, jejum e mutações |
+| Desafio livre | Recorde de divisões em 4 minutos |
+
+Quando surge uma **mutação** (lacI⁻, lacOᶜ, lacIˢ, lacZ⁻, lacY⁻, crp⁻, cya⁻, trpR⁻, trpL∆, trpE⁻), você abre o laboratório e faz os testes clássicos de Jacob e Monod: indução com lactose ou IPTG, merodiploide F′ lac⁺ (teste cis-trans), adição de AMPc, crescimento com e sem Trp. Cada palpite errado mostra qual teste contradiz a hipótese. Os conceitos ficam guardados num caderno, e o progresso é salvo no navegador.
+
+### ▶️ [Jogar o Operon](https://piergiorge.github.io/PolGame/operon/)
+
+---
+
+# 🏝️ Fundadores
+
+**Uma colônia que começa com uma amostra pequena de um continente enorme.** Em 1790, você escolhe o navio (bote, escuna ou galeão) e a tripulação, vendo só o que aparece por fora. Ninguém sabe quem é portador de alelos recessivos. Durante 150 anos (umas seis gerações), você explora a ilha hexagonal, divide o trabalho entre comida, madeira, ervas e exploração, e define as leis de casamento e o tamanho das famílias. São 15 construções em cinco grupos (comida, materiais, moradia, saúde e sociedade): roça, pesqueiro, pomar, celeiro, serraria, casas, horta de ervas, boticário, poço, enfermaria, drenagem, abrigo na rocha, registro de famílias, escola (com língua de sinais) e cais (mais migrantes, comércio e mais epidemias). Uma tabela de postos de trabalho mostra quem trabalha onde e quanto cada lugar produz. Como o espaço da ilha é limitado, quase todas as construções podem ser melhoradas até o nível 3 (por exemplo, roça → roça com arado → roça irrigada; registro de famílias → livro de genealogias, que permite proibir casamento até entre primos de 2º grau). O nível 3 exige a escola.
+
+Cada colono é simulado individualmente: casa, tem filhos com genes sorteados dos pais (Mendel), adoece e morre. Epidemias, secas, um clima mais frio, a chegada da malária, navios de migrantes, jovens que emigram e um tufão mudam a população e os genes.
+
+| Mecânica | O que ensina |
+|---|---|
+| Desembarque | **Efeito fundador**: a tabela compara as frequências dos colonos com as do continente; alelos que nem vieram |
+| Gráficos ano a ano | **Deriva genética**, perda e fixação de alelos, queda da diversidade em 8 marcadores neutros (tipo STR) |
+| Tufão | **Gargalo** (Pingelap e a acromatopsia) |
+| Genealogias e coeficiente F | **Endogamia**: coancestria calculada pelo pedigree real de cada pessoa |
+| Doenças recessivas (fibrose cística, anemia falciforme, Ellis-van Creveld, Tay-Sachs, surdez GJB2, acromatopsia) | Portadores escondidos, risco de 1/4, exemplos reais (Amish, Martha's Vineyard, Tristão da Cunha) |
+| Malária nos pântanos | **Seleção balanceadora**: vantagem do heterozigoto HbA/HbS |
+| Navios de migrantes | **Fluxo gênico** |
+| Sobrenomes | Sobrenomes também derivam, como um marcador do cromossomo Y |
+
+O modo professor mostra os genótipos escondidos de todos os colonos. O jogo é salvo automaticamente no navegador.
+
+### ▶️ [Jogar o Fundadores](https://piergiorge.github.io/PolGame/fundadores/)
 
 ---
 
@@ -179,6 +264,9 @@ gulp/index.html
 locus-astra/index.html
 surto/index.html
 linhagem/index.html
+heranca/index.html
+operon/index.html
+fundadores/index.html
 ```
 
 No Fita Molde:
@@ -187,6 +275,12 @@ No Fita Molde:
 - Inimigos com detecção de bordas e paredes para patrulhar sem cair das plataformas.
 
 Para jogar sem internet, baixe o `index.html` do jogo e abra no navegador.
+
+## Próximas fases do Fita Molde (ideias)
+
+- Fita descontínua: fragmentos de Okazaki, primase e DNA ligase
+- Transcrição: RNA polimerase, uracila no lugar de timina
+- Tradução: ribossomo, tRNAs e anticódons
 
 ## Licença
 
