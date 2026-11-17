@@ -1,1 +1,1307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundadores — efeito fundador, gargalo e deriva</title>
+<style>
+  :root { --bg:#0c1d26; --panel:#132c37; --line:#25495a; --text:#eef3ee; --muted:#93afb5; --warm:#f2c96b; --accent:#7bd389; --red:#ff7b6b; --sand:#e9d79c; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:radial-gradient(1000px 500px at 80% -10%, #1b4a5e, transparent 70%), var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; color:inherit; }
+  .wrap { max-width:1380px; margin:0 auto; padding:10px 12px 40px; }
+  header.top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 14px; margin-bottom:8px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font:900 23px/1 Georgia, 'DejaVu Serif', serif; letter-spacing:.14em; color:var(--sand); }
+  .brand small { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
+  .res { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .pill { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 11px; font-size:13px; white-space:nowrap; }
+  .pill b { color:var(--warm); } .pill.big { font-size:15px; }
+  .pos { color:#8be09b; } .neg { color:#ff8f80; } .warn { color:#f2c96b; }
+  .ghost, .soundbtn { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:3px 9px; font-size:12px; }
+  .ghost:hover, .soundbtn:hover { color:var(--text); border-color:#4a8aa0; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; } .backlink[hidden] { display:none; }
+  .btn { background:#1b4352; border:1px solid var(--line); color:var(--text); border-radius:9px; padding:6px 13px; font-weight:650; font-size:13px; }
+  .btn:hover:not(:disabled) { border-color:var(--warm); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.primary { background:var(--warm); color:#2c2000; border-color:var(--warm); }
+  .btn.on { background:#2d6a4f; border-color:var(--accent); }
+  .btn.big { font-size:15px; padding:8px 16px; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0; } .btns.center { justify-content:center; } .btns.col { flex-direction:column; align-items:stretch; }
+  .meta { color:var(--muted); font-size:12px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .panel h2 { margin:0 0 6px; font:800 20px Georgia, serif; color:var(--sand); }
+  .panel h3, .modal h3 { margin:12px 0 4px; font:800 14px system-ui; color:var(--sand); letter-spacing:.02em; }
+  .hero { text-align:center; padding:10px 0; max-width:820px; margin:0 auto; }
+  .hero h2 { font:900 48px/1 Georgia, serif; letter-spacing:.16em; color:var(--sand); margin:10px 0; text-shadow:0 3px 0 #06222e; }
+  .hero p { color:#cfdcdc; font-size:15px; }
+  .ships { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-top:8px; }
+  .shipc { text-align:left; background:#0f2530; border:2px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:4px; }
+  .shipc:hover { border-color:var(--warm); transform:translateY(-1px); } .shipc .si { font-size:38px; } .shipc b { font:800 19px Georgia, serif; color:var(--sand); }
+  .pool { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:6px; margin:8px 0; }
+  .pc { text-align:left; background:#0f2530; border:2px solid var(--line); border-radius:10px; padding:6px 9px; display:flex; flex-direction:column; gap:1px; opacity:.55; }
+  .pc.on { opacity:1; border-color:var(--warm); background:#1a3a47; }
+  .tr { display:inline-block; font-size:11px; background:#0b1b22; border-radius:6px; padding:0 6px; margin:1px 3px 1px 0; } .tr.ruivo { color:#ff9a66; } .tr.bad { background:#4a1d1d; color:#ffb4a8; }
+  table.t { border-collapse:collapse; width:100%; font-size:13px; margin:6px 0; } table.t.small { font-size:12px; }
+  table.t th, table.t td { border-bottom:1px solid #2a5161; padding:4px 6px; text-align:left; } table.t th { color:var(--muted); font-size:12px; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+  .layout { display:grid; grid-template-columns:minmax(0, 1fr) 470px; gap:12px; align-items:start; }
+  @media (max-width:1100px) { .layout { grid-template-columns:minmax(0, 1fr); } }
+  .mapwrap { border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+  svg.map { display:block; width:100%; height:auto; }
+  svg.map .hx { cursor:pointer; } svg.map .hx:hover polygon { filter:brightness(1.15); }
+  svg.map .mi { font-size:13px; text-anchor:middle; pointer-events:none; } svg.map .mi.big { font-size:20px; }
+  .advbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0; }
+  .bopts { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:6px; }
+  .bopt { text-align:left; background:#0f2530; border:1px solid var(--line); border-radius:10px; padding:7px 10px; display:flex; flex-direction:column; }
+  .bopt:hover:not(:disabled) { border-color:var(--warm); } .bopt:disabled { opacity:.45; cursor:not-allowed; }
+  .bopt .cost { color:var(--warm); font-size:12px; }
+  .tabs { display:flex; gap:4px; margin-bottom:-1px; position:relative; z-index:1; }
+  .tab { background:#0f2530; border:1px solid var(--line); border-bottom:none; border-radius:10px 10px 0 0; padding:6px 12px; color:var(--muted); font-weight:700; font-size:13px; }
+  .tab.on { background:var(--panel); color:var(--text); }
+  .side .panel { border-top-left-radius:0; max-height:calc(100vh - 110px); overflow:auto; }
+  .sl { margin:6px 0; } .sl label { display:flex; gap:8px; align-items:baseline; font-size:13px; } .sl label b { color:var(--warm); }
+  .sl input { width:100%; accent-color:var(--warm); }
+  .pol { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:5px 0; } .pol > span { min-width:85px; color:var(--muted); font-size:12px; }
+  .mini { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  @media (max-width:520px) { .mini { grid-template-columns:1fr; } }
+  .mc { background:#0f2530; border:1px solid var(--line); border-radius:10px; padding:5px 7px; }
+  .mc canvas { width:100%; height:auto; display:block; border-radius:6px; }
+  .mh { font-size:12px; } .mf { font-size:11px; color:var(--muted); margin-top:2px; } .mf b { color:var(--text); }
+  .log { font-size:12.5px; display:flex; flex-direction:column; gap:3px; } .log b { color:var(--warm); margin-right:4px; }
+  .log .ev { color:#ffd6a0; } .log .good { color:#a5e6b4; } .log .bad { color:#ffaaa0; }
+  .tog { font-size:13px; display:flex; gap:6px; align-items:center; cursor:pointer; }
+  canvas.pyr { width:100%; height:auto; background:#0f2530; border-radius:10px; }
+  .surn { display:flex; flex-wrap:wrap; gap:4px; } .surn span { background:#0f2530; border:1px solid var(--line); border-radius:999px; padding:1px 9px; font-size:12px; } .surn b { color:var(--warm); }
+  .search { width:100%; background:#0b1b22; border:1px solid var(--line); border-radius:8px; color:var(--text); padding:5px 9px; margin:4px 0; }
+  .plist { display:flex; flex-direction:column; gap:3px; }
+  .prow { text-align:left; background:#0f2530; border:1px solid transparent; border-radius:8px; padding:3px 8px; display:flex; gap:7px; align-items:center; flex-wrap:wrap; font-size:13px; }
+  .prow:hover { border-color:var(--line); } .prow .M { color:#64b5f6; } .prow .F { color:#f48fb1; }
+  .gch { display:inline-block; font-size:10px; font-weight:800; border:1.5px solid var(--c); color:var(--c); border-radius:5px; padding:0 4px; margin-right:2px; }
+  .gch.h { background:var(--c); color:#111; }
+  .modalbg { position:fixed; inset:0; background:rgba(3,12,16,.7); display:flex; align-items:center; justify-content:center; padding:14px; z-index:50; }
+  .modal { background:#12303c; border:1px solid #33677a; border-radius:16px; max-width:640px; width:100%; max-height:92vh; overflow:auto; padding:18px 20px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .modal.wide { max-width:860px; }
+  .modal h2 { margin:0 0 8px; font:800 21px Georgia, serif; color:var(--sand); }
+  .lesson { background:#0d2630; border-left:4px solid var(--warm); border-radius:8px; padding:8px 12px; margin:10px 0; font-size:13.5px; } .lesson b.t { color:var(--warm); }
+  .ped { display:flex; flex-direction:column; gap:8px; margin:10px 0; } .ped .row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .pn { background:#0f2530; border:2px solid var(--line); border-radius:10px; padding:4px 9px; display:flex; flex-direction:column; min-width:130px; cursor:pointer; font-size:12.5px; }
+  .pn.M { border-color:#3b7fb5; } .pn.F { border-color:#b5487a; } .pn.dead { opacity:.6; } .pn.empty { cursor:default; border-style:dashed; }
+  .buildbar { margin-bottom:10px; } .bbh { display:flex; justify-content:space-between; align-items:center; } .bbh h3 { margin:0 0 6px; }
+  .bcat { display:flex; flex-wrap:wrap; gap:5px; align-items:stretch; margin:4px 0; } .bcn { width:100px; font-size:12px; color:var(--muted); align-self:center; }
+  .bb { display:flex; flex-direction:column; align-items:center; min-width:82px; background:#0f2530; border:2px solid var(--line); border-radius:10px; padding:3px 7px; }
+  .bb:hover:not(:disabled) { border-color:var(--warm); } .bb.on { border-color:var(--warm); background:#3a3214; box-shadow:0 0 0 2px rgba(242,201,107,.3); }
+  .bb.done { opacity:.5; cursor:default; } .bb.poor .bc { color:#ff8f80; }
+  .bb .bi { font-size:20px; line-height:1.2; } .bb .bn { font-size:11.5px; font-weight:700; text-align:center; } .bb .bn b { color:var(--warm); } .bb .bc { font-size:11px; color:var(--warm); }
+  .bstat { margin-top:8px; background:#0d2630; border:1px solid var(--warm); border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; font-size:13px; } .bstat .btn { align-self:flex-start; }
+  svg.map .okb { fill:rgba(242,201,107,.25); stroke:#ffd76b; stroke-width:3; stroke-dasharray:6 4; animation:okb 1s linear infinite; pointer-events:none; }
+  @keyframes okb { to { stroke-dashoffset:-20; } }
+  table.posts td { padding:3px 5px; } .cath { color:var(--warm); font-weight:800; background:#0d2630; }
+  ul.chk { list-style:none; padding:0; margin:4px 0; font-size:13px; } ul.chk li.ok { color:var(--muted); text-decoration:line-through; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#12303c; border:1px solid var(--warm); border-radius:12px; padding:8px 16px; z-index:60; box-shadow:0 8px 30px rgba(0,0,0,.4); }
+  svg.map .lvb circle { fill:#f2c96b; stroke:#3a2a00; stroke-width:1.2; } svg.map .lvb text { font:900 10px system-ui; fill:#2c2000; text-anchor:middle; pointer-events:none; }
+  svg.map .okb.cant { stroke:#ff8f80; fill:rgba(255,120,100,.18); }
+  .bb.up { min-width:150px; } .upm { flex:1; min-width:200px; align-self:center; }
+  .upbox { background:#0d2630; border:1px solid var(--warm); border-radius:10px; padding:8px 10px; margin-top:6px; } .upbox .btn { margin-top:6px; }
+  .lvtag { background:#f2c96b; color:#2c2000; border-radius:6px; padding:0 6px; font-size:11px; font-weight:800; }
+  .lvcol { font-size:11px; min-width:200px; }
+  .score { font-size:17px; } .score b { color:var(--warm); font-size:22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand"><svg width="42" height="42" viewBox="-21 -21 42 42" aria-hidden="true"><circle r="20" fill="#1d5f86"/><path d="M-14 6 C -8 -10, 8 -12, 15 4 Z" fill="#e9d79c"/><path d="M-9 4 C -4 -6, 6 -7, 10 3 Z" fill="#7cb85c"/><path d="M-3 -16 v14 M-3 -15 l8 6 h-8" stroke="#f4ecd8" stroke-width="1.6" fill="#f4ecd8"/></svg>
+      <div><h1>FUNDADORES</h1><small>efeito fundador · gargalo · deriva</small></div></div>
+    <div class="res" id="hud"></div>
+    <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+  </header>
+  <main id="main"></main>
+</div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  // Versão com instrumentos "orquestrais" simples: harpa, cordas, coro, flauta, tímpano e reverb.
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    let C = null, BUS = null; // contexto e barramento usados pelas vozes da música (trocados na renderização offline)
+    try { muted = localStorage.getItem('fundadores-mudo') === '1'; } catch (e) {}
+    function makeReverb(ctx, secs = 3.2, decay = 2.6) {
+      const len = Math.floor(ctx.sampleRate * secs), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
+      const cv = ctx.createConvolver(); cv.buffer = buf; return cv;
+    }
+    function makeBus(ctx, dest, vol) {
+      const bus = ctx.createGain(); bus.gain.value = vol;
+      const dry = ctx.createGain(); dry.gain.value = .78;
+      const wet = ctx.createGain(); wet.gain.value = .42;
+      const rv = makeReverb(ctx);
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 45;
+      bus.connect(hp); hp.connect(dry); hp.connect(rv); rv.connect(wet); dry.connect(comp); wet.connect(comp); comp.connect(dest);
+      return bus;
+    }
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = makeBus(ac, master, .5);
+          C = ac; BUS = musicBus;
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = C.createOscillator(), g = C.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(BUS); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    // voz genérica com envelope ADSR simples, vários osciladores desafinados, filtro, vibrato e pan
+    function voice(freq, t, dur, o = {}) {
+      const a = o.a ?? .02, r = o.r ?? .3, vol = o.vol ?? .2, end = t + dur + r;
+      const g = C.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + a);
+      if (o.decay) g.gain.exponentialRampToValueAtTime(Math.max(.0001, vol * (o.sustain ?? .0005)), t + o.decay);
+      else { g.gain.setValueAtTime(vol, t + Math.max(a, dur)); }
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      let out = g;
+      if (o.lp) { const f = C.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = o.q ?? .7; g.connect(f); out = f; }
+      if (o.formant) { const f2 = C.createBiquadFilter(); f2.type = 'peaking'; f2.frequency.value = o.formant; f2.gain.value = 9; f2.Q.value = 1.4; out.connect(f2); out = f2; }
+      if (C.createStereoPanner && o.pan) { const p = C.createStereoPanner(); p.pan.value = o.pan; out.connect(p); out = p; }
+      out.connect(BUS);
+      let lfo = null;
+      if (o.vib) { lfo = C.createOscillator(); lfo.frequency.value = o.vib[0]; const lg = C.createGain(); lg.gain.value = freq * (Math.pow(2, o.vib[1] / 1200) - 1); lfo.connect(lg); lfo._g = lg; lfo.start(t); lfo.stop(end + .05); }
+      for (const det of (o.det || [0])) {
+        const osc = C.createOscillator(); osc.type = o.wave || 'sine'; osc.frequency.value = freq; osc.detune.value = det;
+        if (o.drop) { osc.frequency.setValueAtTime(freq * o.drop, t); osc.frequency.exponentialRampToValueAtTime(freq, t + .06); }
+        if (lfo) lfo._g.connect(osc.frequency);
+        osc.connect(g); osc.start(t); osc.stop(end + .05);
+      }
+    }
+    const INST = {
+      harp:    (f, t, d, v = .16, pan = -.25) => { voice(f, t, d, { wave: 'triangle', a: .004, decay: 1.6, r: .4, vol: v, lp: 5000, pan }); voice(f * 2, t, d, { wave: 'sine', a: .003, decay: .5, r: .2, vol: v * .25, pan }); },
+      strings: (f, t, d, v = .05, pan = 0) => voice(f, t, d, { wave: 'sawtooth', det: [-7, 0, 6], a: .45, r: .9, vol: v, lp: 2600, vib: [5, 4], pan }),
+      choir:   (f, t, d, v = .045, pan = 0) => voice(f, t, d, { wave: 'sawtooth', det: [-9, 0, 8], a: .32, r: .8, vol: v, lp: 2200, formant: 820, vib: [5.2, 7], pan }),
+      flute:   (f, t, d, v = .13, pan = .2) => { voice(f, t, d, { wave: 'sine', a: .07, r: .35, vol: v, vib: [5, 9], pan }); voice(f * 2, t, d, { wave: 'sine', a: .1, r: .3, vol: v * .12, pan }); },
+      horn:    (f, t, d, v = .06, pan = .1) => voice(f, t, d, { wave: 'sawtooth', det: [-4, 4], a: .09, r: .45, vol: v, lp: 1100, vib: [4.5, 5], pan }),
+      bass:    (f, t, d, v = .1) => voice(f, t, d, { wave: 'triangle', a: .05, r: .6, vol: v, lp: 500 }),
+      timp:    (f, t, v = .32) => { voice(f, t, .05, { wave: 'sine', a: .003, decay: 1.1, r: .3, vol: v, drop: 1.5 }); voice(f * 1.5, t, .05, { wave: 'sine', a: .003, decay: .4, r: .1, vol: v * .25 }); },
+      roll:    (f, t, len, v = .1) => { for (let i = 0; i < len / .07; i++) voice(f, t + i * .07, .03, { wave: 'sine', a: .003, decay: .25, r: .05, vol: v * (0.3 + 0.7 * i * .07 / len), drop: 1.2 }); },
+    };
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.25) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    // renderiza uma música fora do tempo real (usado para gerar a prévia em áudio)
+    async function render(s, secs) {
+      const oc = new OfflineAudioContext(2, Math.ceil(44100 * secs), 44100);
+      const pc = C, pb = BUS; C = oc; BUS = makeBus(oc, oc.destination, .5);
+      const sd = 60 / s.bpm / 2; let tt = .05, st = 0;
+      while (tt < secs - 1) { s.play(st, tt, sd); st++; tt += sd; }
+      C = pc; BUS = pb;
+      return oc.startRendering();
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('fundadores-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, voice, INST, music, render, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
+  // =====================================================================
+  // GENÉTICA: loci, pessoas, herança mendeliana, parentesco e estatísticas
+  // =====================================================================
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const ri = (a, b) => Math.floor(rnd(a, b + 1));
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const bern = p => Math.random() < p;
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // q = frequência do alelo recessivo no continente (população grande, estável)
+  const LOCI = [
+    { k: 'fc', n: 'Fibrose cística', gene: 'CFTR', q: .03, col: '#ef6c6c', kind: 'grave', short: 'FC',
+      d: 'Muco espesso nos pulmões e no pâncreas. Sem tratamento moderno, a maioria morria na infância ou na adolescência.' },
+    { k: 'hbs', n: 'Anemia falciforme', gene: 'HBB (HbS)', q: .05, col: '#e0577a', kind: 'grave', short: 'HbS',
+      d: 'Homozigotos têm anemia grave e crises de dor. Heterozigotos (traço falciforme) são saudáveis e mais resistentes à malária.' },
+    { k: 'evc', n: 'Ellis-van Creveld', gene: 'EVC', q: .02, col: '#f0a35e', kind: 'grave', short: 'EvC',
+      d: 'Nanismo, dedos extras (polidactilia) e, em metade dos casos, defeito cardíaco que mata no primeiro ano. Comum entre os Amish da Pensilvânia.' },
+    { k: 'tay', n: 'Tay-Sachs', gene: 'HEXA', q: .015, col: '#c46ad6', kind: 'letal', short: 'TS',
+      d: 'Acúmulo de gordura nos neurônios. A criança parece normal ao nascer e morre antes dos 5 anos.' },
+    { k: 'surdo', n: 'Surdez congênita', gene: 'GJB2', q: .04, col: '#5aa9e6', kind: 'leve', short: 'Surdez',
+      d: 'Surdez de nascença. Numa comunidade que aprende língua de sinais, a pessoa vive e trabalha normalmente.' },
+    { k: 'acro', n: 'Acromatopsia', gene: 'CNGB3', q: .015, col: '#8fb3c9', kind: 'leve', short: 'Acrom.',
+      d: 'Visão sem cores e muito sensível à luz. Trabalhar ao sol é difícil.' },
+    { k: 'olho', n: 'Olhos azuis', gene: 'HERC2/OCA2', q: .40, col: '#64b5f6', kind: 'visivel', short: 'Azuis',
+      d: 'Característica visível e neutra: não ajuda nem atrapalha a sobreviver.' },
+    { k: 'ruivo', n: 'Cabelo ruivo', gene: 'MC1R', q: .14, col: '#ff8a50', kind: 'visivel', short: 'Ruivo',
+      d: 'Característica visível e neutra. Ótima para ver a deriva acontecendo.' },
+  ];
+  const LK = Object.fromEntries(LOCI.map(L => [L.k, L]));
+  // marcadores neutros (como os STRs usados em testes de paternidade): 8 locos com 8 alelos cada
+  const NSTR = 8, NAL = 8;
+  let STRF = [];
+  function newMainland() { STRF = Array.from({ length: NSTR }, () => { const w = Array.from({ length: NAL }, () => Math.pow(Math.random(), 1.6) + .03); const t = w.reduce((a, b) => a + b, 0); return w.map(x => x / t); }); }
+  const drawAl = f => { let r = Math.random(); for (let i = 0; i < f.length; i++) { r -= f[i]; if (r <= 0) return i; } return f.length - 1; };
+
+  const NOMES_M = ['João', 'José', 'Antônio', 'Manuel', 'Francisco', 'Pedro', 'Joaquim', 'Luís', 'Miguel', 'Tomé', 'Bento', 'Inácio', 'Caetano', 'Domingos', 'Gaspar', 'Henrique', 'Jerônimo', 'Lourenço', 'Matias', 'Nicolau', 'Raimundo', 'Sebastião', 'Teodoro', 'Vicente', 'Álvaro', 'Brás', 'Cosme', 'Damião', 'Elias', 'Fabrício'];
+  const NOMES_F = ['Maria', 'Ana', 'Rosa', 'Joana', 'Teresa', 'Francisca', 'Luísa', 'Inês', 'Clara', 'Isabel', 'Benedita', 'Catarina', 'Helena', 'Margarida', 'Quitéria', 'Rita', 'Úrsula', 'Vitória', 'Antônia', 'Bárbara', 'Cecília', 'Damiana', 'Engrácia', 'Felícia', 'Gertrudes', 'Joaquina', 'Leonor', 'Madalena', 'Perpétua', 'Sebastiana'];
+  const SOBRENOMES = ['Silva', 'Souza', 'Costa', 'Lima', 'Pereira', 'Ferreira', 'Rocha', 'Barros', 'Teixeira', 'Moura', 'Cardoso', 'Pinto', 'Nunes', 'Fonseca', 'Brandão', 'Seixas', 'Queiroz', 'Valente', 'Macedo', 'Antunes', 'Bastos', 'Correia', 'Dantas', 'Esteves', 'Falcão', 'Guerra', 'Leite', 'Matos', 'Neves', 'Paiva', 'Quintela', 'Ramos', 'Sampaio', 'Tavares', 'Vieira', 'Xavier', 'Amaral', 'Bezerra', 'Coelho', 'Dias'];
+
+  // ---------- pessoas ----------
+  let PEOPLE = [];           // todas, vivas e mortas (o índice é o id)
+  const P = id => PEOPLE[id];
+  function contGenome() { const g = {}; for (const L of LOCI) g[L.k] = [bern(L.q) ? 1 : 0, bern(L.q) ? 1 : 0]; g.str = STRF.map(f => [drawAl(f), drawAl(f)]); return g; }
+  function newPerson(o) {
+    const p = Object.assign({ id: PEOPLE.length, alive: true, spouse: null, kids: [], mom: null, dad: null, gen: 0, died: null, cause: null, immigrant: false }, o);
+    PEOPLE.push(p); return p;
+  }
+  function founder(year, age, sex, surname) {
+    return newPerson({ sex, born: year - age, name: pick(sex === 'M' ? NOMES_M : NOMES_F), surname: surname || pick(SOBRENOMES), g: contGenome() });
+  }
+  function childOf(mom, dad, year) {
+    const g = {};
+    for (const L of LOCI) g[L.k] = [pick(mom.g[L.k]), pick(dad.g[L.k])];
+    g.str = mom.g.str.map((m, i) => [pick(m), pick(dad.g.str[i])]);
+    const sex = bern(.5) ? 'M' : 'F';
+    const k = newPerson({ sex, born: year, name: pick(sex === 'M' ? NOMES_M : NOMES_F), surname: dad.surname, g, mom: mom.id, dad: dad.id, gen: Math.max(mom.gen, dad.gen) + 1 });
+    mom.kids.push(k.id); dad.kids.push(k.id);
+    return k;
+  }
+  const hom = (p, k) => p.g[k][0] === 1 && p.g[k][1] === 1;
+  const het = (p, k) => p.g[k][0] + p.g[k][1] === 1;
+  const affected = (p, k) => hom(p, k);
+  const age = (p, y) => y - p.born;
+  const fullName = p => `${p.name} ${p.surname}`;
+
+  // ---------- parentesco (coeficiente de coancestria) ----------
+  const PHI = new Map();
+  function phi(a, b) {
+    if (a == null || b == null) return 0;
+    if (a === b) { const x = P(a); return 0.5 * (1 + F(x)); }
+    const key = a < b ? a * 100000 + b : b * 100000 + a;
+    if (PHI.has(key)) return PHI.get(key);
+    // o mais novo (id maior) é desdobrado nos pais
+    const y = a > b ? P(a) : P(b), o = a > b ? b : a;
+    const v = y.mom == null ? 0 : 0.5 * (phi(y.mom, o) + phi(y.dad, o));
+    PHI.set(key, v); return v;
+  }
+  const FMEMO = new Map();
+  function F(p) { if (p.mom == null) return 0; if (FMEMO.has(p.id)) return FMEMO.get(p.id); const v = phi(p.mom, p.dad); FMEMO.set(p.id, v); return v; }
+  function relation(a, b) {
+    if (a.id === b.id) return 'mesma pessoa';
+    if (a.mom === b.id || a.dad === b.id || b.mom === a.id || b.dad === a.id) return 'pai/mãe e filho(a)';
+    if (a.mom != null && a.mom === b.mom && a.dad === b.dad) return 'irmãos';
+    const f = phi(a.id, b.id);
+    if (f >= 0.12) return 'parentes muito próximos';
+    if (f >= 0.06) return 'primos de 1º grau (ou mais)';
+    if (f >= 0.015) return 'primos de 2º grau';
+    if (f > 0) return 'parentes distantes';
+    return 'sem parentesco conhecido';
+  }
+
+  // ---------- estatísticas ----------
+  function freqs(list) {
+    const o = {}; const n = list.length * 2 || 1;
+    for (const L of LOCI) { let s = 0; for (const p of list) s += p.g[L.k][0] + p.g[L.k][1]; o[L.k] = s / n; }
+    return o;
+  }
+  // diversidade nos marcadores neutros: heterozigosidade esperada relativa ao continente e alelos restantes
+  const H0 = () => STRF.reduce((a, f) => a + 1 - f.reduce((s, x) => s + x * x, 0), 0) / NSTR;
+  function strStats(list) {
+    let H = 0, al = 0; const n = list.length * 2 || 1;
+    for (let i = 0; i < NSTR; i++) {
+      const c = new Array(NAL).fill(0); for (const p of list) { c[p.g.str[i][0]]++; c[p.g.str[i][1]]++; }
+      H += 1 - c.reduce((s, x) => s + (x / n) ** 2, 0); al += c.filter(x => x > 0).length;
+    }
+    return { H: list.length ? H / NSTR / H0() : 0, al };
+  }
+  function carriers(list, k) { let c = 0; for (const p of list) if (het(p, k)) c++; return c; }
+  // =====================================================================
+  // MUNDO: ilha em hexágonos, construções, eventos e lições
+  // =====================================================================
+  const COLS = 17, ROWS = 12, HR = 25, HW = Math.sqrt(3) * HR, HH = 1.5 * HR;
+  const TER = {
+    mar:      { n: 'Mar', c: '#1d5f86', land: false },
+    praia:    { n: 'Praia', c: '#e9d79c', land: true, d: 'Areia e enseadas. Bom para pescar.' },
+    campo:    { n: 'Campo', c: '#9ccc65', land: true, d: 'Terra aberta. Dá para plantar e construir.' },
+    floresta: { n: 'Floresta', c: '#4f9a4a', land: true, d: 'Madeira e ervas medicinais.' },
+    pantano:  { n: 'Pântano', c: '#6f8f6a', land: true, d: 'Ervas raras… e mosquitos.' },
+    montanha: { n: 'Montanha', c: '#9e9384', land: true, d: 'Pedra e vista. Nada cresce aqui.' },
+  };
+  // cat: em que grupo aparece · slots: vagas de trabalho · once: só uma na ilha
+  const BUILD = {
+    casa:       { n: 'Casas', i: '🏠', cat: 'moradia', cost: 20, on: ['campo', 'praia', 'floresta'], d: '+6 vagas de moradia. Gente apertada adoece mais e tem menos filhos.' },
+    roca:       { n: 'Roça', i: '🌾', cat: 'comida', cost: 12, slots: 6, out: 'comida', on: ['campo'], d: 'Até 6 agricultores, cada um colhe 2,2 de comida × fertilidade do solo. Sofre com seca, frio e pragas.' },
+    porto:      { n: 'Pesqueiro', i: '🎣', cat: 'comida', cost: 15, slots: 5, out: 'comida', on: ['praia'], d: 'Até 5 pescadores, 2 de comida cada. O frio e a seca quase não atrapalham, mas o mar bravo sim.' },
+    pomar:      { n: 'Pomar', i: '🍊', cat: 'comida', cost: 15, slots: 4, out: 'comida', on: ['campo', 'floresta'], d: 'Até 4 pessoas, 1,8 de comida cada. As árvores levam 5 anos para dar frutos, mas aguentam a seca.' },
+    celeiro:    { n: 'Celeiro', i: '🛖', cat: 'comida', cost: 25, on: ['campo', 'praia'], once: true, d: 'Guarda a comida longe dos ratos e da umidade: só 5% do estoque estraga por ano, em vez de 15%.' },
+    serraria:   { n: 'Serraria', i: '🪓', cat: 'materiais', cost: 10, slots: 5, out: 'madeira', on: ['floresta'], d: 'Até 5 lenhadores rendem 3 de madeira cada. Sem serraria, cada lenhador rende 1,6.' },
+    horta:      { n: 'Horta de ervas', i: '🌿', cat: 'saude', cost: 10, slots: 4, out: 'ervas', on: ['floresta', 'pantano'], d: 'Até 4 pessoas, 2 de ervas cada (sem horta: 0,7). Ervas reduzem as mortes por doença e por epidemias.' },
+    boticario:  { n: 'Boticário', i: '⚗️', cat: 'saude', cost: 30, on: ['campo', 'praia'], once: true, d: 'Prepara remédios com as ervas: cada erva vale o dobro contra doenças.' },
+    poco:       { n: 'Poço', i: '🪣', cat: 'saude', cost: 15, on: ['campo', 'praia'], once: true, d: 'Água limpa: menos diarreia. A mortalidade de bebês e crianças pequenas cai 20%.' },
+    enfermaria: { n: 'Enfermaria', i: '⛑️', cat: 'saude', cost: 40, on: ['campo', 'praia'], once: true, d: 'Reduz em 35% as mortes por doenças infecciosas e epidemias.' },
+    dreno:      { n: 'Drenagem', i: '🚧', cat: 'saude', cost: 25, on: ['pantano'], d: 'Seca o pântano: ele vira campo (solo médio) e deixa de criar mosquitos da malária.' },
+    abrigo:     { n: 'Abrigo na rocha', i: '🪨', cat: 'saude', cost: 30, on: ['montanha'], once: true, d: 'Cavernas reforçadas para se proteger de tempestades: num tufão, morrem 40% menos pessoas.' },
+    cartorio:   { n: 'Registro de famílias', i: '📜', cat: 'sociedade', cost: 30, on: ['campo', 'praia'], once: true, d: 'Um livro com quem é filho de quem. Permite proibir casamento entre primos e mostra o parentesco dos casais.' },
+    escola:     { n: 'Escola', i: '🏫', cat: 'sociedade', cost: 35, on: ['campo', 'praia'], once: true, d: 'Todo mundo trabalha 10% melhor. Lá se ensina língua de sinais: as pessoas surdas deixam de ter dificuldade no trabalho.' },
+    cais:       { n: 'Cais', i: '⚓', cat: 'sociedade', cost: 35, on: ['praia'], once: true, d: 'Navios param mais: chegam mais migrantes (fluxo gênico) e dá para trocar madeira por comida ou ervas. Mas marinheiros também trazem mais epidemias.' },
+  };
+  // NÍVEIS: nomes, o que muda e valores usados pela simulação (índice = nível − 1)
+  // custo de melhoria: nível 2 = 1,5 × custo; nível 3 = 2,5 × custo e exige escola (técnicas novas)
+  const nf = v => String(v).replace('.', ',');
+  const UP = {
+    casa:       { names: ['Casas', 'Sobrados', 'Vila'], v: [6, 10, 15], fx: v => `abriga ${v} pessoas` },
+    roca:       { names: ['Roça', 'Roça com arado', 'Roça irrigada'], v: [[6, 2.2], [8, 2.5], [10, 2.8]], fx: v => `${v[0]} vagas · ${nf(v[1])} por agricultor × solo` , extra: ['', '', 'a irrigação corta à metade o efeito da seca'] },
+    porto:      { names: ['Pesqueiro', 'Barcos maiores', 'Frota pesqueira'], v: [[5, 2.0], [7, 2.2], [9, 2.4]], fx: v => `${v[0]} vagas · ${nf(v[1])} por pescador`, extra: ['', '', 'barcos grandes pescam mesmo com mar bravo'] },
+    pomar:      { names: ['Pomar', 'Pomar grande', 'Pomar enxertado'], v: [[4, 1.8], [6, 2.0], [8, 2.3]], fx: v => `${v[0]} vagas · ${nf(v[1])} por pessoa` },
+    serraria:   { names: ['Serraria', "Serraria com roda d'água", 'Serraria grande'], v: [[5, 3], [7, 3.4], [9, 3.8]], fx: v => `${v[0]} vagas · ${nf(v[1])} de madeira por lenhador` },
+    horta:      { names: ['Horta de ervas', 'Estufa', 'Jardim botânico'], v: [[4, 2], [6, 2.3], [8, 2.6]], fx: v => `${v[0]} vagas · ${nf(v[1])} de ervas por pessoa` },
+    celeiro:    { names: ['Celeiro', 'Celeiro de pedra', 'Armazém'], v: [.05, .03, .01], fx: v => `${Math.round(v * 100)}% da comida estraga por ano` },
+    boticario:  { names: ['Boticário', 'Botica', 'Farmácia'], v: [2, 2.5, 3], fx: v => `cada erva vale ${nf(v)}× contra doenças` },
+    poco:       { names: ['Poço', 'Cisterna', 'Aqueduto'], v: [.2, .3, .4], fx: v => `−${Math.round(v * 100)}% de mortes de bebês e crianças pequenas` },
+    enfermaria: { names: ['Enfermaria', 'Casa de saúde', 'Hospital'], v: [.35, .45, .55], fx: v => `−${Math.round(v * 100)}% de mortes por infecções e epidemias` },
+    abrigo:     { names: ['Abrigo na rocha', 'Abrigo reforçado', 'Fortaleza'], v: [.4, .55, .7], fx: v => `num tufão, morrem ${Math.round(v * 100)}% menos pessoas` },
+    escola:     { names: ['Escola', 'Escola grande', 'Liceu'], v: [.1, .15, .2], fx: v => `+${Math.round(v * 100)}% de trabalho; língua de sinais` },
+    cartorio:   { names: ['Registro de famílias', 'Livro de genealogias'], v: [1, 2], fx: v => v === 1 ? 'permite proibir casamento de primos de 1º grau' : 'genealogias completas: permite proibir até primos de 2º grau' },
+    cais:       { names: ['Cais', 'Porto', 'Porto grande'], v: [1, 2, 3], fx: v => `${v} ${v > 1 ? 'trocas' : 'troca'} por ano no comércio; mais navios` },
+  };
+  const upCost = (k, lv) => Math.round(BUILD[k].cost * (lv === 1 ? 1.5 : 2.5)); // custo para sair do nível lv
+  const maxLv = k => UP[k] ? UP[k].names.length : 1;
+  const CATS = { comida: '🍞 Comida', materiais: '🪵 Materiais', moradia: '🏠 Moradia', saude: '⛑️ Saúde', sociedade: '🏛️ Sociedade' };
+  const FINDS = {
+    fertil:  { n: 'Solo muito fértil', i: '✨', d: 'Roças aqui rendem 60% a mais.' },
+    nauf:    { n: 'Restos de um naufrágio', i: '⚓', d: 'Madeira e ferramentas aproveitáveis: +40 madeira.' },
+    fonte:   { n: 'Fonte de água limpa', i: '💧', d: 'Menos diarreia: a mortalidade infantil cai 20%.' },
+    ervas:   { n: 'Ervas raras', i: '🌺', d: 'Hortas aqui rendem o dobro.' },
+    ruinas:  { n: 'Ruínas antigas', i: '🗿', d: 'Alguém viveu aqui antes. O que aconteceu com eles?' },
+    caca:    { n: 'Animais de caça', i: '🦌', d: '+30 de comida na primeira caçada.' },
+  };
+  function hexXY(c, r) { return [HW * (c + 0.5 * (r & 1)) + HW / 2 + 6, HH * r + HR + 6]; }
+  function neighbors(T, t) {
+    const d = (t.r & 1) ? [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [1, 1]] : [[1, 0], [-1, 0], [-1, -1], [0, -1], [-1, 1], [0, 1]];
+    return d.map(([dc, dr]) => T[(t.r + dr) * COLS + t.c + dc]).filter(x => x && x.c >= 0 && x.c < COLS && Math.abs(x.c - t.c) <= 1);
+  }
+  function genIsland() {
+    const T = [];
+    const ph = [rnd(0, 6), rnd(0, 6), rnd(0, 6), rnd(0, 6)];
+    const noise = (x, y, f, o) => Math.sin(x * f + ph[o]) * Math.cos(y * f * 1.3 + ph[(o + 1) % 4]) + 0.5 * Math.sin((x + y) * f * 2.1 + ph[(o + 2) % 4]);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const [x, y] = hexXY(c, r), nx = (c - COLS / 2 + .5) / (COLS / 2), ny = (r - ROWS / 2 + .5) / (ROWS / 2);
+      const h = 1 - Math.sqrt(nx * nx * 0.9 + ny * ny * 1.1) + 0.22 * noise(c, r, .55, 0);
+      const wet = noise(c, r, .7, 1), tr = noise(c, r, .9, 2);
+      T.push({ c, r, x, y, h, wet, tr, t: 'mar', rev: false, b: null, fert: 1, find: null, flood: false });
+    }
+    for (const t of T) {
+      if (t.h < 0.18) continue;
+      if (t.h > 0.78 && t.tr > -0.2) t.t = 'montanha';
+      else if (t.wet > 0.75 && t.h < 0.5) t.t = 'pantano';
+      else if (t.tr > 0.15) t.t = 'floresta';
+      else t.t = 'campo';
+    }
+    for (const t of T) if (TER[t.t].land && neighbors(T, t).some(n => n.t === 'mar') && t.t !== 'montanha' && Math.random() < .8) t.t = 'praia';
+    // garante variedade
+    const land = T.filter(t => TER[t.t].land);
+    const ensure = (k, n) => { let have = land.filter(t => t.t === k).length; for (const t of shuffle(land.filter(t => t.t === 'campo' || t.t === 'floresta'))) { if (have >= n) break; if (t.t !== k && !(k === 'praia')) { t.t = k; have++; } } };
+    ensure('pantano', 4); ensure('floresta', 12); ensure('montanha', 3);
+    if (land.filter(t => t.t === 'campo').length < 10) for (const t of shuffle(land.filter(t => t.t === 'floresta')).slice(0, 6)) t.t = 'campo';
+    for (const t of land) if (t.t === 'campo') t.fert = +rnd(.75, 1.25).toFixed(2);
+    // achados escondidos
+    const fk = ['fertil', 'fertil', 'nauf', 'fonte', 'ervas', 'ruinas', 'caca', 'caca'];
+    for (const k of fk) { const ok = shuffle(land.filter(t => !t.find && (k === 'fertil' ? t.t === 'campo' : k === 'ervas' ? (t.t === 'floresta' || t.t === 'pantano') : k === 'nauf' ? t.t === 'praia' : true))); if (ok[0]) { ok[0].find = k; if (k === 'fertil') ok[0].fert = 1.6; } }
+    // desembarque: praia mais a oeste com campo por perto
+    const beaches = land.filter(t => t.t === 'praia').sort((a, b) => a.c - b.c + (a.r - ROWS / 2) ** 2 * .05 - (b.r - ROWS / 2) ** 2 * .05);
+    const home = beaches.find(b => neighbors(T, b).some(n => n.t === 'campo')) || beaches[0] || land[0];
+    home.home = true; home.b = 'acamp';
+    const reveal = (t, d) => { t.rev = true; if (d > 0) for (const n of neighbors(T, t)) reveal(n, d - 1); };
+    reveal(home, 2);
+    // garante um campo e uma floresta perto do desembarque
+    const near = neighbors(T, home).filter(n => TER[n.t].land && n !== home);
+    if (!near.some(n => n.t === 'campo') && near[0]) { near[0].t = 'campo'; near[0].fert = 1; }
+    if (!neighbors(T, home).concat(...near.map(n => neighbors(T, n))).some(n => n.rev && n.t === 'floresta') && near[1]) near[1].t = 'floresta';
+    return T;
+  }
+
+  // ---------------- lições ----------------
+  const LESSONS = {
+    fundador: ['Efeito fundador', 'Uma população nova começa com uma <b>amostra pequena</b> dos genes da população de origem. Por puro acaso, alguns alelos chegam mais frequentes do que no continente, outros mais raros, e muitos nem chegam. Exemplos reais: os <b>Amish</b> da Pensilvânia (Ellis-van Creveld), os <b>africâneres</b> da África do Sul (porfiria variegata, rastreada até um casal de 1688), a ilha de <b>Tristão da Cunha</b> (asma) e as cerca de 36 "doenças da herança finlandesa".'],
+    deriva: ['Deriva genética', 'Em cada geração, os filhos recebem uma amostra aleatória dos alelos dos pais. Numa população pequena, essa amostragem faz as frequências <b>flutuarem ao acaso</b>, mesmo sem nenhuma vantagem ou desvantagem. A força da deriva é proporcional a 1/(2N): quanto menor a população, maiores os saltos. Com o tempo, alelos são <b>perdidos</b> ou <b>fixados</b>, e a variabilidade (heterozigosidade) cai.'],
+    gargalo: ['Gargalo populacional', 'Quando uma catástrofe mata grande parte da população sem escolher por genes, os sobreviventes são uma nova amostra pequena: um <b>gargalo</b>. Em 1775, um tufão deixou cerca de 20 sobreviventes no atol de <b>Pingelap</b> (Micronésia). Um deles carregava um alelo de <b>acromatopsia</b>; hoje cerca de 10% da ilha não enxerga cores, contra ~1 em 30 mil no resto do mundo.'],
+    recessiva: ['Doença recessiva', 'Portadores (heterozigotos) são saudáveis e não sabem que carregam o alelo. A doença aparece quando os dois pais são portadores: cada filho tem <b>1/4</b> de chance de ser afetado, 1/2 de ser portador e 1/4 de não ter o alelo. Numa população pequena, a chance de dois portadores se casarem é muito maior.'],
+    endogamia: ['Endogamia e consanguinidade', 'Parentes compartilham alelos herdados de ancestrais comuns. O <b>coeficiente de endogamia F</b> mede a chance de os dois alelos de uma pessoa serem cópias do mesmo alelo ancestral: F = 1/16 para filhos de primos de 1º grau, 1/64 para primos de 2º grau. Endogamia não cria alelos novos, mas aumenta os homozigotos, inclusive para doenças recessivas. Numa colônia pequena, depois de algumas gerações todos são parentes, mesmo evitando primos.'],
+    perda: ['Perda e fixação de alelos', 'Quando a deriva leva a frequência de um alelo a 0%, ele foi <b>perdido</b>: só volta por mutação ou migração. Se chega a 100%, foi <b>fixado</b>: todos são homozigotos. A probabilidade de um alelo neutro acabar fixado é igual à sua frequência atual.'],
+    fluxo: ['Fluxo gênico', 'Migrantes trazem alelos da população de origem. Mesmo <b>poucos migrantes por geração</b> (cerca de um) bastam para impedir que a deriva separe muito a colônia do continente e para repor alelos perdidos.'],
+    balanceadora: ['Seleção balanceadora', 'Onde há malária, os <b>heterozigotos HbA/HbS</b> sobrevivem mais do que os dois homozigotos: HbA/HbA morre mais de malária, HbS/HbS de anemia falciforme. O alelo HbS se mantém alto por <b>vantagem do heterozigoto</b>. Por isso ele é comum na África, no Mediterrâneo e na Índia.'],
+    surdez: ["Martha's Vineyard", 'Na ilha de <b>Martha’s Vineyard</b> (EUA), um efeito fundador vindo de Kent, na Inglaterra, tornou a surdez hereditária tão comum que, nos anos 1800, quase todo mundo, surdo ou ouvinte, falava a língua de sinais da ilha. A surdez não era vista como deficiência ali.'],
+    sobrenome: ['Sobrenomes também derivam', 'Sobrenomes passam de pai para filho como um gene. Em populações isoladas, muitos somem e poucos dominam: em Tristão da Cunha, cerca de 250 habitantes dividem só 7 sobrenomes.'],
+    ne: ['Tamanho efetivo (Ne)', 'Para a deriva, não importa quantas pessoas existem, mas quantas <b>deixam filhos</b>. Se poucos homens ou poucas mulheres se reproduzem, ou se a população passou por gargalos, o Ne fica muito menor que o censo. O Ne de longo prazo é a média harmônica dos tamanhos: os anos ruins pesam mais.'],
+  };
+  // =====================================================================
+  // SIMULAÇÃO: um ano de vida na colônia
+  // =====================================================================
+  const Y0 = 1790, YEARS = 150;
+  const SHIPS = [
+    { k: 'bote', n: 'Bote', i: '🛶', cap: 16, food: 60, wood: 30, d: 'Pouca gente, comida para uns 4 anos. Fácil de alimentar, mas a amostra genética é minúscula.' },
+    { k: 'escuna', n: 'Escuna', i: '⛵', cap: 32, food: 95, wood: 45, d: 'O meio-termo: comida para uns 3 anos.' },
+    { k: 'galeao', n: 'Galeão', i: '🚢', cap: 60, food: 140, wood: 60, d: 'Muita gente e muita diversidade, mas comida para pouco mais de 2 anos. Os primeiros invernos serão duros.' },
+  ];
+  let S = null;
+  const living = () => PEOPLE.filter(p => p.alive);
+  const yr = () => S.year;
+  const hasB = k => S.T.some(t => t.b === k);
+  const housing = () => (S.camp || 10) + S.T.filter(t => t.b === 'casa').reduce((a, t) => a + UP.casa.v[(t.lv || 1) - 1], 0);
+  const lvB = k => { const t = S.T.find(t => t.b === k); return t ? (t.lv || 1) : 0; };
+  const UV = k => UP[k].v[lvB(k) - 1];
+
+  function newColony(ship, crew) {
+    S = { year: Y0, ship: ship.k, T: genIsland(), food: ship.food, wood: ship.wood, herbs: 10,
+      alloc: { food: 70, wood: 20, herbs: 0, explore: 10 }, policy: { casar: 'livre', familia: 'normal' },
+      hist: [], log: [], lessons: [], cases: {}, births: 0, deaths: 0, flags: { malaria: false, cold: 0, drought: 0, pest: 0, storm: 0, bounty: 0, tufoes: 0, frio: false }, founderFreq: null, foundAlleles: {}, marriages: [], firsts: {}, minN: crew.length, ended: false };
+    for (const L of LOCI) S.cases[L.k] = 0;
+    for (const p of crew) p.arrived = Y0;
+    S.camp = Math.max(10, crew.length);
+    const fr = freqs(crew); S.founderFreq = fr;
+    for (const L of LOCI) S.foundAlleles[L.k] = fr[L.k] > 0;
+    S.founderSurnames = new Set(crew.map(p => p.surname)).size;
+    snapshot();
+    note(`${Y0}: ${crew.length} colonos desembarcam na ilha.`);
+  }
+  function note(s, cls) { S.log.unshift({ y: S.year, s, cls }); if (S.log.length > 300) S.log.pop(); }
+  function snapshot() {
+    const L = living(), fr = freqs(L), cnt = {};
+    for (const k of LOCI) cnt[k.k] = L.filter(p => affected(p, k.k)).length;
+    const colonyBorn = L.filter(p => p.mom != null);
+    const meanF = colonyBorn.length ? colonyBorn.reduce((a, p) => a + F(p), 0) / colonyBorn.length : 0;
+    const ss = strStats(L);
+    S.hist.push({ y: S.year, N: L.length, fr, H: ss.H, al: ss.al, F: meanF, aff: cnt, sur: new Set(L.map(p => p.surname)).size });
+  }
+
+  // mortalidade de base por idade (população pré-moderna)
+  function baseMort(a) { return a < 1 ? .09 : a < 5 ? .022 : a < 15 ? .005 : a < 40 ? .008 : a < 55 ? .014 : a < 65 ? .03 : a < 75 ? .07 : a < 85 ? .15 : .3; }
+  function workCap(p, y) {
+    const a = age(p, y); let w = a >= 15 && a < 60 ? 1 : a >= 60 && a < 70 ? .5 : a >= 11 && a < 15 ? .3 : 0;
+    if (affected(p, 'fc') || affected(p, 'hbs')) w *= .4;
+    if (affected(p, 'evc')) w *= .7;
+    if (affected(p, 'acro')) w *= .75;
+    if (affected(p, 'surdo') && !hasB('escola')) w *= .85;
+    return w;
+  }
+
+  // ---------- produção ----------
+  function produce(y, mods) {
+    const L = living(); let labor = 0; for (const p of L) labor += workCap(p, y);
+    if (hasB('escola')) labor *= 1 + UV('escola');
+    const a = S.alloc, tot = a.food + a.wood + a.herbs + a.explore || 1;
+    const lf = labor * a.food / tot, lw = labor * a.wood / tot, lh = labor * a.herbs / tot, le = labor * a.explore / tot;
+    const cold = S.flags.cold > y, dry = S.flags.drought > y, bon = mods.bounty ? 1.3 : 1;
+    const clim = (cold ? .7 : 1) * (dry ? .5 : 1) * (mods.pest ? .6 : 1) * bon;
+    const det = {}; const D = (k, slots, used, out) => { const d = det[k] || (det[k] = { n: 0, slots: 0, used: 0, out: 0 }); d.n++; d.slots += slots; d.used += used; d.out += out; };
+    // comida: os trabalhadores ocupam primeiro os postos que rendem mais
+    const posts = [];
+    for (const t of S.T) {
+      const lv = (t.lv || 1) - 1;
+      if (t.b === 'roca') { const [c, v] = UP.roca.v[lv]; posts.push({ k: 'roca', cap: c, y: v * t.fert * (cold ? .7 : 1) * (dry ? (lv === 2 ? .75 : .5) : 1) * (mods.pest ? .6 : 1) * bon }); }
+      if (t.b === 'porto') { const [c, v] = UP.porto.v[lv]; posts.push({ k: 'porto', cap: c, y: v * (mods.storm ? (lv === 2 ? .8 : .4) : 1) * (dry ? .9 : 1) * bon }); }
+      if (t.b === 'pomar') { const [c, v] = UP.pomar.v[lv]; posts.push({ k: 'pomar', cap: c, y: y - (t.since || 0) >= 5 ? v * (cold ? .8 : 1) * bon : 0 }); }
+    }
+    posts.sort((x, z) => z.y - x.y);
+    let rest = lf, food = 0;
+    for (const p of posts) { const w = p.y > 0 ? Math.min(rest, p.cap) : 0; food += w * p.y; rest -= w; D(p.k, p.cap, w, w * p.y); }
+    const fw = Math.max(0, rest), forage = Math.min(fw, 12) * 1.0 * (dry ? .7 : 1) + Math.max(0, fw - 12) * 0.4;
+    food += forage; det.coleta = { n: 0, slots: 0, used: fw, out: forage };
+    // madeira
+    let wrest = lw, wood = 0;
+    for (const t of S.T.filter(t => t.b === 'serraria').sort((a, b) => (b.lv || 1) - (a.lv || 1))) { const [c, v] = UP.serraria.v[(t.lv || 1) - 1], w = Math.min(wrest, c); wood += w * v; wrest -= w; D('serraria', c, w, w * v); }
+    wood += Math.max(0, wrest) * 1.6;
+    det.lenha = { n: 0, slots: 0, used: Math.max(0, wrest), out: Math.max(0, wrest) * 1.6 };
+    // ervas
+    let herbs = 0, hrest = lh;
+    for (const t of S.T.filter(t => t.b === 'horta').sort((a, b) => (b.lv || 1) - (a.lv || 1))) { const [c, v] = UP.horta.v[(t.lv || 1) - 1], w = Math.min(hrest, c), o = w * v * (t.find === 'ervas' ? 2 : 1); herbs += o; hrest -= w; D('horta', c, w, o); }
+    herbs += Math.max(0, hrest) * .7; det.mato = { n: 0, slots: 0, used: Math.max(0, hrest), out: Math.max(0, hrest) * .7 };
+    const q = mods.quar ? .75 : 1;
+    return { labor, food: food * q, wood: wood * q, herbs: herbs * q, explorers: Math.round(le * q), lf, lw, lh, le, det };
+  }
+  const herbCover = n => clamp(S.herbs * (hasB('boticario') ? UV('boticario') : 1) / (0.15 * n + 1), 0, 1);
+  function explore(n, y) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const front = S.T.filter(t => !t.rev && neighbors(S.T, t).some(nb => nb.rev && TER[nb.t].land));
+      if (!front.length) break;
+      // prefere terra
+      const land = front.filter(t => TER[t.t].land), t = pick(land.length && Math.random() < .8 ? land : front);
+      t.rev = true; for (const nb of neighbors(S.T, t)) if (nb.t === 'mar') nb.rev = true;
+      if (t.find) out.push(t);
+    }
+    return out;
+  }
+
+  // ---------- um ano ----------
+  // mods vem dos eventos (decididos antes)
+  function simYear(mods) {
+    const y = ++S.year, res = { births: [], deaths: [], marr: 0, finds: [], aff: [] };
+    const prod = produce(y, mods);
+    // exploração
+    const found = explore(prod.explorers, y);
+    for (const t of found) {
+      const f = FINDS[t.find]; res.finds.push(t);
+      if (t.find === 'nauf') S.wood += 40;
+      if (t.find === 'caca') S.food += 30;
+      note(`${f.i} Exploradores encontraram: ${f.n}.`, 'good');
+    }
+    let Lv = living();
+    // exploradores correm riscos
+    if (prod.explorers > 0) for (const p of shuffle(Lv.filter(p => workCap(p, y) >= 1)).slice(0, prod.explorers)) if (bern(.015)) kill(p, y, 'acidente explorando a ilha', res);
+    // estoques
+    S.food += prod.food; S.wood += prod.wood; S.herbs += prod.herbs;
+    Lv = living();
+    let need = 0; for (const p of Lv) { const a = age(p, y); need += a < 10 ? .5 : a < 15 ? .8 : a < 70 ? 1 : .8; }
+    let deficit = 0;
+    if (S.food >= need) S.food -= need; else { deficit = 1 - S.food / need; S.food = 0; }
+    S.food *= hasB('celeiro') ? 1 - UV('celeiro') : .85; // parte estraga
+    S.herbs = Math.max(0, S.herbs - .05 * Lv.length);
+    const hc = herbCover(Lv.length);
+    S.lastProd = { ...prod, need, deficit, hc };
+    // mortes
+    const enf = hasB('enfermaria') ? UV('enfermaria') : 0, fonte = S.T.some(t => t.rev && t.find === 'fonte'), poco = hasB('poco') ? UV('poco') : 0, crowd = Lv.length > housing();
+    const swamps = S.T.filter(t => t.rev && t.t === 'pantano').length, malaria = S.flags.malaria ? clamp(swamps / 4, .25, 1) : 0;
+    for (const p of Lv) {
+      const a = age(p, y);
+      let m = baseMort(a);
+      const inf = m * .6 * (1 - enf - .3 * hc) * (crowd ? 1.35 : 1);
+      m = m * .4 + inf;
+      if (a < 1 && fonte) m *= .8;
+      if (a < 5 && poco) m *= 1 - poco;
+      if (deficit > 0) m += deficit * (a < 5 || a >= 60 ? .45 : .2);
+      let cause = deficit > .3 && Math.random() < .5 ? 'fome' : a < 5 ? 'doença infantil' : a >= 60 ? 'velhice' : 'doença';
+      // doenças genéticas
+      if (affected(p, 'tay') && a >= 2) { m = .65; cause = 'Tay-Sachs'; }
+      if (affected(p, 'evc') && a === 0) { m = Math.max(m, .5); cause = 'defeito cardíaco (Ellis-van Creveld)'; }
+      if (affected(p, 'fc')) { m += a < 30 ? .12 : .2; cause = 'fibrose cística'; }
+      if (affected(p, 'hbs')) { m += .1 + (malaria ? .06 : 0); cause = 'crise falciforme'; }
+      if (malaria) {
+        const mm = (a < 10 ? .035 : .009) * malaria * (het(p, 'hbs') ? .15 : 1) * (1 - .3 * hc);
+        m += mm; if (Math.random() < mm / m) cause = 'malária';
+      }
+      if (bern(clamp(m, 0, .95))) kill(p, y, cause, res);
+    }
+    // casamentos
+    Lv = living();
+    const rule = S.policy.casar === 'primos' && hasB('cartorio') ? 1 / 16 : S.policy.casar === 'primos2' && lvB('cartorio') >= 2 ? 1 / 64 : 0;
+    const men = Lv.filter(p => p.sex === 'M' && p.spouse == null && age(p, y) >= 18 && age(p, y) <= 55);
+    for (const w of shuffle(Lv.filter(p => p.sex === 'F' && p.spouse == null && age(p, y) >= 16 && age(p, y) <= 40))) {
+      if (!bern(.5)) continue;
+      const cands = shuffle(men.filter(m => m.spouse == null && age(m, y) >= age(w, y) - 4 && age(m, y) <= age(w, y) + 15));
+      let chosen = null;
+      for (const m of cands) {
+        if (m.mom != null && (m.mom === w.mom || m.dad === w.dad)) continue;      // irmãos e meio-irmãos: sempre proibido
+        if (w.mom === m.id || w.dad === m.id || m.mom === w.id) continue;
+        const f = phi(w.id, m.id);
+        if (rule && f >= rule - 1e-9) continue;
+        chosen = m; break;
+      }
+      if (chosen) {
+        w.spouse = chosen.id; chosen.spouse = w.id; res.marr++;
+        const f = phi(w.id, chosen.id); S.marriages.push({ y, f });
+        if (f >= 1 / 16 - 1e-9 && !S.firsts.primos) { S.firsts.primos = { y, w: w.id, m: chosen.id }; }
+      }
+    }
+    // nascimentos
+    const famP = { pequena: .2, normal: .3, grande: .38 }[S.policy.familia];
+    for (const w of Lv) {
+      if (w.sex !== 'F' || w.spouse == null || !w.alive) continue;
+      const a = age(w, y); if (a < 16 || a > 44) continue;
+      const h = P(w.spouse); if (!h || !h.alive) { w.spouse = null; continue; }
+      let p = famP * (1 - deficit) * (crowd ? .55 : 1) * (a > 38 ? .5 : 1);
+      if (bern(p)) {
+        const k = childOf(w, h, y); res.births.push(k); S.births++;
+        for (const L of LOCI) if (affected(k, L.k)) { S.cases[L.k]++; res.aff.push([k, L.k]); }
+      }
+    }
+    // eventos de fundo
+    if (S.flags.cold > y && !S.firsts.coldNote) S.firsts.coldNote = true;
+    S.deaths += res.deaths.length;
+    snapshot();
+    S.minN = Math.min(S.minN, living().length);
+    return res;
+  }
+  function kill(p, y, cause, res) {
+    if (!p.alive) return;
+    p.alive = false; p.died = y; p.cause = cause;
+    if (p.spouse != null) { const s = P(p.spouse); if (s && s.spouse === p.id) s.spouse = null; p.spouse = null; }
+    if (res) res.deaths.push(p);
+  }
+
+  // ---------- eventos ----------
+  // cada evento: cond(), w, run() -> {t, h, choices?: [[rótulo, efeito()]], mods}
+  const EVENTS = [
+    { k: 'epidemia', w: 3, mult: () => hasB('cais') ? 1.5 : 1, cond: () => yr() > Y0 + 3, run() {
+      return { t: '🤒 Epidemia de varíola', h: 'Um marinheiro de passagem trouxe varíola. Crianças pequenas e idosos são os mais vulneráveis.', choices: [
+        ['🚧 Quarentena: menos mortes, mas um quarto da produção perdida', () => epidemic(true)],
+        ['⚒️ Seguir trabalhando', () => epidemic(false)]] };
+    } },
+    { k: 'tufao', w: 1.1, cond: () => yr() > Y0 + 18 && S.flags.tufoes < 1 && living().length > 25, run() {
+      S.flags.tufoes++;
+      const L = living(), frac = rnd(.45, .65), dead = [];
+      const fr2 = frac * (hasB('abrigo') ? 1 - UV('abrigo') : 1);
+      for (const p of L) if (bern(fr2)) { kill(p, yr(), 'tufão'); dead.push(p); }
+      let lost = 0, dmg = 0; for (const t of S.T) if (t.b && t.b !== 'acamp' && !BUILD[t.b].once && bern(.45)) { if ((t.lv || 1) > 1) { t.lv--; dmg++; } else { t.b = null; lost++; } }
+      S.food *= .5;
+      const after = living(), fr0 = freqs(L), fr1 = freqs(after);
+      const big = LOCI.map(l => [l, fr1[l.k] - fr0[l.k]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+      return { t: '🌀 Tufão!', h: `Ventos de 200 km/h e uma onda gigante varreram a ilha. Morreram <b>${dead.length} de ${L.length}</b> pessoas${hasB('abrigo') ? ' (o abrigo na rocha salvou muita gente)' : ''}, ${lost} construções foram destruídas${dmg ? ` (outras ${dmg}, mais sólidas, só perderam um nível)` : ''} e metade da comida se perdeu.<p>O tufão não escolheu ninguém pelos genes, mas os ${after.length} sobreviventes são uma nova amostra, pequena. Maior mudança: <b>${big[0].n}</b>, de ${pct(fr0[big[0].k])} para ${pct(fr1[big[0].k])}.</p>`, lesson: 'gargalo', bottleneck: true };
+    } },
+    { k: 'seca', w: 2, cond: () => yr() > Y0 + 5 && S.flags.drought <= yr(), run() { S.flags.drought = yr() + 2; return { t: '☀️ Seca', h: 'Quase não chove. As roças vão render metade por dois anos, e há menos frutos para coletar.' }; } },
+    { k: 'frio', w: 1.2, cond: () => !S.flags.frio && yr() > Y0 + 45, run() { S.flags.frio = true; S.flags.cold = yr() + 20; return { t: '❄️ Os invernos ficaram mais frios', h: 'O clima mudou: verões curtos e invernos longos pelos próximos 20 anos. As roças rendem 30% menos. A pesca não muda.' }; } },
+    { k: 'malaria', w: 2.5, cond: () => !S.flags.malaria && yr() > Y0 + 12 && S.T.some(t => t.rev && t.t === 'pantano'), run() {
+      S.flags.malaria = true;
+      return { t: '🦟 Malária', h: 'Um navio trouxe a malária, e os mosquitos dos pântanos a espalharam. Crianças morrem mais. Quanto mais pântano, pior: a drenagem ajuda.<p>Quem é <b>portador do traço falciforme</b> (HbA/HbS) resiste muito melhor.</p>', lesson: 'balanceadora' };
+    } },
+    { k: 'navio', w: 2, mult: () => hasB('cais') ? 2 + .5 * lvB('cais') : 1, cond: () => yr() > Y0 + 10, run() {
+      const n = ri(3, 8);
+      return { t: '⛵ Um navio de migrantes', h: `${n} pessoas do continente pedem para ficar na ilha. São mais bocas para alimentar, mas também mais braços e <b>alelos novos</b>.`, choices: [
+        [`🤝 Acolher os ${n}`, () => { const ms = []; for (let i = 0; i < n; i++) { const p = founder(yr(), ri(17, 32), i % 2 ? 'M' : 'F'); p.immigrant = true; p.arrived = yr(); ms.push(p); } note(`⛵ ${n} migrantes chegaram.`, 'good'); return { lesson: 'fluxo', msg: `${n} migrantes se juntaram à colônia. Os alelos deles vêm da população grande do continente.` }; }],
+        ['🚫 Recusar', () => ({ msg: 'O navio seguiu viagem.' })]] };
+    } },
+    { k: 'praga', w: 2, cond: () => S.T.some(t => t.b === 'roca'), run() { return { t: '🐛 Praga nas roças', h: 'Lagartas devoraram parte da plantação. As roças rendem 40% menos este ano.', mods: { pest: true } }; } },
+    { k: 'tempestade', w: 1.5, cond: () => S.T.some(t => t.b === 'porto'), run() { return { t: '🌊 Mar bravo', h: 'Meses de tempestades: quase ninguém consegue pescar este ano.', mods: { storm: true } }; } },
+    { k: 'fartura', w: 2, cond: () => true, run() { return { t: '🍎 Ano de fartura', h: 'Chuva na hora certa, peixe em cardume. Tudo rende 30% a mais este ano.', mods: { bounty: true } }; } },
+    { k: 'emigra', w: 1.2, cond: () => yr() > Y0 + 30 && living().filter(p => p.spouse == null && age(p, yr()) >= 18 && age(p, yr()) <= 30).length >= 4, run() {
+      const cand = shuffle(living().filter(p => p.spouse == null && age(p, yr()) >= 18 && age(p, yr()) <= 30)).slice(0, ri(2, 5));
+      return { t: '🧳 Jovens querem partir', h: `Um baleeiro vai para o continente e ${cand.length} jovens solteiros querem ir junto: ${cand.map(fullName).join(', ')}.`, choices: [
+        ['👋 Deixar partir', () => { for (const p of cand) kill(p, yr(), 'emigrou'); note(`🧳 ${cand.length} jovens emigraram.`); return { msg: 'Eles partiram, levando seus alelos. Emigração também é uma amostragem ao acaso: mais deriva.', lesson: 'ne' }; }],
+        ['🙏 Convencer a ficar (−25 de comida em festas e promessas)', () => { S.food = Math.max(0, S.food - 25); const go = cand.filter(() => bern(.35)); for (const p of go) kill(p, yr(), 'emigrou'); return { msg: go.length ? `${cand.length - go.length} ficaram, mas ${go.length} partiram assim mesmo.` : 'Todos ficaram!' }; }]] };
+    } },
+  ];
+  const pct = v => (v * 100).toFixed(v > 0 && v < .1 ? 1 : 0) + '%';
+  function epidemic(quar) {
+    const L = living(), enf = hasB('enfermaria') ? UV('enfermaria') : 0, hc = herbCover(L.length);
+    let n = 0;
+    for (const p of L) { const a = age(p, yr()); let m = (a < 5 || a >= 60 ? .24 : .07) * (1 - enf) * (1 - .35 * hc) * (quar ? .5 : 1); if (bern(m)) { kill(p, yr(), 'varíola'); n++; } }
+    S.herbs = Math.max(0, S.herbs - L.length * .2);
+    note(`🤒 Epidemia: ${n} mortes.`, 'bad');
+    return { msg: `Morreram ${n} pessoas.${enf ? ' A enfermaria ajudou.' : ''}${hc > .3 ? ' As ervas salvaram vidas.' : ' Faltaram ervas medicinais.'}`, mods: quar ? { quar: true } : {} };
+  }
+  function rollEvent() {
+    if (S.year === Y0) return null;
+    if (!bern(.24)) return null;
+    const ok = EVENTS.filter(e => e.cond());
+    const wt = e => e.w * (e.mult ? e.mult() : 1);
+    let tot = ok.reduce((a, e) => a + wt(e), 0), r = Math.random() * tot;
+    for (const e of ok) { r -= wt(e); if (r <= 0) return e; }
+    return null;
+  }
+  // =====================================================================
+  // INTERFACE
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = v => Math.round(v).toLocaleString('pt-BR');
+  let bmode = null, bmsg = '';
+  let screen = 'title', tab = 'colonia', sel = null, teacher = false, busy = false, pickedShip = null, pool = [], chosen = new Set(), personSel = null, filt = '';
+  const SAVE = 'fundadores-v1';
+
+  // ---------------- som ----------------
+  const SONG = { bpm: 96, play(step, t, d) {
+    const CH = [[50, 57, 62], [48, 55, 60], [50, 57, 62], [45, 52, 57]], bar = Math.floor(step / 6) % 4, s = step % 6, ch = CH[bar];
+    if (s === 0) Sound.note(midi(ch[0] - 12), t, d * 5, 'sine', .16);
+    if (s === 3) Sound.note(midi(ch[1] - 12), t, d * 2.5, 'sine', .1);
+    if (s % 3 === 1) Sound.note(midi(ch[2] + 12), t, d * 1.2, 'triangle', .04);
+    const MEL = [[74, 0, 72, 69, 0, 67], [69, 0, 0, 67, 0, 64], [62, 0, 65, 69, 0, 72], [69, 0, 0, 0, 0, 0]][bar];
+    if (MEL[s] && Math.floor(step / 24) % 2 === 0) Sound.note(midi(MEL[s]), t, d * 1.8, 'triangle', .05);
+  } };
+  // ---- "Além do Mar": tema original, 3/4, Ré maior. Harpa, cordas, flauta, trompa, coro e tímpanos ----
+  const CHD = { D: [50, 54, 57], A6: [49, 52, 57], Bm: [47, 50, 54], G: [43, 47, 50], Em: [40, 43, 47], A: [45, 49, 52], C: [48, 52, 55], As: [45, 50, 52] };
+  const VERSE = [[[0, 69, 2], [2, 66, 1], [3, 67, 1], [4, 69, 2]], [[0, 71, 3], [3, 69, 1], [4, 67, 2]], [[0, 66, 4], [4, 64, 1], [5, 66, 1]], [[0, 62, 6]],
+    [[0, 69, 2], [2, 74, 2], [4, 73, 1], [5, 71, 1]], [[0, 71, 2], [2, 69, 2], [4, 67, 2]], [[0, 67, 1], [1, 66, 1], [2, 64, 2], [4, 66, 1], [5, 67, 1]], [[0, 64, 6]]];
+  const CHORUS = [[[0, 74, 2], [2, 69, 1], [3, 74, 1], [4, 78, 2]], [[0, 76, 4], [4, 74, 1], [5, 72, 1]], [[0, 74, 3], [3, 71, 1], [4, 67, 2]], [[0, 69, 6]],
+    [[0, 71, 2], [2, 74, 2], [4, 78, 2]], [[0, 79, 4], [4, 78, 1], [5, 76, 1]], [[0, 76, 2], [2, 73, 2], [4, 69, 1], [5, 73, 1]], [[0, 74, 6]],
+    [[0, 78, 2], [2, 81, 2], [4, 78, 1], [5, 76, 1]], [[0, 76, 2], [2, 79, 2], [4, 76, 2]], [[0, 74, 2], [2, 71, 2], [4, 74, 2]], [[0, 78, 6]],
+    [[0, 79, 2], [2, 78, 2], [4, 76, 2]], [[0, 76, 4], [4, 73, 1], [5, 74, 1]], [[0, 74, 6]], []];
+  const HORN_C = [[[0, 66, 6]], [[0, 67, 6]], [[0, 69, 6]], [[0, 69, 3], [3, 73, 3]], [[0, 74, 6]], [[0, 71, 6]], [[0, 71, 3], [3, 67, 3]], [[0, 69, 6]]];
+  const FORM = [];
+  const add = (sec, chords, mel) => chords.forEach((c, i) => FORM.push({ sec, c, mel: mel ? mel[i] : null, i }));
+  const VCH = ['D', 'A6', 'Bm', 'G', 'D', 'G', 'Em', 'A'];
+  add('A', VCH, [[], [], [], [], [[0, 69, 2], [2, 74, 4]], [], [[0, 71, 2], [2, 67, 4]], []]);
+  add('B', VCH, VERSE);
+  add('C', ['Bm', 'G', 'D', 'A', 'Bm', 'G', 'Em', 'As'], HORN_C);
+  add('D', ['D', 'C', 'G', 'D', 'Bm', 'G', 'A', 'D', 'D', 'C', 'G', 'Bm', 'G', 'A', 'D', 'D'], CHORUS);
+  add('E', ['G', 'D', 'G', 'A', 'Bm', 'G', 'A', 'D'], [VERSE[0], VERSE[1], [[0, 71, 2], [2, 69, 4]], [[0, 69, 6]], [], [], [], []]);
+  const SONG_VOO = { bpm: 78, play(step, t, d) {
+    if (step % 6) return;
+    const I = Sound.INST, bar = FORM[Math.floor(step / 6) % FORM.length], ch = CHD[bar.c], sec = bar.sec, B = d * 6;
+    const big = sec === 'D', mid = sec === 'C';
+    // harpa: arpejo em colcheias
+    const hv = big ? .1 : sec === 'A' || sec === 'E' ? .15 : .12;
+    const arp = [ch[0] + 12, ch[2] + 12, ch[0] + 24, ch[1] + 24, ch[2] + 24, ch[1] + 24];
+    arp.forEach((n, i) => I.harp(midi(n), t + i * d, d * 2, hv * (i === 0 ? 1.15 : 1), i % 2 ? -.35 : -.15));
+    // cordas sustentando o acorde
+    const sv = sec === 'A' || sec === 'E' ? .028 : mid ? .04 : big ? .05 : .035;
+    for (const n of ch) I.strings(midi(n + 12), t, B * .98, sv, .15);
+    if (sec !== 'A') I.bass(midi(ch[0] >= 50 ? ch[0] - 12 : ch[0]), t, B * .95, big ? .12 : .09);
+    // coro
+    if (mid || big) for (const n of ch) I.choir(midi(n + 12), t, B * .98, big ? .03 : .026, -.1);
+    // melodia
+    for (const [st, n, du] of bar.mel || []) {
+      const tt = t + st * d, dd = du * d * .97;
+      if (sec === 'B' || sec === 'A' || sec === 'E') I.flute(midi(n + 12), tt, dd, sec === 'B' ? .12 : .09);
+      if (mid) I.horn(midi(n - 12), tt, dd, .07);
+      if (big) { I.choir(midi(n), tt, dd, .055, .1); I.choir(midi(n - 12), tt, dd, .04, -.1); I.horn(midi(n - 12), tt, dd, .045); I.flute(midi(n + 12), tt, dd, .05); }
+    }
+    // tímpanos
+    if (mid && bar.i >= 4) I.timp(midi(ch[0] - 12 < 38 ? ch[0] : ch[0] - 12), t, .2);
+    if (mid && bar.i === 7) I.roll(midi(45), t + d * 2, d * 4, .14);
+    if (big) { I.timp(midi(bar.c === 'D' ? 38 : 33), t, .3); I.timp(midi(bar.c === 'D' ? 45 : 38), t + d * 4, .14); }
+  } };
+  const SONGS = { voo: ['Além do Mar', SONG_VOO], cantiga: ['Cantiga do porto', SONG] };
+  let songKey = 'voo'; try { songKey = localStorage.getItem('fundadores-musica') || 'voo'; } catch (e) {}
+  if (!SONGS[songKey]) songKey = 'voo';
+  let musicOn = false;
+  const wake = () => { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONGS[songKey][1]); } };
+  function switchSong() { songKey = songKey === 'voo' ? 'cantiga' : 'voo'; try { localStorage.setItem('fundadores-musica', songKey); } catch (e) {} Sound.ensure(); musicOn = true; Sound.music(SONGS[songKey][1]); const b = document.getElementById('songBtn'); if (b) b.textContent = '🎵 ' + SONGS[songKey][0]; }
+  const sfx = {
+    tick: () => Sound.tone(880, .03, { type: 'sine', vol: .05 }),
+    build: () => Sound.arp([60, 67, 72], .05, { type: 'square', vol: .05 }),
+    year: () => Sound.tone(520, .05, { type: 'triangle', vol: .04 }),
+    birth: () => Sound.arp([79, 84], .06, { type: 'sine', vol: .05 }),
+    bad: () => Sound.arp([57, 53, 50], .12, { type: 'sawtooth', vol: .05, dur: .3 }),
+    storm: () => Sound.noise(1.4, { freq: 200, sweep: 900, vol: .18 }),
+    good: () => Sound.arp([72, 76, 79], .08, { type: 'triangle', vol: .1, dur: .2 }),
+    end: () => Sound.arp([62, 66, 69, 74, 78, 81, 86], .1, { type: 'triangle', vol: .12, dur: .3 }),
+  };
+
+  // ---------------- salvar ----------------
+  function save() { try { localStorage.setItem(SAVE, JSON.stringify({ S, PEOPLE, STRF })); } catch (e) {} }
+  function load() { try { const d = JSON.parse(localStorage.getItem(SAVE)); if (!d || !d.S) return false; S = d.S; PEOPLE = d.PEOPLE; STRF = d.STRF; PHI.clear(); FMEMO.clear(); return true; } catch (e) { return false; } }
+  const hasSave = () => { try { const d = localStorage.getItem(SAVE); return !!d && !JSON.parse(d).S.ended; } catch (e) { return false; } };
+
+  // ---------------- modais ----------------
+  let modalCb = null, modalOpen = false;
+  function openModal(html, cb, wide) { modalOpen = true; modalCb = cb || null; $('#modalRoot').innerHTML = `<div class="modalbg"><div class="modal ${wide ? 'wide' : ''}">${html}</div></div>`; }
+  function closeModal() { modalOpen = false; $('#modalRoot').innerHTML = ''; const cb = modalCb; modalCb = null; if (cb) cb(); }
+  const learnedHTML = k => k && LESSONS[k] ? `<div class="lesson"><b class="t">📘 ${LESSONS[k][0]}</b><br>${LESSONS[k][1]}</div>` : '';
+  function lesson(k) { if (!k) return ''; const first = !S.lessons.includes(k); if (first) S.lessons.push(k); return first ? learnedHTML(k) : ''; }
+
+  // ---------------- telas iniciais ----------------
+  function renderTitle() {
+    screen = 'title'; $('#hud').innerHTML = '';
+    $('#main').innerHTML = `<div class="hero">
+      <svg viewBox="0 0 520 170" width="520" style="max-width:100%" aria-hidden="true">
+        <rect width="520" height="170" rx="16" fill="#1d5f86"/><path d="M0 120 Q 60 110 120 122 T 240 118 T 360 124 T 520 116 V170 H0Z" fill="#174d6e"/>
+        <path d="M250 125 C 270 60, 330 40, 380 52 C 430 60, 470 90, 490 128 Z" fill="#e9d79c"/><path d="M285 118 C 300 75, 340 62, 372 66 C 410 72, 440 95, 455 120 Z" fill="#7cb85c"/>
+        <path d="M335 70 l 14 -26 l 14 26 z" fill="#9e9384"/><circle cx="318" cy="98" r="9" fill="#3f8a3c"/><circle cx="420" cy="100" r="10" fill="#3f8a3c"/>
+        <g transform="translate(110 92)"><path d="M-40 18 L 40 18 L 30 32 L -30 32 Z" fill="#6b4226"/><rect x="-2" y="-40" width="4" height="58" fill="#5a3a20"/><path d="M2 -36 L 32 8 L 2 8 Z" fill="#f4ecd8"/><path d="M-2 -30 L -28 8 L -2 8 Z" fill="#e8dcc0"/><path d="M2 -40 l 14 4 l -14 4 z" fill="#c0392b"/></g>
+        <g fill="#fff" opacity=".7">${[[40, 30], [70, 50], [190, 25], [470, 30], [430, 18]].map(([x, y]) => `<path d="M${x} ${y} q 5 -5 10 0 q 5 -5 10 0" stroke="#fff" fill="none" stroke-width="2"/>`).join('')}</g>
+      </svg>
+      <h2>FUNDADORES</h2>
+      <p>Em ${Y0}, um navio deixa um continente de milhões de pessoas rumo a uma ilha desabitada. Quem embarca leva consigo uma <b>pequena amostra dos genes</b> do continente, inclusive alelos de doenças que ninguém sabe que carrega.</p>
+      <p>Durante 150 anos (umas seis gerações), você vai explorar a ilha, plantar, construir, enfrentar epidemias, secas e tufões. As pessoas se casam, têm filhos, adoecem e morrem. E, geração após geração, os genes da colônia vão <b>derivando</b> para longe dos do continente.</p>
+      <div class="btns center">${hasSave() ? '<button class="btn primary big" data-act="continue">▶ Continuar colônia salva</button>' : ''}<button class="btn ${hasSave() ? '' : 'primary'} big" data-act="newgame">⛵ Nova colônia</button><button class="btn" data-act="help">Como jogar</button></div></div>`;
+  }
+  function renderShips() {
+    screen = 'ships';
+    $('#main').innerHTML = `<div class="panel"><h2>1. Escolha o navio</h2><p class="meta">Mais gente leva mais diversidade genética, mas come mais. A comida do porão tem que durar até as primeiras colheitas.</p>
+      <div class="ships">${SHIPS.map(s => `<button class="shipc" data-act="ship" data-v="${s.k}"><span class="si">${s.i}</span><b>${s.n}</b><span>${s.cap} colonos · ${s.food} comida · ${s.wood} madeira</span><span class="meta">${s.d}</span></button>`).join('')}</div></div>`;
+  }
+  function makePool(ship) {
+    PEOPLE = []; PHI.clear(); FMEMO.clear(); newMainland();
+    pool = []; const n = Math.round(ship.cap * 1.6);
+    for (let i = 0; i < n; i++) pool.push(founder(Y0, ri(16, 34), i % 2 ? 'M' : 'F'));
+    // ninguém com doença grave embarca: são sorteados de novo
+    for (const p of pool) { let tries = 0; while (LOCI.some(L => (L.kind === 'grave' || L.kind === 'letal') && affected(p, L.k)) && tries++ < 20) p.g = contGenome(); }
+    chosen = new Set(shuffle(pool.map(p => p.id)).slice(0, ship.cap));
+  }
+  function visTraits(p) {
+    const t = [];
+    t.push(affected(p, 'olho') ? '<span class="tr" title="olhos azuis">👁️ azuis</span>' : '<span class="tr" title="olhos castanhos">👁️ castanhos</span>');
+    if (affected(p, 'ruivo')) t.push('<span class="tr ruivo">ruivo(a)</span>');
+    if (affected(p, 'surdo')) t.push('<span class="tr">🤟 surdo(a)</span>');
+    if (affected(p, 'acro')) t.push('<span class="tr">🕶️ não vê cores</span>');
+    return t.join('');
+  }
+  function renderRecruit() {
+    screen = 'recruit'; const ship = pickedShip, n = chosen.size, nm = pool.filter(p => chosen.has(p.id) && p.sex === 'M').length;
+    $('#main').innerHTML = `<div class="panel"><h2>2. Escolha a tripulação (${n}/${ship.cap})</h2>
+      <p class="meta">Estes são voluntários do continente. O médico do porto examinou todos: ninguém está doente. Você só vê o que aparece por fora. <b>Quem é portador de alelos recessivos não tem como saber</b>, nem você.</p>
+      <div class="btns"><button class="btn" data-act="resort">🎲 Sortear de novo</button><span class="meta">${nm} homens · ${n - nm} mulheres</span></div>
+      <div class="pool">${pool.map(p => `<button class="pc ${chosen.has(p.id) ? 'on' : ''} ${p.sex}" data-act="pick" data-v="${p.id}"><b>${esc(fullName(p))}</b><span class="meta">${p.sex === 'M' ? '♂' : '♀'} ${age(p, Y0)} anos</span><span>${visTraits(p)}</span></button>`).join('')}</div>
+      <h3>No continente</h3>
+      <table class="t small"><tr><th>Característica</th><th>Herança</th><th>Alelo no continente</th><th>Nascem afetados</th><th>Portadores</th></tr>
+      ${LOCI.map(L => `<tr><td><span class="dot" style="background:${L.col}"></span>${L.n} <span class="meta">(${L.gene})</span></td><td>recessiva</td><td>${pct(L.q)}</td><td>${L.q * L.q < .01 ? '1 em ' + fmt(1 / (L.q * L.q)) : pct(L.q * L.q)}</td><td>${L.kind === 'visivel' ? '—' : '1 em ' + Math.round(1 / (2 * L.q * (1 - L.q)))}</td></tr>`).join('')}</table>
+      <p class="meta">No jogo, as doenças são um pouco mais comuns no continente do que na vida real, para que dê para ver os efeitos em 150 anos.</p>
+      <div class="btns"><button class="btn" data-act="newgame">← Trocar navio</button><button class="btn primary big" data-act="sail" ${n < 6 || nm < 2 || n - nm < 2 ? 'disabled' : ''}>⛵ Zarpar com ${n} colonos</button></div></div>`;
+  }
+  function sail() {
+    const crew = pool.filter(p => chosen.has(p.id));
+    // os não escolhidos ficam no continente (saem da lista)
+    const keep = new Set(crew.map(p => p.id));
+    PEOPLE = PEOPLE.filter(p => keep.has(p.id)); PEOPLE.forEach((p, i) => { p.id = i; });
+    newColony(pickedShip, PEOPLE.slice());
+    // forma alguns casais já na viagem
+    const men = shuffle(PEOPLE.filter(p => p.sex === 'M')), women = shuffle(PEOPLE.filter(p => p.sex === 'F'));
+    for (let i = 0; i < Math.min(men.length, women.length) * .6; i++) { men[i].spouse = women[i].id; women[i].spouse = men[i].id; }
+    screen = 'game'; tab = 'genetica'; sel = S.T.find(t => t.home);
+    renderGame();
+    const fr = S.founderFreq;
+    const rows = LOCI.map(L => { const d = fr[L.k] - L.q; return `<tr><td><span class="dot" style="background:${L.col}"></span>${L.n}</td><td>${pct(L.q)}</td><td><b>${pct(fr[L.k])}</b></td><td class="${fr[L.k] === 0 ? 'meta' : d > 0 ? 'neg' : 'pos'}">${fr[L.k] === 0 ? 'não veio ninguém com o alelo' : (d > 0 ? '▲ ' : '▼ ') + (fr[L.k] / L.q).toFixed(1) + '×'}</td><td>${carriers(crew, L.k)}</td></tr>`; }).join('');
+    const st = strStats(crew);
+    openModal(`<h2>🏝️ Terra à vista!</h2><p>${crew.length} colonos desembarcam na praia. Ninguém sabe, mas eles trouxeram estes alelos:</p>
+      <table class="t"><tr><th>Alelo</th><th>Continente</th><th>Colonos</th><th>Diferença</th><th>Portadores a bordo</th></tr>${rows}</table>
+      <p>Nos 8 marcadores neutros (como os de teste de DNA), o continente tem 64 alelos. Chegaram <b>${st.al}</b>.</p>
+      ${lesson('fundador')}
+      <p class="meta">Dica: os portadores ficam escondidos. Ative o "modo professor" na aba Pessoas para ver os genótipos.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Começar a colônia</button></div>`, null, true);
+    sfx.good(); save();
+  }
+
+  // ---------------- tela do jogo ----------------
+  function renderHUD() {
+    if (screen !== 'game') { $('#hud').innerHTML = ''; return; }
+    const L = living(), N = L.length, h = S.hist.at(-1), prod = produce(S.year + 1, {});
+    let need = 0; for (const p of L) { const a = age(p, S.year + 1); need += a < 10 ? .5 : a < 15 ? .8 : a < 70 ? 1 : .8; }
+    const bal = prod.food - need;
+    $('#hud').innerHTML = `<span class="pill big">📅 <b>${S.year}</b> <span class="meta">ano ${S.year - Y0}/${YEARS}</span></span>
+      <span class="pill big" title="população / moradia">👥 <b>${N}</b> <span class="meta">/ ${housing()} 🏠</span></span>
+      <span class="pill big" title="estoque de comida e saldo previsto">🍞 <b>${fmt(S.food)}</b> <span class="${bal >= 0 ? 'pos' : 'neg'}">${bal >= 0 ? '+' : ''}${fmt(bal)}/ano</span></span>
+      <span class="pill big">🪵 <b>${fmt(S.wood)}</b></span><span class="pill big">🌿 <b>${fmt(S.herbs)}</b></span>
+      <span class="pill" title="diversidade nos marcadores neutros">🧬 ${h.al}/64 alelos</span>
+      <button class="ghost" data-act="menu">Menu</button>`;
+  }
+  function renderGame() {
+    renderHUD();
+    $('#main').innerHTML = `<div class="layout"><div>
+        <div class="mapwrap">${mapSVG()}</div>
+        <div class="advbar"><button class="btn primary big" data-act="adv" data-v="1" ${busy ? 'disabled' : ''}>⏭ Avançar 1 ano</button><button class="btn big" data-act="adv" data-v="5" ${busy ? 'disabled' : ''}>⏩ 5 anos</button><button class="btn" data-act="adv" data-v="10" ${busy ? 'disabled' : ''}>⏩⏩ 10</button>
+          <span class="meta">Eventos importantes interrompem o avanço.</span></div>
+        <div class="panel buildbar" id="buildBar">${buildBar()}</div>
+        <div class="panel" id="tileBox">${tileBox()}</div>
+      </div>
+      <div class="side"><div class="tabs">${[['colonia', '🏘️ Colônia'], ['genetica', '🧬 Genética'], ['pessoas', '👪 Pessoas'], ['cronica', '📜 Crônica']].map(([k, n]) => `<button class="tab ${tab === k ? 'on' : ''}" data-act="tab" data-v="${k}">${n}</button>`).join('')}</div>
+        <div class="panel" id="tabBox">${tabHTML()}</div></div></div>`;
+    afterTab();
+  }
+  function mapSVG() {
+    const W = HW * COLS + HW / 2 + 12, H = HH * (ROWS - 1) + 2 * HR + 12;
+    const hex = (x, y, r) => Array.from({ length: 6 }, (_, i) => { const a = Math.PI / 180 * (60 * i - 30); return `${(x + r * Math.cos(a)).toFixed(1)},${(y + r * Math.sin(a)).toFixed(1)}`; }).join(' ');
+    let s = `<svg class="map" viewBox="0 0 ${W.toFixed(0)} ${H.toFixed(0)}"><defs><pattern id="fog" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#20323b"/><path d="M0 8 L8 0" stroke="#2c434e" stroke-width="2"/></pattern>
+      <pattern id="wave" width="20" height="10" patternUnits="userSpaceOnUse"><path d="M0 6 Q5 2 10 6 T20 6" stroke="#2a77a6" fill="none" stroke-width="1.2"/></pattern></defs>
+      <rect width="${W}" height="${H}" fill="#1d5f86"/><rect width="${W}" height="${H}" fill="url(#wave)" opacity=".6"/>`;
+    for (const t of S.T) {
+      if (t.t === 'mar' && t.rev) continue;
+      if (!t.rev) { s += `<polygon points="${hex(t.x, t.y, HR)}" fill="url(#fog)" stroke="#16262d" stroke-width="1" data-act="tile" data-v="${t.r * COLS + t.c}" class="hx"/>`; continue; }
+      const T = TER[t.t];
+      s += `<g class="hx ${sel === t ? 'sel' : ''}" data-act="tile" data-v="${t.r * COLS + t.c}"><polygon points="${hex(t.x, t.y, HR - .5)}" fill="${T.c}" stroke="${sel === t ? '#fff' : 'rgba(0,0,0,.25)'}" stroke-width="${sel === t ? 3 : 1}"/>`;
+      if (t.t === 'floresta' && !t.b) s += `<g fill="#2e6b2b">${[[-8, 2], [6, -4], [4, 9]].map(([dx, dy]) => `<path d="M${t.x + dx} ${t.y + dy - 9} l6 10 h-12z"/>`).join('')}</g>`;
+      if (t.t === 'montanha') s += `<path d="M${t.x - 13} ${t.y + 8} l9 -16 l5 7 l5 -9 l9 18z" fill="#7a6f62" stroke="#5c5348"/><path d="M${t.x - 2} ${t.y - 4} l2 -4 l2 3z" fill="#fff"/>`;
+      if (t.t === 'pantano' && !t.b) s += `<g stroke="#3f5c3c" stroke-width="1.5">${[-8, 0, 8].map(dx => `<path d="M${t.x + dx} ${t.y + 8} v-10"/>`).join('')}</g><ellipse cx="${t.x}" cy="${t.y + 9}" rx="11" ry="3" fill="#4d6d78" opacity=".6"/>`;
+      if (t.t === 'campo' && !t.b && t.fert >= 1.1) s += `<text x="${t.x}" y="${t.y + 4}" class="mi">🌱</text>`;
+      if (t.b === 'acamp') s += `<text x="${t.x}" y="${t.y + 6}" class="mi big">⛺</text>`;
+      else if (t.b) { s += `<text x="${t.x}" y="${t.y + 6}" class="mi big">${BUILD[t.b].i}</text>`; if ((t.lv || 1) > 1) s += `<g class="lvb"><circle cx="${t.x + 13}" cy="${t.y + 12}" r="7.5"/><text x="${t.x + 13}" y="${t.y + 15.5}">${t.lv}</text></g>`; }
+      if (t.find && !t.b) s += `<text x="${t.x + 11}" y="${t.y - 8}" class="mi">${FINDS[t.find].i}</text>`;
+      if (S.flags.malaria && t.t === 'pantano') s += `<text x="${t.x - 11}" y="${t.y - 8}" class="mi">🦟</text>`;
+      if (t.b === 'pomar' && S.year - (t.since || 0) < 5) s += `<text x="${t.x + 12}" y="${t.y + 16}" class="mi">⏳</text>`;
+      if (bmode === 'up') s += canUp(t) ? `<polygon points="${hex(t.x, t.y, HR - 3)}" class="okb ${needSchool(t) || S.wood < upCost(t.b, t.lv || 1) ? 'cant' : ''}"/>` : `<polygon points="${hex(t.x, t.y, HR - .5)}" fill="#000" opacity=".42" pointer-events="none"/>`;
+      else if (bmode) s += canBuild(bmode, t) ? `<polygon points="${hex(t.x, t.y, HR - 3)}" class="okb"/>` : `<polygon points="${hex(t.x, t.y, HR - .5)}" fill="#000" opacity=".42" pointer-events="none"/>`;
+      s += `<title>${tileTitle(t)}</title></g>`;
+    }
+    return s + `</svg>`;
+  }
+  const bName = t => UP[t.b] ? UP[t.b].names[(t.lv || 1) - 1] : BUILD[t.b].n;
+  const canUp = t => t.b && t.b !== 'acamp' && UP[t.b] && (t.lv || 1) < maxLv(t.b);
+  const needSchool = t => (t.lv || 1) + 1 === 3 && t.b !== 'escola' && !hasB('escola');
+  function upInfo(t) {
+    const k = t.b, U = UP[k], lv = t.lv || 1, cost = upCost(k, lv);
+    return `<div class="upbox"><b>⬆ Nível ${lv + 1}: ${U.names[lv]}</b> <span class="cost">🪵 ${cost}</span><br><span class="meta">Agora: ${U.fx(U.v[lv - 1])} → depois: <b>${U.fx(U.v[lv])}</b>${U.extra && U.extra[lv] ? ' · ' + U.extra[lv] : ''}</span>
+      ${needSchool(t) ? '<br><span class="neg">O nível 3 exige técnicas novas: construa primeiro a 🏫 Escola.</span>' : ''}
+      <br><button class="btn primary" data-act="upgrade" ${S.wood < cost || needSchool(t) || busy ? 'disabled' : ''}>Melhorar</button>${S.wood < cost ? ` <span class="meta">falta madeira (${fmt(S.wood)}/${cost})</span>` : ''}</div>`;
+  }
+  function doUpgrade(t) {
+    if (!canUp(t) || needSchool(t)) return false;
+    const lv = t.lv || 1, cost = upCost(t.b, lv); if (S.wood < cost) return false;
+    S.wood -= cost; t.lv = lv + 1; sel = t;
+    note(`⬆ ${BUILD[t.b].i} Melhoria: ${UP[t.b].names[lv]} (nível ${lv + 1}).`);
+    sfx.build(); bmode = null; refresh(); save(); toast(`⬆ ${BUILD[t.b].i} <b>${UP[t.b].names[lv]}</b> (nível ${lv + 1})`);
+    return true;
+  }
+  function canBuild(k, t) { const B = BUILD[k]; return t.rev && TER[t.t].land && !t.b && B.on.includes(t.t) && !(B.once && hasB(k)); }
+  function tileTitle(t) {
+    let s = TER[t.t].n + (t.t === 'campo' ? ` · fertilidade ${t.fert.toFixed(2)}×` : '');
+    if (t.b === 'acamp') s += ' · acampamento'; else if (t.b) s += ' · ' + bName(t) + ((t.lv || 1) > 1 ? ` (nível ${t.lv})` : '');
+    if (t.find) s += ' · ' + FINDS[t.find].n;
+    return s;
+  }
+  function buildBar() {
+    const cnt = k => S.T.filter(t => t.b === k).length;
+    const rows = Object.entries(CATS).map(([c, cn]) => `<div class="bcat"><span class="bcn">${cn}</span>${Object.entries(BUILD).filter(([, B]) => B.cat === c).map(([k, B]) => {
+      const done = B.once && hasB(k), n = cnt(k);
+      return `<button class="bb ${bmode === k ? 'on' : ''} ${done ? 'done' : ''} ${S.wood < B.cost && !done ? 'poor' : ''}" data-act="bmode" data-v="${k}" ${done || busy ? 'disabled' : ''} title="${esc(B.d)}"><span class="bi">${B.i}</span><span class="bn">${B.n}${n && !B.once ? ` <b>×${n}</b>` : ''}</span><span class="bc">${done ? '✓ feito' : '🪵 ' + B.cost}</span></button>`;
+    }).join('')}</div>`).join('');
+    const nUp = S.T.filter(canUp).length;
+    const upRow = `<div class="bcat"><span class="bcn">⬆ Melhorias</span><button class="bb up ${bmode === 'up' ? 'on' : ''}" data-act="bmode" data-v="up" ${busy || !nUp ? 'disabled' : ''}><span class="bi">⬆</span><span class="bn">Melhorar construção</span><span class="bc">${nUp ? nUp + ' possíveis' : 'nada ainda'}</span></button><span class="meta upm">O espaço é limitado: em vez de ocupar outro hexágono, melhore o que já existe (até o nível 3).</span></div>`;
+    let st = '';
+    if (bmode === 'up') {
+      st = `<div class="bstat"><div><b>⬆ Melhorar</b> · nível 2 custa 1,5× o preço da obra; nível 3 custa 2,5× e exige 🏫 Escola.</div>
+        <div>👉 Clique numa das <b>${nUp}</b> construções destacadas no mapa (contorno vermelho: falta madeira ou escola).</div>
+        <button class="btn" data-act="bmode" data-v="">✕ Cancelar (Esc)</button></div>`;
+    } else if (bmode) {
+      const B = BUILD[bmode], valid = S.T.filter(t => canBuild(bmode, t)).length;
+      st = `<div class="bstat"><div><b>${B.i} ${B.n}</b> · 🪵 ${B.cost}${B.slots ? ` · ${B.slots} vagas de trabalho` : ''} · vai em: ${B.on.map(o => TER[o].n.toLowerCase()).join(', ')}${B.once ? ' · só uma na ilha' : ''}</div><div class="meta">${B.d}</div>
+        <div>${S.wood < B.cost ? `<span class="neg">Falta madeira: você tem ${fmt(S.wood)}. Ponha mais gente cortando lenha.</span>` : valid ? `👉 Clique num dos <b>${valid}</b> hexágonos destacados no mapa.` : `<span class="neg">Nenhum lugar disponível. Explore a ilha para achar ${B.on.map(o => TER[o].n.toLowerCase()).join(' ou ')}.</span>`} ${bmsg ? `<span class="pos">${bmsg}</span>` : ''}</div>
+        <button class="btn" data-act="bmode" data-v="">✕ Cancelar (Esc)</button></div>`;
+    } else st = `<p class="meta">Escolha uma construção e depois clique no mapa, nos hexágonos destacados. Tudo custa madeira (🪵 ${fmt(S.wood)} agora).</p>`;
+    return `<div class="bbh"><h3>🔨 Construir</h3><button class="ghost" data-act="guide">📖 Como funcionam as construções</button></div>${rows}${upRow}${st}`;
+  }
+  function doBuild(k, t) {
+    const B = BUILD[k];
+    if (!canBuild(k, t)) { bmsg = ''; return false; }
+    if (S.wood < B.cost) return false;
+    S.wood -= B.cost;
+    if (k === 'dreno') { t.t = 'campo'; t.fert = .85; t.b = null; note('🚧 Um pântano foi drenado e virou campo.'); }
+    else { t.b = k; t.since = S.year; note(`${B.i} Construído: ${B.n}.`); }
+    if (k === 'escola') S.firsts.escola = true;
+    bmode = null; bmsg = '';
+    sfx.build(); sel = t; refresh(); save();
+    toast(`${B.i} Pronto: <b>${B.n}</b>`);
+    return true;
+  }
+  function toast(h) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = h; document.body.appendChild(d); setTimeout(() => d.remove(), 2200); }
+  function guide() {
+    const cnt = k => S ? S.T.filter(t => t.b === k).length : 0;
+    openModal(`<h2>🔨 Como funcionam as construções</h2>
+      <p><b>1.</b> Escolha a construção na barra embaixo do mapa. <b>2.</b> Os hexágonos onde ela pode ser feita ficam destacados. <b>3.</b> Clique num deles. A obra fica pronta na hora e custa madeira.</p>
+      <p><b>Postos de trabalho.</b> Roças, pesqueiros, pomares, serrarias e hortas têm <b>vagas</b>. Na aba Colônia você decide quantas pessoas trabalham com comida, madeira e ervas. Esses trabalhadores ocupam primeiro as vagas que rendem mais. Quem sobra trabalha sem construção e rende pouco: coleta frutos (1 de comida por pessoa, até 12 pessoas), corta lenha solta (1,6) ou junta ervas do mato (0,7).</p>
+      <p><b>Construções de efeito</b> (celeiro, poço, enfermaria, boticário, abrigo, escola, registro, cais) não precisam de trabalhadores: funcionam assim que ficam prontas, e só dá para ter uma de cada.</p>
+      <p><b>⬆ Níveis.</b> O espaço da ilha é limitado, então quase toda construção pode ser <b>melhorada até o nível 3</b>, sem ocupar outro hexágono: mais vagas, mais produção ou um efeito mais forte. O nível 2 custa 1,5× o preço da obra; o nível 3 custa 2,5× e exige a 🏫 Escola (técnicas novas). Num tufão, construções melhoradas perdem um nível em vez de desabar. Use o botão "⬆ Melhorar construção" ou clique na construção no mapa.</p>
+      <p><b>Moradia.</b> O acampamento abriga a tripulação inicial; cada 🏠 abriga mais 6. Com gente demais, as doenças se espalham mais e nascem menos crianças.</p>
+      <table class="t small"><tr><th></th><th>Construção</th><th>Onde</th><th>🪵</th><th>Vagas</th><th>O que faz</th><th>Níveis</th><th>Na ilha</th></tr>
+      ${Object.entries(CATS).map(([c, cn]) => `<tr><td colspan="8" class="cath">${cn}</td></tr>` + Object.entries(BUILD).filter(([, B]) => B.cat === c).map(([k, B]) => `<tr><td>${B.i}</td><td><b>${B.n}</b></td><td>${B.on.map(o => TER[o].n).join(', ')}</td><td>${B.cost}</td><td>${B.slots || '—'}</td><td>${B.d}</td><td class="lvcol">${UP[k] ? UP[k].names.map((n, i) => `<b>${i + 1}</b> ${n}: ${UP[k].fx(UP[k].v[i])}`).join('<br>') : '—'}</td><td>${cnt(k) || '—'}</td></tr>`).join('')).join('')}</table>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`, null, true);
+  }
+  function tileBox() {
+    const t = sel; if (!t) return '<p class="meta">Clique num hexágono do mapa.</p>';
+    if (!t.rev) return `<h3>Território inexplorado</h3><p class="meta">Mande gente explorar (aba Colônia) para revelar a ilha aos poucos.</p>`;
+    const T = TER[t.t];
+    if (!T.land) return '<h3>Mar</h3>';
+    const opts = Object.entries(BUILD).filter(([k, B]) => B.on.includes(t.t) && !(B.once && hasB(k)));
+    return `<h3>${t.home ? '⛺ Acampamento · ' : ''}${T.n}${t.t === 'campo' ? ` <span class="meta">fertilidade ${t.fert.toFixed(2)}×</span>` : ''}</h3>
+      <p class="meta">${T.d}${t.find ? ` · ${FINDS[t.find].i} <b>${FINDS[t.find].n}</b>: ${FINDS[t.find].d}` : ''}</p>
+      ${t.b && t.b !== 'acamp' ? `<p>Aqui há: <b>${BUILD[t.b].i} ${bName(t)}</b>${UP[t.b] ? ` <span class="lvtag">nível ${t.lv || 1}/${maxLv(t.b)}</span>` : ''}. ${UP[t.b] ? UP[t.b].fx(UP[t.b].v[(t.lv || 1) - 1]) + '. ' : ''}${(t.lv || 1) === 1 ? BUILD[t.b].d : ''}${t.b === 'roca' ? ` <b>Neste solo: ${nf((UP.roca.v[(t.lv || 1) - 1][1] * t.fert).toFixed(1))} por agricultor.</b>` : ''}${t.b === 'pomar' && S.year - (t.since || 0) < 5 ? ` <b>⏳ Dá frutos a partir de ${(t.since || 0) + 5}.</b>` : ''}</p>${canUp(t) ? upInfo(t) : UP[t.b] ? '<p class="meta">✅ Nível máximo.</p>' : ''}` : t.home ? `<p>O acampamento (o casco do navio e as barracas) abriga ${S.camp || 10} pessoas.</p>` : opts.length ? `<div class="bopts">${opts.map(([k, B]) => `<button class="bopt" data-act="build" data-v="${k}" ${S.wood < B.cost || busy ? 'disabled' : ''}><b>${B.i} ${B.n}</b> <span class="cost">🪵 ${B.cost}</span><span class="meta">${B.d}</span></button>`).join('')}</div>` : '<p class="meta">Nada para construir aqui.</p>'}`;
+  }
+  // ---------- abas ----------
+  function tabHTML() {
+    if (tab === 'colonia') return colTab();
+    if (tab === 'genetica') return genTab();
+    if (tab === 'pessoas') return pplTab();
+    return `<div class="log">${S.log.map(l => `<div class="${l.cls || ''}"><b>${l.y}</b> ${l.s}</div>`).join('')}</div>`;
+  }
+  function colTab() {
+    const a = S.alloc, tot = a.food + a.wood + a.herbs + a.explore || 1, prod = produce(S.year + 1, {});
+    const lab = (k, n, i) => `<div class="sl"><label>${i} ${n} <b>${Math.round(a[k] / tot * 100)}%</b> <span class="meta">${(prod.labor * a[k] / tot).toFixed(1)} trab.</span></label><input type="range" min="0" max="100" value="${a[k]}" data-sl="${k}"></div>`;
+    const L = living(), y = S.year, ch = L.filter(p => age(p, y) < 15).length, ad = L.filter(p => age(p, y) >= 15 && age(p, y) < 60).length, ol = L.length - ch - ad;
+    const cnt = k => S.T.filter(t => t.b === k).length;
+    const lp = S.lastProd;
+    return `<h3>Trabalho</h3><p class="meta">${fmt(prod.labor)} pessoas-ano de trabalho (${ad} adultos, ${ch} crianças, ${ol} idosos). Doentes trabalham menos.</p>
+      ${lab('food', 'Comida', '🍞')}${lab('wood', 'Madeira', '🪵')}${lab('herbs', 'Ervas medicinais', '🌿')}${lab('explore', 'Exploração', '🧭')}
+      <p class="meta">Previsão para o próximo ano: 🍞 +${fmt(prod.food)} · 🪵 +${fmt(prod.wood)} · 🌿 +${fmt(prod.herbs)} · 🧭 ${prod.explorers} hexágono(s)</p>
+      ${lp ? `<p class="meta">Ano passado: consumo de ${fmt(lp.need)} de comida${lp.deficit > 0 ? ` · <b class="neg">faltou ${Math.round(lp.deficit * 100)}% da comida!</b>` : ''} · ervas cobriram ${Math.round(lp.hc * 100)}% das necessidades</p>` : ''}
+      ${postsTable(prod)}
+      ${tips()}
+      ${hasB('cais') ? (() => { const used = S.tradeY === S.year ? S.tradeN : 0, left = lvB('cais') - used, dis = left <= 0 || S.wood < 20 ? 'disabled' : ''; return `<h3>⚓ Comércio no cais</h3><div class="btns"><button class="btn" data-act="trade" data-v="food" ${dis}>20 🪵 → 15 🍞</button><button class="btn" data-act="trade" data-v="herbs" ${dis}>20 🪵 → 8 🌿</button><span class="meta">${left > 0 ? `${left} ${left > 1 ? 'trocas restantes' : 'troca restante'} este ano` : 'Sem mais trocas este ano.'}</span></div>`; })() : ''}
+      <h3>Leis da colônia</h3>
+      <div class="pol"><span>Casamentos</span><button class="btn ${S.policy.casar === 'livre' ? 'on' : ''}" data-act="pol" data-k="casar" data-v="livre">Livres (só irmãos proibidos)</button><button class="btn ${S.policy.casar === 'primos' ? 'on' : ''}" data-act="pol" data-k="casar" data-v="primos" ${hasB('cartorio') ? '' : 'disabled title="Construa o Registro de famílias"'}>Proibir primos de 1º grau</button><button class="btn ${S.policy.casar === 'primos2' ? 'on' : ''}" data-act="pol" data-k="casar" data-v="primos2" ${lvB('cartorio') >= 2 ? '' : 'disabled title="Melhore o Registro para Livro de genealogias"'}>Proibir até primos de 2º grau</button></div>
+      ${hasB('cartorio') ? '' : '<p class="meta">Sem o 📜 Registro de famílias ninguém sabe ao certo quem é primo de quem.</p>'}
+      <div class="pol"><span>Famílias</span>${[['pequena', 'Pequenas'], ['normal', 'Normais'], ['grande', 'Grandes']].map(([k, n]) => `<button class="btn ${S.policy.familia === k ? 'on' : ''}" data-act="pol" data-k="familia" data-v="${k}">${n}</button>`).join('')}</div>
+      <h3>Construções de efeito</h3><p class="meta">${Object.entries(BUILD).filter(([, B]) => B.once).map(([k, B]) => hasB(k) ? `${B.i} ${UP[k] ? UP[k].names[lvB(k) - 1] : B.n}${lvB(k) > 1 ? ` (nv ${lvB(k)})` : ''}` : '').filter(Boolean).join(' · ') || 'Nenhuma ainda.'} · 🏠 moradia para ${housing()}</p>
+      ${S.flags.cold > y ? '<p class="neg">❄️ Clima frio: roças rendem 30% menos.</p>' : ''}${S.flags.drought > y ? '<p class="neg">☀️ Seca.</p>' : ''}${S.flags.malaria ? '<p class="neg">🦟 Há malária nos pântanos.</p>' : ''}`;
+  }
+  function postsTable(prod) {
+    const d = prod.det, r = [];
+    const line = (i, n, x, unit, note) => r.push(`<tr><td>${i} ${n}</td><td>${x.slots ? `${fmt(x.used)}/${x.slots}` : fmt(x.used)}</td><td>+${x.out.toFixed(1)} ${unit}</td><td class="meta">${note || ''}</td></tr>`);
+    if (d.roca) line('🌾', `Roças (${d.roca.n})`, d.roca, '🍞', S.flags.cold > S.year ? 'frio −30%' : S.flags.drought > S.year ? 'seca −50%' : '');
+    if (d.porto) line('🎣', `Pesqueiros (${d.porto.n})`, d.porto, '🍞');
+    if (d.pomar) { const g = S.T.filter(t => t.b === 'pomar' && S.year + 1 - (t.since || 0) < 5).length; line('🍊', `Pomares (${d.pomar.n})`, d.pomar, '🍞', g ? `${g} ainda crescendo` : ''); }
+    line('🫐', 'Coleta (sem construção)', d.coleta, '🍞', d.coleta.used > 12 ? 'mais de 12 coletores rendem pouco' : '1 por pessoa');
+    if (d.serraria) line('🪓', 'Serraria', d.serraria, '🪵');
+    if (d.lenha.used > .05) line('🌲', 'Lenha solta', d.lenha, '🪵', d.serraria ? 'serraria cheia' : 'construa uma serraria');
+    if (d.horta) line('🌿', `Hortas (${d.horta.n})`, d.horta, '🌿');
+    if (d.mato.used > .05) line('🍃', 'Ervas do mato', d.mato, '🌿', '0,7 por pessoa');
+    return `<h3>Postos de trabalho (próximo ano)</h3><table class="t small posts"><tr><th>Onde</th><th>Pessoas/vagas</th><th>Produção</th><th></th></tr>${r.join('')}</table>
+      <p class="meta">Os trabalhadores ocupam primeiro as vagas que rendem mais. Quem não cabe em nenhuma vaga trabalha "solto", rendendo menos.</p>`;
+  }
+  function tips() {
+    if (S.year > Y0 + 25) return '';
+    const L = living().length, it = [
+      [S.T.some(t => t.b === 'roca' || t.b === 'porto'), 'Construa uma 🌾 roça num campo ou um 🎣 pesqueiro numa praia'],
+      [hasB('serraria'), 'Construa uma 🪓 serraria numa floresta: a madeira paga todas as obras'],
+      [housing() > L + 2, 'Mantenha 🏠 moradia acima da população'],
+      [S.T.some(t => t.b === 'horta'), 'Uma 🌿 horta e um pouco de gente nas ervas ajudam nas epidemias'],
+      [hasB('celeiro') || hasB('poco'), 'Depois: 🛖 celeiro (comida estraga menos) e 🪣 poço (menos mortes de bebês)'],
+      [S.T.some(t => (t.lv || 1) > 1), 'Sem espaço? ⬆ Melhore uma construção em vez de ocupar outro hexágono'],
+    ];
+    return `<h3>Primeiros passos</h3><ul class="chk">${it.map(([ok, t]) => `<li class="${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${t}</li>`).join('')}</ul>`;
+  }
+  function genTab() {
+    const h = S.hist.at(-1), first = S.hist[0];
+    const Ns = S.hist.map(x => x.N), hm = Ns.length / Ns.reduce((a, n) => a + 1 / Math.max(n, 1), 0);
+    return `<p class="meta">Linha colorida: frequência do alelo na colônia. Tracejado: no continente, que é grande e não deriva. Bolinha: nos fundadores.</p>
+      <div class="mini">${LOCI.map(L => `<div class="mc"><div class="mh"><span class="dot" style="background:${L.col}"></span><b>${L.n}</b></div><canvas data-loc="${L.k}" width="300" height="110"></canvas>
+        <div class="mf">agora <b>${pct(h.fr[L.k])}</b> · fundadores ${pct(S.founderFreq[L.k])} · continente ${pct(L.q)}${L.kind !== 'visivel' ? ` · <span title="nascimentos de afetados">${S.cases[L.k]} nasc. afetados</span>` : ''}</div></div>`).join('')}</div>
+      <h3>Diversidade, endogamia e tamanho</h3>
+      <div class="mini"><div class="mc"><div class="mh"><b>Alelos nos marcadores neutros</b></div><canvas data-ch="al" width="300" height="110"></canvas><div class="mf">${first.al} na chegada · <b>${h.al}</b> agora · continente: 64</div></div>
+        <div class="mc"><div class="mh"><b>Endogamia média (F)</b></div><canvas data-ch="F" width="300" height="110"></canvas><div class="mf">agora <b>${h.F.toFixed(3)}</b> · primos de 1º grau = 0,0625</div></div>
+        <div class="mc"><div class="mh"><b>População</b></div><canvas data-ch="N" width="300" height="110"></canvas><div class="mf">menor: ${S.minN} · tamanho efetivo aproximado (média harmônica): <b>${Math.round(hm)}</b></div></div>
+        <div class="mc"><div class="mh"><b>Sobrenomes</b></div><canvas data-ch="sur" width="300" height="110"></canvas><div class="mf">${S.founderSurnames} na chegada · <b>${h.sur}</b> hoje</div></div></div>`;
+  }
+  function pplTab() {
+    const y = S.year, L = living();
+    const list = L.filter(p => !filt || fullName(p).toLowerCase().includes(filt.toLowerCase())).sort((a, b) => a.born - b.born);
+    const chip = p => LOCI.filter(l => l.kind !== 'visivel' && p.g[l.k][0] + p.g[l.k][1] > 0).map(l => `<span class="gch ${hom(p, l.k) ? 'h' : ''}" style="--c:${l.col}" title="${l.n}: ${hom(p, l.k) ? 'afetado(a)' : 'portador(a)'}">${l.short}</span>`).join('');
+    const surn = {}; for (const p of L) surn[p.surname] = (surn[p.surname] || 0) + 1;
+    const sn = Object.entries(surn).sort((a, b) => b[1] - a[1]);
+    return `<div class="btns"><label class="tog"><input type="checkbox" data-act="teacher" ${teacher ? 'checked' : ''}> 👩‍🏫 Modo professor: mostrar genótipos</label></div>
+      <canvas id="pyr" width="600" height="220" class="pyr"></canvas>
+      <p class="meta">Pirâmide etária: ♂ à esquerda, ♀ à direita.${teacher ? ' Cada cor marca um alelo: claro = portador, escuro = afetado.' : ''}</p>
+      <h3>Sobrenomes</h3><div class="surn">${sn.slice(0, 12).map(([n, c]) => `<span>${esc(n)} <b>${c}</b></span>`).join('')}${sn.length > 12 ? `<span class="meta">+${sn.length - 12}</span>` : ''}</div>
+      <h3>Moradores (${L.length})</h3><input class="search" placeholder="buscar nome…" value="${esc(filt)}" data-search>
+      <div class="plist">${list.slice(0, 150).map(p => `<button class="prow" data-act="person" data-v="${p.id}"><span class="${p.sex}">${p.sex === 'M' ? '♂' : '♀'}</span><b>${esc(fullName(p))}</b><span class="meta">${age(p, y)} a${p.immigrant ? ' · migrante' : p.mom == null ? ' · fundador(a)' : ''}${LOCI.some(l => l.kind !== 'visivel' && affected(p, l.k)) ? ' · ' + LOCI.filter(l => l.kind !== 'visivel' && affected(p, l.k)).map(l => l.n).join(', ') : ''}</span>${teacher ? `<span>${chip(p)}</span>` : ''}</button>`).join('')}${list.length > 150 ? `<p class="meta">e mais ${list.length - 150}…</p>` : ''}</div>`;
+  }
+  function afterTab() {
+    if (tab === 'genetica') {
+      document.querySelectorAll('canvas[data-loc]').forEach(cv => { const L = LK[cv.dataset.loc]; lineChart(cv, [{ v: S.hist.map(h => h.fr[L.k]), c: L.col, w: 2.2 }], { ref: L.q, f0: S.founderFreq[L.k], max: Math.max(.1, L.q * 2.5, ...S.hist.map(h => h.fr[L.k])) * 1.1, pct: true }); });
+      const series = { al: [S.hist.map(h => h.al), '#7bd389', 64], F: [S.hist.map(h => h.F), '#ff9f43', .08], N: [S.hist.map(h => h.N), '#64b5f6', null], sur: [S.hist.map(h => h.sur), '#e0b0ff', null] };
+      document.querySelectorAll('canvas[data-ch]').forEach(cv => { const [v, c, ref] = series[cv.dataset.ch]; lineChart(cv, [{ v, c, w: 2.2 }], { ref: cv.dataset.ch === 'al' ? 64 : null, min: 0, max: Math.max(ref || 0, ...v) * 1.1 || 1, int: cv.dataset.ch !== 'F' }); });
+    }
+    if (tab === 'pessoas') pyramid($('#pyr'));
+    document.querySelectorAll('[data-sl]').forEach(r => r.addEventListener('input', e => { S.alloc[r.dataset.sl] = +r.value; const k = r.dataset.sl; refreshTab(); renderHUD(); const nr = document.querySelector(`[data-sl="${k}"]`); if (nr) nr.focus(); }));
+    const sr = $('[data-search]'); if (sr) sr.addEventListener('input', e => { filt = sr.value; const pos = sr.selectionStart; refreshTab(); const n = $('[data-search]'); n.focus(); n.setSelectionRange(pos, pos); });
+  }
+  function refreshTab() { const b = $('#tabBox'); if (b) { b.innerHTML = tabHTML(); afterTab(); } }
+  function refresh() { renderHUD(); const m = $('.mapwrap'); if (m) m.innerHTML = mapSVG(); const tb = $('#tileBox'); if (tb) tb.innerHTML = tileBox(); const bb = $('#buildBar'); if (bb) bb.innerHTML = buildBar(); refreshTab(); document.querySelectorAll('[data-act=adv]').forEach(b => b.disabled = busy); }
+
+  // ---------- gráficos ----------
+  function lineChart(cv, series, o) {
+    const ctx = cv.getContext('2d'), w = cv.width, h = cv.height, pad = 22;
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#0f2a33'; ctx.fillRect(0, 0, w, h);
+    const n = Math.max(2, S.hist.length), min = o.min ?? 0, max = o.max ?? 1;
+    const X = i => pad + (w - pad - 6) * i / Math.max(n - 1, YEARS), Y = v => h - 14 - (h - 22) * (v - min) / (max - min || 1);
+    ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.fillStyle = '#7d9aa3'; ctx.font = '10px system-ui';
+    for (let k = 0; k <= 2; k++) { const v = min + (max - min) * k / 2, yy = Y(v); ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(w, yy); ctx.stroke(); ctx.fillText(o.pct ? Math.round(v * 100) + '%' : o.int ? Math.round(v) : v.toFixed(2), 2, yy + 3); }
+    ctx.fillText(Y0, pad, h - 2); ctx.textAlign = 'right'; ctx.fillText(Y0 + YEARS, w - 4, h - 2); ctx.textAlign = 'left';
+    if (o.ref != null) { ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.moveTo(pad, Y(o.ref)); ctx.lineTo(w, Y(o.ref)); ctx.stroke(); ctx.setLineDash([]); }
+    for (const s of series) { ctx.strokeStyle = s.c; ctx.lineWidth = s.w || 2; ctx.beginPath(); s.v.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))); ctx.stroke(); const lv = s.v.at(-1); ctx.fillStyle = s.c; ctx.beginPath(); ctx.arc(X(s.v.length - 1), Y(lv), 3, 0, 6.3); ctx.fill(); }
+    if (o.f0 != null) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(0), Y(o.f0), 3.5, 0, 6.3); ctx.fill(); }
+    // eventos de gargalo
+    for (const b of S.bottlenecks || []) { const i = b - Y0; ctx.fillStyle = 'rgba(255,90,90,.8)'; ctx.fillRect(X(i) - 1, 2, 2, h - 16); }
+  }
+  function pyramid(cv) {
+    if (!cv) return; const ctx = cv.getContext('2d'), w = cv.width, h = cv.height, y = S.year; ctx.clearRect(0, 0, w, h);
+    const bins = 18, m = new Array(bins).fill(0), f = new Array(bins).fill(0);
+    for (const p of living()) { const b = Math.min(bins - 1, Math.floor(age(p, y) / 5)); (p.sex === 'M' ? m : f)[b]++; }
+    const mx = Math.max(4, ...m, ...f), bh = (h - 10) / bins, cx = w / 2;
+    ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    for (let i = 0; i < bins; i++) {
+      const yy = h - 6 - (i + 1) * bh;
+      ctx.fillStyle = '#64b5f6'; ctx.fillRect(cx - 18 - m[i] / mx * (cx - 30), yy, m[i] / mx * (cx - 30), bh - 2);
+      ctx.fillStyle = '#f48fb1'; ctx.fillRect(cx + 18, yy, f[i] / mx * (cx - 30), bh - 2);
+      if (i % 2 === 0) { ctx.fillStyle = '#9fb8c0'; ctx.fillText(i * 5, cx, yy + bh - 3); }
+    }
+  }
+
+  // ---------- pessoa e genealogia ----------
+  function personModal(id) {
+    const p = P(id), y = S.year;
+    const node = (q, role) => q ? `<div class="pn ${q.sex} ${q.alive ? '' : 'dead'}" data-act="person" data-v="${q.id}"><b>${esc(fullName(q))}</b><span class="meta">${role} · ${q.born}${q.alive ? '' : '–' + q.died}</span>${teacher ? `<span>${LOCI.filter(l => l.kind !== 'visivel' && q.g[l.k][0] + q.g[l.k][1] > 0).map(l => `<span class="gch ${hom(q, l.k) ? 'h' : ''}" style="--c:${l.col}">${l.short}</span>`).join('')}</span>` : ''}</div>` : `<div class="pn empty"><span class="meta">${role}: veio do continente</span></div>`;
+    const mom = p.mom != null ? P(p.mom) : null, dad = p.dad != null ? P(p.dad) : null;
+    const gp = [mom && mom.mom != null ? P(mom.mom) : null, mom && mom.dad != null ? P(mom.dad) : null, dad && dad.mom != null ? P(dad.mom) : null, dad && dad.dad != null ? P(dad.dad) : null];
+    const sp = p.spouse != null ? P(p.spouse) : null, kids = p.kids.map(P);
+    const aff = LOCI.filter(l => l.kind !== 'visivel' && affected(p, l.k));
+    openModal(`<h2>${p.sex === 'M' ? '♂' : '♀'} ${esc(fullName(p))}</h2>
+      <p class="meta">${p.alive ? `${age(p, y)} anos` : `${p.born}–${p.died} · ${p.cause}`}${p.immigrant ? ' · migrante' : p.mom == null ? ' · fundador(a)' : ` · geração ${p.gen}`} · endogamia F = <b>${F(p).toFixed(4)}</b>${F(p) > 0 ? ` (pais: ${relation(mom, dad)})` : ''}</p>
+      <p>${visTraits(p)} ${aff.map(l => `<span class="tr bad">${l.n}</span>`).join(' ')}</p>
+      ${teacher ? `<table class="t small"><tr>${LOCI.map(l => `<th>${l.short}</th>`).join('')}</tr><tr>${LOCI.map(l => { const n = p.g[l.k][0] + p.g[l.k][1]; return `<td class="${n === 2 ? 'neg' : n ? 'warn' : ''}">${['—', 'portador', 'afetado'][n]}</td>`; }).join('')}</tr></table>` : '<p class="meta">Ative o modo professor para ver os genótipos.</p>'}
+      <div class="ped">${p.mom == null ? `<div class="row"><div class="pn empty"><span class="meta">${p.immigrant ? `chegou num navio em ${p.arrived}` : 'fundador(a): veio do continente em ' + Y0}</span></div></div>` : `<div class="row">${gp.map((q, i) => node(q, ['avó materna', 'avô materno', 'avó paterna', 'avô paterno'][i])).join('')}</div>
+        <div class="row">${node(mom, 'mãe')}${node(dad, 'pai')}</div>`}<div class="row">${node(p, 'esta pessoa')}${sp ? node(sp, 'cônjuge') : ''}</div>
+        ${kids.length ? `<div class="row">${kids.slice(0, 10).map(k => node(k, 'filho(a)')).join('')}</div>` : ''}</div>
+      ${sp ? `<p class="meta">Parentesco com o cônjuge: ${relation(p, sp)} (coancestria ${phi(p.id, sp.id).toFixed(4)}).</p>` : ''}
+      <div class="btns"><button class="btn primary" data-act="close">Fechar</button></div>`, null, true);
+  }
+
+  // ---------------- avançar o tempo ----------------
+  function advance(n) {
+    if (busy || S.ended) return; busy = true; refresh();
+    const step = left => {
+      if (left <= 0 || S.ended) { busy = false; refresh(); save(); return; }
+      const ev = rollEvent();
+      const go = mods => { const res = simYear(mods || {}); sfx.year(); postYear(res, () => { if (!checkEnd()) step(left - 1); else { busy = false; refresh(); } }); };
+      if (!ev) { go({}); return; }
+      const r = ev.run();
+      if (r.bottleneck) { (S.bottlenecks = S.bottlenecks || []).push(S.year); sfx.storm(); }
+      else sfx.bad();
+      note(`${r.t}`, 'ev');
+      if (r.choices) {
+        openModal(`<h2>${r.t}</h2><p>${r.h}</p>${lesson(r.lesson)}<div class="btns col">${r.choices.map((c, i) => `<button class="btn ${i ? '' : 'primary'}" data-act="choice" data-v="${i}">${c[0]}</button>`).join('')}</div>`);
+        S._choice = i => { const e = r.choices[i][1]() || {}; openModal(`<h2>${r.t}</h2><p>${e.msg || ''}</p>${lesson(e.lesson)}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, () => go(e.mods)); };
+      } else openModal(`<h2>${r.t}</h2><p>${r.h}</p>${lesson(r.lesson)}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, () => go(r.mods));
+    };
+    step(n);
+  }
+  function postYear(res, next) {
+    const msgs = [];
+    if (res.births.length) note(`👶 ${res.births.length} nascimento(s).`);
+    const causes = {}; for (const d of res.deaths) causes[d.cause] = (causes[d.cause] || 0) + 1;
+    if (res.deaths.length) note(`✝️ ${res.deaths.length} morte(s): ${Object.entries(causes).map(([c, n]) => `${c} (${n})`).join(', ')}.`);
+    if (res.marr) note(`💍 ${res.marr} casamento(s).`);
+    // primeiro afetado de cada doença
+    for (const [k, l] of res.aff) {
+      const key = 'aff_' + l; if (S.firsts[key] || LK[l].kind === 'visivel') continue; S.firsts[key] = S.year;
+      const L = LK[l], mom = P(k.mom), dad = P(k.dad), rel = relation(mom, dad);
+      sfx.bad();
+      msgs.push(`<h2>${L.kind === 'visivel' ? '👶' : '⚠️'} Nasceu ${esc(k.name)}, ${L.kind === 'visivel' ? `com ${L.n.toLowerCase()}` : `com ${L.n}`}</h2>
+        <p>${L.d}</p><p>Os pais, ${esc(fullName(mom))} e ${esc(fullName(dad))}, são saudáveis${L.kind === 'visivel' ? '' : ': os dois são <b>portadores</b> sem saber'}. Parentesco entre eles: <b>${rel}</b>${F(k) > 0 ? ` (F do bebê = ${F(k).toFixed(3)})` : ''}.</p>
+        ${L.kind === 'visivel' ? '' : `<p class="meta">Frequência do alelo hoje: ${pct(S.hist.at(-1).fr[l])} na colônia, ${pct(L.q)} no continente.</p>`}
+        ${L.kind === 'visivel' ? '' : lesson('recessiva')}${l === 'surdo' ? lesson('surdez') : ''}${F(k) >= 1 / 32 ? lesson('endogamia') : ''}`);
+    }
+    if (S.firsts.primos && !S.firsts.primosShown) { S.firsts.primosShown = true; const w = P(S.firsts.primos.w), m = P(S.firsts.primos.m); msgs.push(`<h2>💍 Casamento entre primos</h2><p>${esc(fullName(w))} e ${esc(fullName(m))} se casaram. São ${relation(w, m)}. Numa colônia pequena, achar alguém sem parentesco fica cada vez mais difícil.</p>${lesson('endogamia')}`); }
+    const h = S.hist.at(-1);
+    // deriva perceptível
+    if (!S.lessons.includes('deriva') && S.year - Y0 >= 25) { const big = LOCI.find(L => Math.abs(h.fr[L.k] - S.founderFreq[L.k]) > .08); if (big) msgs.push(`<h2>🎲 As frequências estão mudando sozinhas</h2><p>Nos fundadores, ${big.n.toLowerCase()} tinha frequência de ${pct(S.founderFreq[big.k])}. Hoje é <b>${pct(h.fr[big.k])}</b>. Ninguém escolheu isso, e a característica não ajuda nem atrapalha a sobreviver.</p>${lesson('deriva')}`); }
+    // perda e fixação
+    for (const L of LOCI) {
+      if (S.foundAlleles[L.k] && h.fr[L.k] === 0 && !S.firsts['lost_' + L.k] && h.N > 0) { S.firsts['lost_' + L.k] = S.year; note(`🧬 O alelo de ${L.n.toLowerCase()} foi perdido.`, 'ev'); msgs.push(`<h2>🧬 Alelo perdido: ${L.n}</h2><p>A última pessoa que carregava o alelo morreu ou não o passou adiante. Agora ele só volta à ilha se chegar algum migrante portador.</p>${lesson('perda')}`); }
+      if (h.fr[L.k] === 1 && !S.firsts['fix_' + L.k]) { S.firsts['fix_' + L.k] = S.year; msgs.push(`<h2>🧬 Alelo fixado: ${L.n}</h2><p>Todos na ilha agora são homozigotos para esse alelo.</p>${lesson('perda')}`); }
+    }
+    if (!S.lessons.includes('sobrenome') && h.sur <= S.founderSurnames / 2 && h.N > 10) msgs.push(`<h2>📛 Sobrenomes sumindo</h2><p>Os fundadores tinham ${S.founderSurnames} sobrenomes diferentes. Hoje restam ${h.sur}.</p>${lesson('sobrenome')}`);
+    const show = () => { if (!msgs.length) { refresh(); next(); return; } openModal(msgs.shift() + `<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, show); };
+    if (res.births.length && !msgs.length) sfx.birth();
+    if (msgs.length) { refresh(); show(); } else { refresh(); setTimeout(next, 90); }
+  }
+  function checkEnd() {
+    const L = living();
+    const fert = L.some(p => p.sex === 'F' && age(p, S.year) < 44) && L.some(p => p.sex === 'M' && age(p, S.year) < 60);
+    if (L.length === 0 || (!fert && L.length < 12)) { endGame(false); return true; }
+    if (S.year >= Y0 + YEARS) { endGame(true); return true; }
+    return false;
+  }
+  function endGame(win) {
+    S.ended = true; save(); win ? sfx.end() : sfx.bad();
+    const h = S.hist.at(-1), first = S.hist[0], L = living();
+    const totAff = LOCI.filter(l => l.kind !== 'visivel').reduce((a, l) => a + S.cases[l.k], 0);
+    const expAff = LOCI.filter(l => l.kind !== 'visivel').reduce((a, l) => a + l.q * l.q, 0) * S.births;
+    const score = win ? Math.round(h.N * 3 + h.al * 10 + (1 - Math.min(1, h.F * 10)) * 200 - totAff * 5 + S.lessons.length * 20) : 0;
+    const rows = LOCI.map(Lc => `<tr><td><span class="dot" style="background:${Lc.col}"></span>${Lc.n}</td><td>${pct(Lc.q)}</td><td>${pct(S.founderFreq[Lc.k])}</td><td><b>${pct(h.fr[Lc.k])}</b></td><td>${Lc.kind === 'visivel' ? '—' : S.cases[Lc.k]}</td></tr>`).join('');
+    openModal(`<h2>${win ? `🏆 ${Y0 + YEARS}: a colônia sobreviveu 150 anos!` : `💀 ${S.year}: a colônia acabou`}</h2>
+      ${win ? `<p>Hoje vivem <b>${h.N}</b> pessoas na ilha, descendentes de ${first.N} fundadores${S.hist.some(x => x.N > 0) ? '' : ''}. Nasceram ${S.births} crianças ao longo de seis gerações.</p>` : '<p>Não sobrou gente suficiente para continuar. Populações pequenas também correm risco de extinção por puro acaso (estocasticidade demográfica).</p>'}
+      <table class="t"><tr><th>Alelo</th><th>Continente</th><th>Fundadores</th><th>Hoje</th><th>Nascidos afetados</th></tr>${rows}</table>
+      <p>Doenças recessivas: <b>${totAff}</b> ${totAff === 1 ? 'nascimento' : 'nascimentos'} de afetados. No continente, com o mesmo número de nascimentos, seriam esperados uns <b>${expAff.toFixed(1)}</b>.</p>
+      <p>Diversidade nos marcadores neutros: ${first.al} alelos na chegada, <b>${h.al}</b> hoje (o continente tem 64). Endogamia média: <b>${h.F.toFixed(3)}</b>. Sobrenomes: ${S.founderSurnames} → ${h.sur}.</p>
+      ${win ? `<p class="score">Pontuação: <b>${score}</b> <span class="meta">(3 × população + 10 × alelos + bônus por pouca endogamia − 5 por afetado + 20 por conceito aprendido)</span></p>` : ''}
+      <p class="meta">Conceitos vistos: ${S.lessons.map(k => LESSONS[k][0]).join(', ') || 'nenhum'}.</p>
+      <div class="btns"><button class="btn primary" data-act="newgame">⛵ Nova colônia</button><button class="btn" data-act="close">Ver a ilha</button></div>`, null, true);
+  }
+
+  // ---------------- ajuda ----------------
+  function help() {
+    openModal(`<h2>Como jogar</h2>
+      <p>⛵ Escolha o navio e a tripulação. Mais colonos trazem mais diversidade, mas a comida acaba mais rápido.</p>
+      <p>🗺️ Clique nos hexágonos da ilha para construir: casas (moradia), roças, pesqueiros, serraria, hortas de ervas, enfermaria, registro de famílias, drenagem. Tudo custa madeira.</p>
+      <p>⚒️ Na aba <b>Colônia</b>, divida o trabalho entre comida, madeira, ervas e exploração, e defina as leis de casamento e o tamanho das famílias.</p>
+      <p>⏭ Avance o tempo de 1 em 1, 5 em 5 ou 10 em 10 anos. A cada ano as pessoas se casam, têm filhos (com genes sorteados dos pais, como Mendel), adoecem e morrem. Epidemias, secas, frio, malária, tufões e navios mudam tudo.</p>
+      <p>🧬 Na aba <b>Genética</b>, acompanhe as frequências dos alelos na colônia comparadas às do continente, a diversidade, a endogamia e os sobrenomes. Na aba <b>Pessoas</b>, veja a pirâmide etária, as genealogias e, no modo professor, os genótipos escondidos.</p>
+      <p>🏆 Objetivo: chegar a ${Y0 + YEARS} com uma colônia grande, saudável e diversa.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`);
+  }
+
+  // ---------------- cliques ----------------
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    wake();
+    const act = b.dataset.act, v = b.dataset.v;
+    switch (act) {
+      case 'newgame': closeModal(); renderShips(); break;
+      case 'continue': if (load()) { screen = 'game'; sel = S.T.find(t => t.home); renderGame(); } break;
+      case 'menu': save(); renderTitle(); break;
+      case 'help': help(); break;
+      case 'close': closeModal(); break;
+      case 'ship': pickedShip = SHIPS.find(s => s.k === v); makePool(pickedShip); renderRecruit(); sfx.tick(); break;
+      case 'resort': chosen = new Set(shuffle(pool.map(p => p.id)).slice(0, pickedShip.cap)); renderRecruit(); sfx.tick(); break;
+      case 'pick': { const id = +v; if (chosen.has(id)) chosen.delete(id); else if (chosen.size < pickedShip.cap) chosen.add(id); renderRecruit(); sfx.tick(); break; }
+      case 'sail': sail(); break;
+      case 'tab': tab = v; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.v === v)); refreshTab(); break;
+      case 'tile': if (screen !== 'game') break; if (bmode === 'up' && !busy) { const t = S.T[+v]; if (canUp(t)) { if (!doUpgrade(t)) toast(needSchool(t) ? 'O nível 3 exige a 🏫 Escola.' : `Falta madeira: precisa de 🪵 ${upCost(t.b, t.lv || 1)}.`); else break; } } else if (bmode && !busy) { const t = S.T[+v]; if (canBuild(bmode, t)) { doBuild(bmode, t); break; } bmsg = ''; } sel = S.T[+v]; const m = $('.mapwrap'); if (m) m.innerHTML = mapSVG(); $('#tileBox').innerHTML = tileBox(); break;
+      case 'build': if (sel && !busy) doBuild(v, sel); break;
+      case 'bmode': bmode = v && bmode !== v ? v : null; bmsg = ''; refresh(); sfx.tick(); break;
+      case 'guide': guide(); break;
+      case 'upgrade': if (sel && !busy) doUpgrade(sel); break;
+      case 'trade': { const used = S.tradeY === S.year ? S.tradeN : 0; if (used >= lvB('cais') || S.wood < 20) break; S.wood -= 20; if (v === 'food') S.food += 15; else S.herbs += 8; S.tradeY = S.year; S.tradeN = used + 1; note(v === 'food' ? '⚓ Trocou 20 de madeira por 15 de comida.' : '⚓ Trocou 20 de madeira por 8 de ervas.'); sfx.good(); refresh(); break; }
+      case 'pol': S.policy[b.dataset.k] = v; refreshTab(); sfx.tick(); break;
+      case 'adv': advance(+v); break;
+      case 'choice': S._choice && S._choice(+v); break;
+      case 'person': personModal(+v); break;
+      case 'teacher': teacher = b.checked; refreshTab(); break;
+    }
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && bmode) { bmode = null; bmsg = ''; refresh(); } });
+  { const sb = document.getElementById('soundBtn'); if (sb) { const b = document.createElement('button'); b.id = 'songBtn'; b.className = 'soundbtn'; b.type = 'button'; b.title = 'Trocar a música'; b.textContent = '🎵 ' + SONGS[songKey][0]; b.addEventListener('click', () => { switchSong(); b.blur(); }); sb.parentNode.insertBefore(b, sb); } }
+  window.__F = { SONGS, Sound, get S() { return S; }, get PEOPLE() { return PEOPLE; }, advance, living, makePool, sail, SHIPS, renderShips, get busy() { return busy; }, set pickedShip(s) { pickedShip = s; } };
+  renderTitle();
+
+})();
+</script>
+</body>
+</html>
