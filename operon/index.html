@@ -1,1 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operon — seja a E. coli</title>
+<style>
+  :root { --bg:#061a20; --panel:#0d2a33; --line:#1d4753; --text:#e8f4f2; --muted:#8db2b6; --warm:#ffd166; --accent:#7bd389; --red:#ff6b6b; --glc:#ffc43c; --lac:#f2f7ff; --trp:#d07bff; --blue:#6fb7ff; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:radial-gradient(1100px 520px at 15% -10%, #0e3a46, transparent 70%), var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; }
+  .wrap { max-width:1320px; margin:0 auto; padding:10px 12px 40px; }
+  header.top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 14px; margin-bottom:8px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font:900 24px/1 ui-monospace, Menlo, monospace; letter-spacing:.18em; }
+  .brand h1 span { color:var(--accent); }
+  .brand small { display:block; color:var(--muted); font-size:12px; margin-top:3px; letter-spacing:.02em; }
+  .res { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .pill { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 11px; font-size:13px; white-space:nowrap; }
+  .pill b { color:var(--warm); }
+  .pill.big { font-size:15px; padding:4px 13px; }
+  .ghost, .soundbtn { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:3px 9px; font-size:12px; }
+  .ghost:hover:not(:disabled), .soundbtn:hover { color:var(--text); border-color:#3d8a99; }
+  .ghost.on { color:var(--warm); border-color:var(--warm); }
+  .backlink { color:var(--muted); text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; }
+  .backlink:hover { color:#fff; } .backlink[hidden] { display:none; }
+  .btn { background:#164452; border:1px solid var(--line); color:var(--text); border-radius:9px; padding:6px 13px; font-weight:650; font-size:13px; }
+  .btn:hover:not(:disabled) { border-color:var(--accent); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); color:#0b2a17; border-color:var(--accent); }
+  .btn.warm { background:var(--warm); color:#2c2100; border-color:var(--warm); }
+  .btn.red { background:#a83a3a; border-color:#ff8a8a; }
+  .btn.big { font-size:15px; padding:9px 18px; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .meta { color:var(--muted); font-size:12px; }
+  .layout { display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:12px; align-items:start; }
+  @media (max-width:980px) { .layout { grid-template-columns:minmax(0, 1fr); } }
+  .arena { position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#081f27; touch-action:none; }
+  .arena canvas { display:block; width:100%; height:auto; cursor:crosshair; }
+  .arena .banner { position:absolute; left:50%; top:10px; transform:translateX(-50%); background:rgba(6,26,32,.88); border:1px solid var(--line); border-radius:999px; padding:4px 14px; font-weight:700; font-size:14px; pointer-events:none; white-space:nowrap; transition:opacity .4s; }
+  .arena .sensor { position:absolute; left:10px; bottom:10px; background:rgba(6,26,32,.8); border:1px solid var(--line); border-radius:10px; padding:5px 9px; font-size:12px; pointer-events:none; }
+  .arena .sensor b { display:inline-block; min-width:30px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .panel h3 { margin:0 0 6px; font:800 15px system-ui; letter-spacing:.02em; }
+  .side { display:flex; flex-direction:column; gap:10px; }
+  .opwrap { display:grid; grid-template-columns:minmax(0, 1fr) 230px; gap:10px; margin-top:10px; align-items:stretch; }
+  @media (max-width:760px) { .opwrap { grid-template-columns:1fr; } }
+  svg.ops { display:block; width:100%; height:auto; }
+  svg.ops .dna { stroke:#9ccdd6; stroke-width:5; stroke-linecap:round; opacity:.55; }
+  svg.ops .gl { font:800 12.5px system-ui; fill:#0a1d24; text-anchor:middle; }
+  svg.ops .pl { font:800 9.5px system-ui; fill:#fff; text-anchor:middle; paint-order:stroke; stroke:rgba(0,0,0,.45); stroke-width:2; }
+  svg.ops .oh { font:800 13px ui-monospace, monospace; fill:#cfe8ea; letter-spacing:.08em; }
+  svg.ops .miss { font:italic 700 11px system-ui; fill:#7fa7b0; text-anchor:middle; }
+  svg.ops .tiny { font:10px system-ui; fill:#7fa7b0; text-anchor:middle; }
+  svg.ops .mrna { fill:none; stroke:#ffcf5c; stroke-width:2.5; stroke-linejoin:round; }
+  svg.ops .ribo { fill:#c9a27a; stroke:#4a3420; stroke-width:1.2; }
+  .ctl { display:flex; flex-direction:column; gap:8px; }
+  .ctlbox { background:#0a2129; border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+  .ctlbox h4 { margin:0 0 4px; font:800 13px ui-monospace, monospace; letter-spacing:.06em; display:flex; justify-content:space-between; align-items:center; }
+  .switch { width:100%; border-radius:10px; padding:7px 10px; font-weight:800; border:2px solid; }
+  .switch.on { background:#1f6b3c; border-color:var(--accent); color:#fff; }
+  .switch.off { background:#3b1b1b; border-color:#a14a4a; color:#ffc9c9; }
+  .auto { font-size:11px; background:#173f4c; border-radius:6px; padding:1px 7px; color:var(--accent); font-weight:700; }
+  .rd { display:grid; grid-template-columns:auto 1fr auto; gap:2px 6px; align-items:center; font-size:12px; }
+  .rd .b { height:7px; background:#08181e; border-radius:4px; overflow:hidden; }
+  .rd .b i { display:block; height:100%; border-radius:4px; transition:width .2s; }
+  .rd .v { font-variant-numeric:tabular-nums; color:var(--muted); min-width:34px; text-align:right; }
+  .vit .rd { font-size:13px; gap:4px 8px; } .vit .rd .b { height:10px; }
+  .score { display:flex; flex-direction:column; gap:3px; }
+  .score .r { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .score .r.me { font-weight:800; }
+  .score .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  .score .r .n { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .alert { border:2px solid #ff8a8a; background:#3a1616; border-radius:12px; padding:10px; animation:pulse 1.4s infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 0 4px rgba(255,107,107,.25); } }
+  .alert h4 { margin:0 0 4px; }
+  canvas.chart { width:100%; height:auto; display:block; border-radius:8px; }
+  .legend { display:flex; flex-wrap:wrap; gap:2px 10px; font-size:11px; color:var(--muted); margin-top:4px; }
+  .legend i { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:3px; border-radius:2px; }
+  /* menu */
+  .hero { text-align:center; padding:16px 0 8px; }
+  .hero h2 { font:900 46px/1 ui-monospace, monospace; letter-spacing:.2em; margin:0; color:var(--accent); text-shadow:0 3px 0 #0b3a24; }
+  .hero p { color:var(--muted); max-width:720px; margin:10px auto; }
+  .levels { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:12px; }
+  .lv { text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; color:var(--text); display:flex; flex-direction:column; gap:3px; min-height:120px; }
+  .lv:hover:not(:disabled) { border-color:var(--accent); transform:translateY(-1px); }
+  .lv:disabled { opacity:.45; cursor:not-allowed; }
+  .lv .num { font:900 12px ui-monospace, monospace; color:var(--accent); letter-spacing:.1em; }
+  .lv .t { font-weight:800; font-size:16px; }
+  .lv .stars { color:var(--warm); letter-spacing:2px; margin-top:auto; }
+  /* modal */
+  .modalbg { position:fixed; inset:0; background:rgba(2,10,14,.66); display:flex; align-items:center; justify-content:center; padding:14px; z-index:50; }
+  .modal { background:#0f2f39; border:1px solid #2f6573; border-radius:16px; max-width:720px; width:100%; max-height:92vh; overflow:auto; padding:18px 20px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .modal h2 { margin:0 0 6px; font:800 22px system-ui; }
+  .modal h3 { margin:12px 0 4px; font:800 15px system-ui; }
+  .modal p { margin:6px 0; }
+  .lesson { background:#0a2730; border-left:4px solid var(--accent); border-radius:8px; padding:8px 12px; margin:10px 0; }
+  .lesson b.t { color:var(--accent); }
+  table.t { border-collapse:collapse; width:100%; font-size:13px; margin:6px 0; }
+  table.t th, table.t td { border-bottom:1px solid #24525f; padding:4px 6px; text-align:left; }
+  table.t th { color:var(--muted); font-weight:700; font-size:12px; }
+  .bar2 { display:inline-block; width:60px; height:8px; background:#08181e; border-radius:4px; overflow:hidden; vertical-align:middle; margin-right:5px; }
+  .bar2 i { display:block; height:100%; }
+  .opts { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:6px; }
+  .opt { text-align:left; background:#13414e; border:1px solid var(--line); color:var(--text); border-radius:10px; padding:7px 10px; }
+  .opt:hover:not(:disabled) { border-color:var(--warm); }
+  .opt:disabled { opacity:.35; text-decoration:line-through; }
+  .opt b { display:block; }
+  .tests { display:flex; flex-wrap:wrap; gap:5px; }
+  .fb { border-radius:10px; padding:8px 12px; margin:8px 0; }
+  .fb.ok { background:#163d27; border:1px solid var(--accent); }
+  .fb.no { background:#3d1b1b; border:1px solid #ff8a8a; }
+  .starsbig { font-size:34px; color:var(--warm); letter-spacing:6px; text-align:center; }
+  .toast { position:fixed; right:14px; bottom:14px; background:#0f2f39; border:1px solid #2f6573; border-radius:12px; padding:8px 14px; z-index:40; box-shadow:0 8px 30px rgba(0,0,0,.4); max-width:340px; animation:tin .3s; }
+  @keyframes tin { from { transform:translateY(20px); opacity:0; } }
+  kbd { background:#08181e; border:1px solid var(--line); border-radius:4px; padding:0 5px; font-size:11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand"><svg width="40" height="40" viewBox="-20 -20 40 40" aria-hidden="true"><rect x="-17" y="-8" width="34" height="16" rx="8" fill="#c8f7a0" stroke="#0d2a33" stroke-width="2"/><circle cx="-6" cy="0" r="2" fill="#ff9a1f"/><circle cx="0" cy="0" r="2" fill="#ff9a1f"/><rect x="5" y="-9" width="3" height="3" fill="#2f80ff"/><rect x="10" y="6" width="3" height="3" fill="#2f80ff"/><path d="M-17 0 q-3 -4 -1 -8 M-17 2 q-4 2 -2 7" stroke="#cfe" fill="none"/></svg>
+      <div><h1>OPER<span>ON</span></h1><small>seja a E. coli</small></div></div>
+    <div class="res" id="hud"></div>
+    <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+  </header>
+  <main id="main"></main>
+</div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('operon-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('operon-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
+  // =====================================================================
+  // MODELO DA CÉLULA: óperon lac, óperon trp, energia e crescimento
+  // Unidades arbitrárias, escolhidas para que a regulação faça diferença
+  // visível em poucos segundos de jogo.
+  // =====================================================================
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const hill = (x, K, n = 2) => { const xn = Math.pow(Math.max(0, x), n); return xn / (xn + Math.pow(K, n)); };
+
+  // genótipo: o que a linhagem já "evoluiu" e quais mutações carrega
+  function wildGeno() {
+    return {
+      lacMode: 'auto',   // 'manual' (você liga e desliga) | 'auto' (regulação genética)
+      lacI: '+',         // '+' normal · '-' sem repressor · 's' super-repressor (não reconhece a alolactose)
+      lacO: '+',         // '+' normal · 'c' operador constitutivo (o repressor não se liga)
+      capSite: true,     // o promotor lac depende de CAP-AMPc
+      crp: '+', cya: '+',// genes da proteína CAP e da adenilato ciclase
+      lacZ: '+', lacY: '+',
+      trpMode: 'auto',
+      trpR: '+', atten: true, trpE: '+',
+      fprime: false,     // plasmídeo F′ lac selvagem (merodiploide)
+      leak: true,
+    };
+  }
+  const G = (over = {}) => Object.assign(wildGeno(), over);
+
+  // ---------- regulação do lac ----------
+  // devolve a taxa de transcrição (0–1) do óperon lac cromossômico e,
+  // se houver F′, a do óperon do plasmídeo
+  function lacTx(g, sig, manualOn) {
+    if (g.lacMode === 'manual') { const t = manualOn ? 1 : 0.01; return { chr: t, fp: 0, occ: manualOn ? 0 : 1, cap: 1, induced: 0, repPresent: false }; }
+    const induced = sig.iptg ? 1 : hill(sig.allo, 0.03);
+    // repressores disponíveis (difusíveis: agem em trans)
+    const reps = [];
+    if (g.lacI === '+') reps.push('+'); if (g.lacI === 's') reps.push('s');
+    if (g.fprime) reps.push('+');
+    const repPresent = reps.length > 0, hasS = reps.includes('s');
+    const occFor = opr => { if (opr !== '+' || !repPresent) return 0; if (hasS) return sig.iptg ? 0.9 : 1; return 1 - induced; };
+    const capActive = g.crp === '+' ? (g.cya === '+' ? sig.camp : (sig.addCamp ? 1 : 0)) : 0;
+    const prom = g.capSite ? 0.08 + 0.92 * capActive : 0.8;
+    const leak = g.leak ? 0.03 : 0.002;
+    const occ = occFor(g.lacO);
+    const chr = (leak + (1 - leak) * (1 - occ)) * prom;
+    const fp = g.fprime ? (leak + (1 - leak) * (1 - occFor('+'))) * prom : 0;
+    return { chr, fp, occ, cap: capActive, induced, repPresent, hasS };
+  }
+  // ---------- regulação do trp ----------
+  function trpTx(g, trpIn, manualOn) {
+    if (g.trpMode === 'manual') { const t = manualOn ? 1 : 0.01; return { tx: t, occ: manualOn ? 0 : 1, read: 1, act: 0 }; }
+    const act = g.trpR === '+' ? hill(trpIn, 0.25, 3) : 0;
+    const occ = act * 0.99;
+    const charged = trpIn / (trpIn + 0.12);
+    const read = g.atten ? 0.08 + 0.92 * (1 - charged) : 1;
+    return { tx: (0.005 + 0.995 * (1 - occ)) * read, occ, read, act };
+  }
+
+  function newCell(geno, x, y) {
+    return { geno, x, y, ang: rnd(0, 6.28), vx: 0, vy: 0, atp: 40, B: 1, div: 0,
+      mL: 0.02, Z: 0.03, Y: 0.03, mT: 0.2, PT: 0.3, trpIn: 0.5, allo: 0, camp: 0,
+      lacOn: false, trpOn: true, lacInfo: null, trpInfo: null,
+      env: { g: 0, l: 0, w: 0 }, mu: 0, ein: 0, cost: 0, starve: 0,
+      stats: { lacWaste: 0, lacUse: 0, trpWaste: 0, starveT: 0, glcE: 0, lacE: 0 } };
+  }
+
+  const K_PROT = 0.05;
+  // um passo de dt segundos; env = concentrações locais; devolve o consumo de cada nutriente
+  function stepCell(c, env, dt, moving) {
+    const g = c.geno; c.env = env;
+    const gs = env.g / (env.g + 0.15);           // sinal da glicose
+    c.camp += ((1 - gs) - c.camp) * Math.min(1, dt * 1.5);
+    // captação
+    const ug = 1.0 * env.g / (env.g + 0.3);
+    const Yeff = g.lacY === '+' ? c.Y : 0;
+    const Zeff = g.lacZ === '+' ? c.Z : 0;
+    const ul = (1.25 * Yeff + 0.01) * env.l / (env.l + 0.3) * (1 - 0.65 * gs); // exclusão do indutor pela glicose
+    const zsat = Zeff / (Zeff + 0.12);
+    const lacE = ul * zsat * 0.8;
+    // alolactose: feita pela própria β-galactosidase
+    c.allo += (2.2 * ul * zsat - 0.9 * c.allo) * dt;
+    if (c.allo < 0) c.allo = 0;
+    // triptofano
+    const ut = 0.9 * env.w / (env.w + 0.2) * (1 - hill(c.trpIn, 1.0));
+    const PTeff = g.trpE === '+' ? c.PT : 0;
+    const st = 0.55 * PTeff * (1 / (1 + Math.pow(c.trpIn / 0.8, 2))) * (c.atp > 2 ? 1 : 0.2);
+    // regulação
+    const L = lacTx(g, { allo: c.allo, camp: c.camp }, c.lacOn);
+    const T = trpTx(g, c.trpIn, c.trpOn);
+    c.lacInfo = L; c.trpInfo = T;
+    const txL = Math.min(1, L.chr + L.fp), txT = T.tx;
+    // crescimento
+    const fA = c.atp / (c.atp + 30), fT = c.trpIn / (c.trpIn + 0.08);
+    const mu = 0.17 * fA * fT * (c.atp > 0.5 ? 1 : 0);
+    c.mu = mu;
+    const ein = Math.min(ug * 1.0 + lacE, 0.85); // capacidade de processar carbono é limitada
+    const cost = 0.07 + (moving ? 0.06 : 0) + 0.22 * txL + 0.18 * txT + 0.45 * st;
+    c.ein = ein; c.cost = cost;
+    c.atp += (ein - cost - mu * 8) * dt;
+    if (c.atp > 100) c.atp = 100;
+    if (c.atp < 0) { c.atp = 0; c.B = Math.max(1, c.B - 0.01 * dt); }
+    c.trpIn += (ut + st - mu * 1.6 - 0.01 * c.trpIn) * dt;
+    c.trpIn = clamp(c.trpIn, 0, 1.6);
+    // RNA e proteínas (diluídas pelo crescimento)
+    c.mL += (2 * txL - 1.0 * c.mL) * dt;
+    c.mT += (2 * txT - 1.0 * c.mT) * dt;
+    const dil = mu + 0.015;
+    c.Z += (K_PROT * c.mL - dil * c.Z) * dt;
+    c.Y += (K_PROT * c.mL - dil * c.Y) * dt;
+    c.PT += (K_PROT * c.mT - dil * c.PT) * dt;
+    c.B += mu * c.B * dt;
+    let divided = false;
+    if (c.B >= 2) { c.B /= 2; c.div++; divided = true; }
+    // estatísticas para o relatório da fase
+    const S = c.stats;
+    if (env.l < 0.08 && txL > 0.3) S.lacWaste += dt; else if (env.l > 0.15 && Zeff > 0.3) S.lacUse += dt;
+    if ((env.w > 0.3 || c.trpIn > 0.9) && txT > 0.4) S.trpWaste += dt;
+    if (c.atp < 3 || c.trpIn < 0.05) S.starveT += dt;
+    S.glcE += ug * dt; S.lacE += lacE * dt;
+    return { g: ug, l: ul, w: ut, divided };
+  }
+
+  // ---------- testes de laboratório (diagnóstico de mutantes) ----------
+  // estado estacionário aproximado das proteínas do lac em uma condição
+  function lacAssay(g, cond) {
+    const geno = { ...g, lacMode: 'auto', fprime: !!cond.fprime };
+    const camp = cond.glucose ? 0.05 : 1;
+    // alolactose depende de ter permease e β-gal funcionais (aproximação iterativa)
+    let allo = 0, Z = 0.03, Y = 0.03;
+    for (let i = 0; i < 40; i++) {
+      const L = lacTx(geno, { allo, camp, iptg: cond.iptg, addCamp: cond.camp }, false);
+      const chrZ = g.lacZ === '+' ? L.chr : 0, chrY = g.lacY === '+' ? L.chr : 0;
+      Z = (chrZ + L.fp) * 1.0; Y = (chrY + L.fp) * 1.0;
+      const ul = cond.lactose ? (1.25 * Y + 0.01) * (cond.glucose ? 0.35 : 1) : 0;
+      allo = 2.4 * ul * (Z / (Z + 0.12));
+    }
+    return { Z: clamp(Z, 0, 1.2), Y: clamp(Y, 0, 1.2) };
+  }
+  function trpAssay(g, cond) {
+    const geno = { ...g, trpMode: 'auto' };
+    // com Trp no meio o Trp interno fica alto; sem Trp fica limitado pelo que a célula consegue fabricar
+    const trpIn = cond.trp ? 1.0 : (g.trpE === '+' ? 0.12 : 0.01);
+    const T = trpTx(geno, trpIn, false);
+    return { PT: clamp(T.tx, 0, 1), grow: cond.trp || g.trpE === '+' };
+  }
+  const lvl = v => v > 0.55 ? 'alta' : v > 0.15 ? 'média' : v > 0.04 ? 'baixa' : 'nenhuma';
+  // =====================================================================
+  // MUNDO: campo de nutrientes, cepas rivais e fases
+  // =====================================================================
+  const AW = 960, AH = 576, CELL = 16, GW = AW / CELL, GH = AH / CELL;
+  const NUT = ['g', 'l', 'w'];
+  const NUT_N = { g: 'glicose', l: 'lactose', w: 'triptofano' };
+  function newField() { return { g: new Float32Array(GW * GH), l: new Float32Array(GW * GH), w: new Float32Array(GW * GH), tmp: new Float32Array(GW * GH) }; }
+  function blob(F, type, cx, cy, r, peak) {
+    const gx = cx / CELL, gy = cy / CELL, R = r / CELL;
+    for (let y = Math.max(0, Math.floor(gy - R * 1.6)); y < Math.min(GH, gy + R * 1.6); y++)
+      for (let x = Math.max(0, Math.floor(gx - R * 1.6)); x < Math.min(GW, gx + R * 1.6); x++) {
+        const d2 = ((x + .5 - gx) ** 2 + (y + .5 - gy) ** 2) / (R * R);
+        F[type][y * GW + x] += peak * Math.exp(-d2 * 1.4);
+      }
+  }
+  function diffuse(F, dt, floorW) {
+    const D = 0.12 * dt;
+    for (const k of NUT) {
+      const a = F[k], t = F.tmp;
+      for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+        const i = y * GW + x, c = a[i];
+        const l = x > 0 ? a[i - 1] : c, r = x < GW - 1 ? a[i + 1] : c, u = y > 0 ? a[i - GW] : c, d = y < GH - 1 ? a[i + GW] : c;
+        t[i] = c + D * (l + r + u + d - 4 * c);
+      }
+      a.set(t);
+    }
+    if (floorW) for (let i = 0; i < F.w.length; i++) if (F.w[i] < floorW) F.w[i] += (floorW - F.w[i]) * dt * 0.5;
+  }
+  // concentração local (média ponderada 3×3) e consumo
+  function sample(F, x, y) {
+    const gx = clamp(Math.floor(x / CELL), 1, GW - 2), gy = clamp(Math.floor(y / CELL), 1, GH - 2), o = { g: 0, l: 0, w: 0 };
+    for (const k of NUT) { let s = 0; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) s += F[k][(gy + j) * GW + gx + i] * (i || j ? 1 : 4); o[k] = s / 12; }
+    return o;
+  }
+  const CONS = 0.55;
+  function consume(F, x, y, up, dt) {
+    const gx = clamp(Math.floor(x / CELL), 1, GW - 2), gy = clamp(Math.floor(y / CELL), 1, GH - 2);
+    for (const k of NUT) {
+      const amt = up[k] * dt * CONS; if (amt <= 0) continue;
+      let tot = 0; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) tot += F[k][(gy + j) * GW + gx + i];
+      if (tot <= 0) continue;
+      const f = Math.min(1, amt / tot);
+      for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) F[k][(gy + j) * GW + gx + i] *= 1 - f;
+    }
+  }
+  const total = (F, k) => { let s = 0; for (const v of F[k]) s += v; return s; };
+
+  // ---------------- cepas ----------------
+  const STRAINS = {
+    wt:      { n: 'Selvagem', geno: () => G(), col: '#7bd389' },
+    ances:   { n: 'Ancestral (sem regulação)', geno: () => G({ lacMode: 'auto', lacI: '-', capSite: false }), col: '#9aa7b0' },
+    lacIc:   { n: 'Sempre ligada (lacI−)', geno: () => G({ lacI: '-', capSite: false }), col: '#ff9f43' },
+    lacI:    { n: 'Sempre ligada (lacI−)', geno: () => G({ lacI: '-' }), col: '#ff9f43' },
+    lacZ:    { n: 'Sem lac (lacZ−)', geno: () => G({ lacZ: '-' }), col: '#a29bfe' },
+    noCAP:   { n: 'Sem CAP (ancestral)', geno: () => G({ capSite: false }), col: '#74b9ff' },
+    crp:     { n: 'crp−', geno: () => G({ crp: '-' }), col: '#e17055' },
+    trpC:    { n: 'Sempre fabrica Trp (trpR− sem atenuador)', geno: () => G({ trpR: '-', atten: false }), col: '#fd79a8' },
+    trpR:    { n: 'trpR−', geno: () => G({ trpR: '-' }), col: '#fd79a8' },
+    trpE:    { n: 'Auxotrófica (trpE−)', geno: () => G({ trpE: '-' }), col: '#00cec9' },
+  };
+  function newRival(key, x, y) { const S = STRAINS[key], c = newCell(S.geno(), x, y); c.rival = key; c.name = S.n; c.col = S.col; c.think = 0; c.tx = x; c.ty = y; return c; }
+
+  // ---------------- fases ----------------
+  // spawn(W, t, dt): decide quando aparecem nuvens de nutrientes
+  function keep(W, k, target, opts = {}) {
+    W.cool = W.cool || {};
+    if ((W.cool[k] || 0) > W.t) return;
+    if (total(W.F, k) < target) {
+      const r = opts.r || rnd(60, 95), x = rnd(r, AW - r), y = rnd(r, AH - r);
+      blob(W.F, k, x, y, r, opts.peak || rnd(1.6, 2.4));
+      if (opts.mix) for (const [m, f] of Object.entries(opts.mix)) blob(W.F, m, x, y, r, (opts.peak || 2) * f);
+      W.cool[k] = W.t + (opts.gap || 6);
+    }
+  }
+  const LEVELS = [
+    { id: 1, title: 'Primeira refeição', sub: 'Glicose, ATP e divisão', T: 90, goal: 7, geno: () => G({ lacMode: 'manual' }), lacLocked: true, trpHidden: true,
+      floorW: 0.9, rivals: ['wt', 'wt'],
+      start(W) { for (let i = 0; i < 3; i++) blob(W.F, 'g', rnd(150, 810), rnd(120, 450), 80, 2); },
+      spawn(W) { keep(W, 'g', 260, { gap: 5 }); },
+      intro: `<p>Você é uma <b>Escherichia coli</b> no intestino. A <b style="color:var(--glc)">glicose</b> (nuvens amarelas) é a comida preferida: entra pelo sistema PTS e vira ATP.</p>
+        <p>Com ATP sobrando, a célula cresce e se <b>divide em duas</b>. Fique em cima da comida, mas cuidado: as cepas rivais também comem, e nadar gasta energia.</p>
+        <p class="meta">Clique ou toque no campo para nadar até lá (ou use WASD/setas). Espaço pausa.</p>`,
+      lesson: 'fissao' },
+    { id: 2, title: 'Liga e desliga', sub: 'O óperon lac na mão', T: 150, goal: 11, geno: () => G({ lacMode: 'manual' }), trpHidden: true,
+      floorW: 0.9, rivals: ['lacIc', 'lacZ'],
+      start(W) { blob(W.F, 'g', 300, 290, 90, 2); blob(W.F, 'l', 700, 260, 100, 2.2); },
+      spawn(W) { keep(W, 'l', 320, { gap: 6, r: 100 }); keep(W, 'g', 110, { gap: 14 }); },
+      intro: `<p>Agora há também <b style="color:var(--lac)">lactose</b> (nuvens brancas), o açúcar do leite. Para usá-la, a célula precisa de duas proteínas do <b>óperon lac</b>: a permease <b>LacY</b>, que põe a lactose para dentro, e a <b>β-galactosidase (LacZ)</b>, que a quebra em glicose e galactose.</p>
+        <p>Nesta linhagem antiga o óperon ainda não tem regulação: <b>você liga e desliga</b> no painel (ou com a tecla <b>L</b>). Fabricar RNA e proteína custa ATP, e as enzimas levam alguns segundos para acumular.</p>
+        <p class="meta">Rivais: uma cepa com o lac sempre ligado e outra que não tem β-galactosidase.</p>`,
+      lesson: 'operon' },
+    { id: 3, title: 'O repressor', sub: 'Indução pela alolactose', T: 150, goal: 11, geno: () => G({ capSite: false }), trpHidden: true,
+      floorW: 0.9, rivals: ['lacIc', 'lacZ'], muts: [[55, ['lacI-', 'lacOc']]],
+      start(W) { blob(W.F, 'l', 300, 290, 100, 2.2); blob(W.F, 'g', 720, 300, 80, 2); },
+      spawn(W) { keep(W, 'l', 320, { gap: 6, r: 100 }); keep(W, 'g', 80, { gap: 14 }); },
+      intro: `<p>Sua linhagem evoluiu um interruptor automático. O gene <b>lacI</b> produz o <b>repressor LacI</b>, que se prende ao <b>operador (O)</b> e bloqueia a RNA polimerase.</p>
+        <p>Quando a lactose entra, a β-galactosidase converte um pouco dela em <b>alolactose</b>. A alolactose se liga ao repressor, que solta o DNA: o óperon é <b>induzido</b>. Sem lactose, ele volta a ser reprimido.</p>
+        <p>Detalhe importante: um pouco de expressão "vazada" é essencial. Sem nenhuma permease, a lactose nem entraria para induzir.</p>
+        <p class="meta">Agora é só nadar: o painel mostra o repressor trabalhando. Fique de olho em mutações!</p>`,
+      lesson: 'inducao' },
+    { id: 4, title: 'Glicose primeiro', sub: 'CAP, AMPc e diauxia', T: 160, goal: 13, geno: () => G(), trpHidden: true,
+      floorW: 0.9, rivals: ['noCAP', 'lacIc'], muts: [[70, ['cya-', 'crp-']]],
+      start(W) { blob(W.F, 'g', 330, 290, 95, 2); blob(W.F, 'l', 330, 290, 95, 2); blob(W.F, 'l', 760, 200, 90, 2.2); },
+      spawn(W) { keep(W, 'l', 300, { gap: 7, r: 95 }); keep(W, 'g', 120, { gap: 10, mix: { l: 1 } }); },
+      intro: `<p>Com glicose e lactose juntas, vale a pena comer a glicose primeiro: é mais barata. A célula sabe disso graças à <b>repressão catabólica</b>.</p>
+        <p>Sem glicose, sobe o <b>AMPc</b>. O AMPc se liga à proteína <b>CAP</b>, que se prende perto do promotor lac e ajuda a RNA polimerase. Com glicose, o AMPc cai, a CAP solta e o óperon fica fraco. A glicose ainda atrapalha a entrada da lactose (<b>exclusão do indutor</b>).</p>
+        <p>Resultado: numa nuvem mista, a célula come a glicose, faz uma pausa e só então liga o lac. É a <b>diauxia</b> que Jacques Monod viu em 1941.</p>`,
+      lesson: 'cap' },
+    { id: 5, title: 'Triptofano', sub: 'Fabricar ou importar?', T: 150, goal: 11, geno: () => G({ trpMode: 'manual' }),
+      floorW: 0, rivals: ['trpC', 'trpE'],
+      start(W) { blob(W.F, 'g', 300, 300, 100, 2); blob(W.F, 'g', 700, 260, 90, 2); blob(W.F, 'w', 650, 400, 70, 2); },
+      spawn(W) { keep(W, 'g', 330, { gap: 5 }); keep(W, 'w', 60, { gap: 20, r: 65, peak: 1.7 }); keep(W, 'l', 120, { gap: 12 }); },
+      intro: `<p>Toda proteína precisa de <b>triptofano (Trp)</b>. Se houver Trp no ambiente (<b style="color:var(--trp)">nuvens roxas</b>), basta importar. Se não houver, a célula fabrica com as cinco enzimas do <b>óperon trp</b> (trpE, D, C, B e A), gastando bastante energia.</p>
+        <p>Nesta linhagem o óperon trp ainda não se regula sozinho: ligue (<b>T</b>) quando faltar Trp e desligue quando houver Trp por perto. Sem Trp dentro da célula, o crescimento para.</p>
+        <p class="meta">O óperon lac agora é o selvagem completo e funciona sozinho.</p>`,
+      lesson: 'trp' },
+    { id: 6, title: 'Repressão e atenuação', sub: 'O óperon trp automático', T: 160, goal: 14, geno: () => G(),
+      floorW: 0, rivals: ['trpC', 'trpE'], muts: [[60, ['trpR-', 'attD']]],
+      start(W) { blob(W.F, 'g', 300, 300, 100, 2); blob(W.F, 'w', 300, 300, 90, 1.6); blob(W.F, 'g', 720, 250, 90, 2); },
+      spawn(W) { keep(W, 'g', 330, { gap: 5 }); keep(W, 'w', 110, { gap: 14, r: 80, peak: 1.8 }); keep(W, 'l', 120, { gap: 12 }); },
+      intro: `<p>O óperon trp é <b>reprimível</b>: o próprio Trp se liga ao <b>repressor TrpR</b>, que só então se prende ao operador. Muito Trp, óperon desligado.</p>
+        <p>E há um ajuste fino, a <b>atenuação</b>. O RNA líder (trpL) tem dois códons de Trp seguidos. Com Trp sobrando, o ribossomo passa rápido e o RNA forma o grampo <b>terminador 3:4</b>: a transcrição para. Com pouco Trp, o ribossomo empaca nesses códons, forma-se o <b>antiterminador 2:3</b> e a transcrição segue.</p>`,
+      lesson: 'atenuacao' },
+    { id: 7, title: 'Intestino', sub: 'Tudo junto, com refeições e mutações', T: 200, goal: 17, geno: () => G(),
+      floorW: 0, rivals: ['wt', 'lacI', 'trpR', 'crp'], muts: [[50, 'any'], [120, 'any']], meals: true,
+      start(W) { blob(W.F, 'g', 260, 280, 90, 2); blob(W.F, 'w', 260, 280, 80, 1.4); blob(W.F, 'l', 720, 300, 100, 2); },
+      spawn(W) {
+        W.meal = W.meal || { next: 8, cur: null };
+        if (W.t >= W.meal.next) {
+          const m = pick(MEALS); W.meal.cur = m; W.meal.next = W.t + rnd(22, 30); m.go(W); W.onMeal && W.onMeal(m);
+        }
+      },
+      intro: `<p>Agora é a vida real: o intestino de um humano que come, bebe leite, faz jejum. As refeições mudam o que está disponível, e as rivais disputam cada molécula.</p>
+        <p>Seu genoma tem tudo: lac com repressor e CAP, trp com repressor e atenuação. Mas mutações acontecem. Diagnostique e corrija rápido.</p>`,
+      lesson: null },
+  ];
+  const MEALS = [
+    { n: '🥛 Café com leite', d: 'Muita lactose e um pouco de glicose.', go(W) { for (let i = 0; i < 3; i++) blob(W.F, 'l', rnd(120, 840), rnd(100, 470), 95, 2.2); blob(W.F, 'g', rnd(120, 840), rnd(100, 470), 70, 1.6); } },
+    { n: '🍗 Almoço com frango', d: 'Glicose e muito triptofano.', go(W) { for (let i = 0; i < 3; i++) { const x = rnd(120, 840), y = rnd(100, 470); blob(W.F, 'g', x, y, 90, 2); blob(W.F, 'w', x + rnd(-60, 60), y + rnd(-60, 60), 70, 1.8); } } },
+    { n: '🍞 Pão e suco', d: 'Glicose, e só.', go(W) { for (let i = 0; i < 4; i++) blob(W.F, 'g', rnd(120, 840), rnd(100, 470), 85, 2); } },
+    { n: '🍦 Sorvete', d: 'Glicose e lactose misturadas.', go(W) { for (let i = 0; i < 3; i++) { const x = rnd(120, 840), y = rnd(100, 470); blob(W.F, 'g', x, y, 85, 1.8); blob(W.F, 'l', x, y, 85, 2); } } },
+    { n: '😴 Jejum', d: 'Nada chega por um tempo. Economize.', go(W) { } },
+  ];
+  const FREE = { id: 8, title: 'Desafio livre', sub: 'Quantas divisões em 4 minutos?', T: 240, goal: 20, geno: () => G(), floorW: 0, rivals: ['wt', 'wt', 'lacI', 'trpR'], muts: [[40, 'any'], [100, 'any'], [170, 'any']], meals: true,
+    start: LEVELS[6].start, spawn: LEVELS[6].spawn, intro: '<p>Modo livre: refeições aleatórias, quatro rivais e três mutações. Bata o seu recorde!</p>', lesson: null };
+
+  // ---------------- mutações ----------------
+  const MUT = {
+    'lacI-': { n: 'lacI⁻', fam: 'lac', apply: g => { g.lacI = '-'; }, fix: g => { g.lacI = '+'; }, sym: 'O óperon lac parece ligado o tempo todo.',
+      ex: 'Sem repressor, o lac é <b>constitutivo</b>. A mutação é <b>recessiva</b>: o F′ com lacI⁺ fabrica repressor, que é difusível e age em trans, restaurando a regulação.' },
+    'lacOc': { n: 'lacOᶜ', fam: 'lac', apply: g => { g.lacO = 'c'; }, fix: g => { g.lacO = '+'; }, sym: 'O óperon lac parece ligado o tempo todo.',
+      ex: 'O operador mutado não é reconhecido pelo repressor: lac <b>constitutivo</b>. É <b>cis-dominante</b>: o F′ não corrige, porque o repressor extra também não consegue se prender ao operador do cromossomo.' },
+    'lacIs': { n: 'lacIˢ', fam: 'lac', apply: g => { g.lacI = 's'; }, fix: g => { g.lacI = '+'; }, sym: 'A lactose não consegue mais ligar o óperon.',
+      ex: 'Super-repressor: não reconhece a alolactose nem o IPTG e fica sempre preso ao operador. É <b>dominante</b>: bloqueia também o óperon do F′.' },
+    'lacZ-': { n: 'lacZ⁻', fam: 'lac', apply: g => { g.lacZ = '-'; }, fix: g => { g.lacZ = '+'; }, sym: 'A lactose não rende energia.',
+      ex: 'Sem β-galactosidase não há energia da lactose nem alolactose (por isso a lactose não induz). O IPTG induz a permease, e o F′ com lacZ⁺ complementa.' },
+    'lacY-': { n: 'lacY⁻', fam: 'lac', apply: g => { g.lacY = '-'; }, fix: g => { g.lacY = '+'; }, sym: 'A lactose não rende energia.',
+      ex: 'Sem permease, a lactose quase não entra. Com IPTG a β-galactosidase aparece, mas sem LacY a célula não usa lactose.' },
+    'crp-': { n: 'crp⁻', fam: 'lac', apply: g => { g.crp = '-'; }, fix: g => { g.crp = '+'; }, sym: 'O óperon lac fica fraco mesmo sem glicose.',
+      ex: 'Sem a proteína CAP, o promotor lac fica fraco. Adicionar AMPc não resolve, e o F′ lac também não, porque o gene crp fica em outra região do cromossomo.' },
+    'cya-': { n: 'cya⁻', fam: 'lac', apply: g => { g.cya = '-'; }, fix: g => { g.cya = '+'; }, sym: 'O óperon lac fica fraco mesmo sem glicose.',
+      ex: 'Sem adenilato ciclase não há AMPc, e a CAP fica inativa. <b>Adicionar AMPc ao meio</b> restaura a expressão: a CAP está boa, falta só o sinal.' },
+    'trpR-': { n: 'trpR⁻', fam: 'trp', apply: g => { g.trpR = '-'; }, fix: g => { g.trpR = '+'; }, sym: 'As enzimas do Trp continuam altas mesmo com Trp sobrando.',
+      ex: 'Sem repressor, o trp não desliga com Trp; só a atenuação reduz um pouco (cerca de 10 vezes, contra ~100 vezes com os dois juntos).' },
+    'attD': { n: 'trpL∆ (sem atenuador)', fam: 'trp', apply: g => { g.atten = false; }, fix: g => { g.atten = true; }, sym: 'As enzimas do Trp continuam altas mesmo com Trp sobrando.',
+      ex: 'Sem o atenuador, a resposta fica só por conta do repressor: com Trp há um pouco mais de enzima do que no selvagem, e sem Trp a expressão sobe mais.' },
+    'trpE-': { n: 'trpE⁻', fam: 'trp', apply: g => { g.trpE = '-'; }, fix: g => { g.trpE = '+'; }, sym: 'O crescimento para quando não há Trp por perto.',
+      ex: 'Sem a primeira enzima da via, a célula não fabrica Trp: é <b>auxotrófica</b>. Só cresce com Trp no meio. Sem Trp, as enzimas restantes ficam altas, porque falta o correpressor.' },
+  };
+  const MUT_POOL = { lac: ['lacI-', 'lacOc', 'lacIs', 'lacZ-', 'lacY-', 'crp-', 'cya-'], trp: ['trpR-', 'attD', 'trpE-'] };
+  // =====================================================================
+  // DESENHO: arena (canvas), óperons (SVG animado) e gráfico
+  // =====================================================================
+  const NCOL = { g: [255, 196, 60], l: [235, 245, 255], w: [205, 95, 255] };
+  const off = document.createElement('canvas'); off.width = GW; off.height = GH;
+  const offx = off.getContext('2d'), img = offx.createImageData(GW, GH);
+  const PARTS = Array.from({ length: 320 }, (_, i) => ({ x: Math.random() * AW, y: Math.random() * AH, k: NUT[i % 3], ph: Math.random() * 6.28, r: rnd(.7, 1.2) }));
+  function drawField(ctx, F, t, floorW = 0) {
+    const d = img.data;
+    for (let i = 0; i < GW * GH; i++) {
+      let r = 8, g = 28, b = 38;
+      for (const k of NUT) { const v = k === 'w' ? Math.max(0, F[k][i] - floorW) + floorW * .12 : F[k][i]; const a = Math.min(1, v / 1.1) * (k === 'l' ? .6 : k === 'g' ? .85 : .75); const C = NCOL[k]; r += (C[0] - r) * a; g += (C[1] - g) * a; b += (C[2] - b) * a; }
+      d[i * 4] = r; d[i * 4 + 1] = g; d[i * 4 + 2] = b; d[i * 4 + 3] = 255;
+    }
+    offx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(off, 0, 0, AW, AH);
+    // moléculas
+    for (const p of PARTS) {
+      let c = F[p.k][clamp(Math.floor(p.y / CELL), 0, GH - 1) * GW + clamp(Math.floor(p.x / CELL), 0, GW - 1)];
+      if (p.k === 'w') c -= floorW * .85;
+      if (c < 0.12) continue;
+      const a = Math.min(.9, c / 1.4), x = p.x + Math.sin(t * .7 + p.ph) * 4, y = p.y + Math.cos(t * .6 + p.ph) * 4;
+      ctx.globalAlpha = a; ctx.save(); ctx.translate(x, y); ctx.rotate(p.ph + t * .2); ctx.scale(p.r, p.r);
+      if (p.k === 'g') { hexPath(ctx, 0, 0, 4.2); ctx.fillStyle = '#ffd34d'; ctx.fill(); ctx.strokeStyle = '#8a5a00'; ctx.lineWidth = 1; ctx.stroke(); }
+      else if (p.k === 'l') { hexPath(ctx, -4, 0, 3.6); ctx.fillStyle = '#ffd34d'; ctx.fill(); ctx.stroke(); hexPath(ctx, 4, 0, 3.6); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.strokeStyle = '#557'; ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, 6.28); ctx.fillStyle = '#d070ff'; ctx.fill(); ctx.beginPath(); ctx.arc(3.6, -2.5, 2.3, 0, 6.28); ctx.fillStyle = '#9b3fd6'; ctx.fill(); }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function hexPath(ctx, x, y, r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } ctx.closePath(); }
+
+  function drawCell(ctx, c, t, me) {
+    const L = 40 * (0.85 + 0.15 * c.B), Wd = 18;
+    ctx.save(); ctx.translate(c.x, c.y);
+    if (me) { ctx.beginPath(); ctx.arc(0, 0, 32, 0, 6.28); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.setLineDash([4, 5]); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.rotate(c.ang);
+    // flagelos
+    ctx.strokeStyle = 'rgba(220,240,240,.55)'; ctx.lineWidth = 1.3;
+    for (let f = -1; f <= 1; f++) { ctx.beginPath(); for (let i = 0; i <= 14; i++) { const x = -L / 2 - i * 2.2, y = f * 4 + Math.sin(i * .8 - t * 18 + f) * 2.6; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); }
+    // corpo
+    const starving = c.atp < 4 || c.trpIn < 0.05;
+    ctx.beginPath(); ctx.roundRect(-L / 2, -Wd / 2, L, Wd, Wd / 2);
+    ctx.fillStyle = me ? '#c8f7a0' : c.col; ctx.globalAlpha = .92; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.lineWidth = me ? 2.5 : 1.6; ctx.strokeStyle = starving ? `rgba(255,70,70,${.6 + .4 * Math.sin(t * 8)})` : '#14313a'; ctx.stroke();
+    // permeases na membrana
+    const ny = Math.round(clamp(c.geno.lacY === '+' ? c.Y : 0, 0, 1.2) * 7);
+    ctx.fillStyle = '#2f80ff';
+    for (let i = 0; i < ny; i++) { const s = i % 2 ? -1 : 1, x = -L / 2 + 6 + (i >> 1) * ((L - 12) / 3.5); ctx.fillRect(x - 2, s * Wd / 2 - 2, 4, 4); }
+    // nucleoide e enzimas
+    ctx.strokeStyle = 'rgba(40,70,60,.5)'; ctx.lineWidth = 1; ctx.beginPath(); for (let i = 0; i <= 10; i++) { const x = -8 + i * 1.6, y = Math.sin(i * 1.3) * 2; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+    const nz = Math.round(clamp(c.geno.lacZ === '+' ? c.Z : 0, 0, 1.2) * 5), nt = Math.round(clamp(c.geno.trpE === '+' ? c.PT : 0, 0, 1) * 4);
+    for (let i = 0; i < nz; i++) { ctx.beginPath(); ctx.arc(-L / 2 + 9 + i * 4.4, -3, 2, 0, 6.28); ctx.fillStyle = '#ff9a1f'; ctx.fill(); }
+    for (let i = 0; i < nt; i++) { ctx.beginPath(); ctx.arc(L / 2 - 9 - i * 4.4, 3, 2, 0, 6.28); ctx.fillStyle = '#c04bff'; ctx.fill(); }
+    ctx.restore();
+    // rótulo
+    ctx.font = '700 11px system-ui'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)';
+    const lab = me ? `você · ${c.div}` : `${c.div}`;
+    ctx.strokeText(lab, c.x, c.y - 24); ctx.fillStyle = me ? '#fff' : c.col; ctx.fillText(lab, c.x, c.y - 24);
+    // barra de ATP
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(c.x - 16, c.y + 18, 32, 5);
+    ctx.fillStyle = c.atp > 20 ? '#ffd166' : c.atp > 6 ? '#ff9f43' : '#ff5252'; ctx.fillRect(c.x - 16, c.y + 18, 32 * c.atp / 100, 5);
+  }
+
+  function drawArena(ctx, W, t) {
+    drawField(ctx, W.F, t, W.L.floorW || 0);
+    for (const g of W.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 1.5) * .7; drawCell(ctx, g, t, false); }
+    ctx.globalAlpha = 1;
+    if (W.target) { ctx.beginPath(); ctx.arc(W.target.x, W.target.y, 7 + Math.sin(t * 6) * 2, 0, 6.28); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2; ctx.stroke(); }
+    for (const r of W.rivals) drawCell(ctx, r, t, false);
+    drawCell(ctx, W.me, t, true);
+    for (const p of W.pops) { ctx.globalAlpha = Math.max(0, p.life); ctx.font = '800 15px system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = p.col; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 3; ctx.strokeText(p.txt, p.x, p.y); ctx.fillText(p.txt, p.x, p.y); }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------- óperons em SVG ----------------
+  function geneBox(x0, x1, y, lab, col, dashed, extra = '') {
+    return `<g ${extra}><rect x="${x0}" y="${y - 13}" width="${x1 - x0}" height="26" rx="5" fill="${dashed ? 'none' : col}" stroke="${dashed ? '#5d8590' : '#0a1d24'}" stroke-width="${dashed ? 1.5 : 1.2}" ${dashed ? 'stroke-dasharray="5 4"' : ''}/><text x="${(x0 + x1) / 2}" y="${y + 4.5}" class="gl" ${dashed ? 'fill="#7fa7b0"' : ''}>${lab}</text></g>`;
+  }
+  const RNAP = id => `<g id="${id}" class="rnap" opacity="0"><ellipse rx="15" ry="11" fill="#4aa3ff" stroke="#0b2a47" stroke-width="1.5"/><text y="4" class="pl">RNAP</text></g>`;
+  function operonSVG(g) {
+    const lacMan = g.lacMode === 'manual', capQ = !g.capSite, trpMan = g.trpMode === 'manual';
+    const yL = 74, yT = 196;
+    let s = `<svg class="ops" viewBox="0 0 700 250">
+      <text x="8" y="16" class="oh">óperon lac</text><text x="8" y="138" class="oh">óperon trp</text>
+      <line x1="8" y1="${yL}" x2="690" y2="${yL}" class="dna"/><line x1="8" y1="${yT}" x2="690" y2="${yT}" class="dna"/>
+      ${geneBox(16, 92, yL, 'lacI', '#b8a3e6', lacMan)}
+      ${geneBox(140, 176, yL, 'CAP', '#ffbe76', lacMan || capQ)}
+      ${geneBox(176, 216, yL, 'P', '#7bd389', false)}
+      ${geneBox(216, 252, yL, 'O', '#ff8a8a', lacMan)}
+      ${geneBox(252, 452, yL, 'lacZ', '#6fb7ff', false)}
+      ${geneBox(452, 566, yL, 'lacY', '#5ad1c3', false)}
+      ${geneBox(566, 640, yL, 'lacA', '#a7b5bb', false)}
+      <path id="mrnaL" d="M216 ${yL + 26} ${Array.from({ length: 22 }, (_, i) => `L${216 + i * 20} ${yL + 26 + (i % 2 ? 5 : -5)}`).join(' ')}" class="mrna" opacity="0"/>
+      <g id="riboL" opacity="0">${[0, 1, 2].map(i => `<circle class="ribo" cx="${0}" cy="${yL + 26}" r="6" data-i="${i}"/>`).join('')}</g>
+      ${RNAP('rnL0')}${RNAP('rnL1')}${RNAP('rnL2')}
+      <g id="capG" opacity="0" transform="translate(158 ${yL - 22})"><circle r="10" fill="#ff9f1c" stroke="#5a3200" stroke-width="1.5"/><circle cx="8" cy="-8" r="4.5" fill="#fff3b0" stroke="#5a3200"/><text y="4" class="pl">CAP</text></g>
+      <g id="repL" opacity="${lacMan ? 0 : 1}"><g id="repLb"><rect x="-22" y="-13" width="20" height="24" rx="7" fill="#9b6dff" stroke="#2c0f6b" stroke-width="1.5"/><rect x="2" y="-13" width="20" height="24" rx="7" fill="#9b6dff" stroke="#2c0f6b" stroke-width="1.5"/>
+        <text y="4" class="pl">LacI</text>${[[-14, -16], [-4, -17], [6, -17], [16, -16]].map(([x, y], i) => `<polygon class="allo" data-i="${i}" points="${x},${y - 5} ${x + 4},${y + 2} ${x - 4},${y + 2}" fill="#fff" stroke="#556" opacity="0"/>`).join('')}</g></g>
+      ${lacMan ? `<text x="54" y="${yL - 22}" class="miss">ainda não existe</text>` : ''}
+      ${capQ && !lacMan ? `<text x="158" y="${yL - 22}" class="miss">sem CAP</text>` : ''}
+
+      ${geneBox(16, 92, yT, 'trpR', '#88e0a0', trpMan)}
+      <text x="54" y="${yT + 28}" class="tiny">(outro locus)</text>
+      ${geneBox(140, 184, yT, 'P', '#7bd389', false)}
+      ${geneBox(184, 220, yT, 'O', '#ff8a8a', trpMan)}
+      ${geneBox(220, 280, yT, 'trpL', '#ffe08a', trpMan)}
+      ${['E', 'D', 'C', 'B', 'A'].map((k, i) => geneBox(280 + i * 72, 352 + i * 72, yT, 'trp' + k, ['#e98bd8', '#df7fd0', '#d574c8', '#cb6ac0', '#c160b8'][i], false)).join('')}
+      <path id="mrnaT" d="M184 ${yT + 26} ${Array.from({ length: 24 }, (_, i) => `L${184 + i * 20} ${yT + 26 + (i % 2 ? 5 : -5)}`).join(' ')}" class="mrna" opacity="0"/>
+      ${RNAP('rnT0')}${RNAP('rnT1')}${RNAP('rnT2')}
+      <g id="repT" opacity="${trpMan ? 0 : 1}"><g id="repTb"><rect x="-20" y="-12" width="40" height="22" rx="9" fill="#3fbf6f" stroke="#0d4a24" stroke-width="1.5"/><text y="4" class="pl">TrpR</text>
+        ${[-9, 9].map((x, i) => `<circle class="trpd" data-i="${i}" cx="${x}" cy="-15" r="4.5" fill="#d070ff" stroke="#4a1470" opacity="0"/>`).join('')}</g></g>
+      <g id="attG" opacity="${trpMan ? 0 : 1}" transform="translate(250 ${yT - 22})">
+        <g id="att34"><path d="M-14 8 C -14 -16, 14 -16, 14 8" fill="none" stroke="#ff5a5a" stroke-width="4"/><path d="M-8 8 C -8 -8, 8 -8, 8 8" fill="none" stroke="#ff5a5a" stroke-width="2" opacity=".6"/><text y="-17" class="pl" fill="#ff8a8a">3:4 PARE</text></g>
+        <g id="att23" opacity="0"><path d="M-16 8 C -16 -6, -2 -6, -2 8" fill="none" stroke="#7bd389" stroke-width="4"/><text y="-12" class="pl" fill="#a8f0bc">2:3 segue</text></g>
+      </g>
+      ${trpMan ? `<text x="54" y="${yT - 22}" class="miss">ainda não existe</text><text x="250" y="${yT - 24}" class="miss">sem atenuação</text>` : ''}
+    </svg>`;
+    return s;
+  }
+  // animação dos óperons
+  const OPA = { lac: [0, .33, .66], trp: [0, .33, .66] };
+  function updateOperons(c, t, dt) {
+    const root = $('#ops'); if (!root || !c.lacInfo) return;
+    const L = c.lacInfo, T = c.trpInfo, g = c.geno;
+    const txL = Math.min(1, L.chr), txT = T.tx;
+    // RNA polimerases andando
+    const run = (pre, tx, x0, x1, y, key, blockX) => {
+      const n = tx > .6 ? 3 : tx > .25 ? 2 : tx > .06 ? 1 : 0;
+      for (let i = 0; i < 3; i++) {
+        const el = root.querySelector('#' + pre + i); if (!el) continue;
+        if (i < n) { OPA[key][i] = (OPA[key][i] + dt * (0.18 + tx * 0.25)) % 1; const x = x0 + (x1 - x0) * OPA[key][i]; el.setAttribute('transform', `translate(${x} ${y - 18})`); el.setAttribute('opacity', '1'); }
+        else if (i === 0 && n === 0) { el.setAttribute('transform', `translate(${blockX} ${y - 18})`); el.setAttribute('opacity', '.55'); }
+        else el.setAttribute('opacity', '0');
+      }
+    };
+    run('rnL', txL, 200, 640, 74, 'lac', 196);
+    run('rnT', txT, 170, 640, 196, 'trp', 162);
+    root.querySelector('#mrnaL').setAttribute('opacity', clamp(c.mL / 1.6, 0, .9).toFixed(2));
+    root.querySelector('#mrnaT').setAttribute('opacity', clamp(c.mT / 1.6, 0, .9).toFixed(2));
+    const rib = root.querySelector('#riboL'); rib.setAttribute('opacity', clamp(c.mL / 1.2, 0, 1).toFixed(2));
+    rib.querySelectorAll('circle').forEach((e, i) => e.setAttribute('cx', 240 + ((t * 60 + i * 140) % 400)));
+    // repressor lac
+    if (g.lacMode === 'auto') {
+      const rep = root.querySelector('#repL'), b = root.querySelector('#repLb');
+      if (!L.repPresent) rep.setAttribute('opacity', '0');
+      else {
+        rep.setAttribute('opacity', '1');
+        const bound = L.occ > .5, oc = g.lacO === 'c';
+        const y = bound ? 74 - 2 : 30 + Math.sin(t * 2) * 3, x = bound ? 234 : (oc ? 300 : 234) + Math.sin(t * 1.3) * 6;
+        b.setAttribute('transform', `translate(${x} ${y})`);
+        const nA = Math.round((L.hasS ? Math.min(.5, L.induced) : L.induced) * 4);
+        b.querySelectorAll('.allo').forEach((e, i) => e.setAttribute('opacity', i < nA ? (L.hasS && bound ? '.45' : '1') : '0'));
+      }
+      root.querySelector('#capG').setAttribute('opacity', g.capSite && L.cap > .45 ? '1' : '0');
+    }
+    // trp
+    if (g.trpMode === 'auto') {
+      const rep = root.querySelector('#repT'), b = root.querySelector('#repTb');
+      if (g.trpR !== '+') rep.setAttribute('opacity', '0');
+      else {
+        rep.setAttribute('opacity', '1'); const bound = T.occ > .5;
+        b.setAttribute('transform', `translate(${bound ? 202 : 202 + Math.sin(t * 1.4) * 8} ${bound ? 194 : 152 + Math.sin(t * 2) * 3})`);
+        b.querySelectorAll('.trpd').forEach((e, i) => e.setAttribute('opacity', T.act > (i ? .6 : .3) ? '1' : '0'));
+      }
+      const ag = root.querySelector('#attG');
+      if (!g.atten) ag.setAttribute('opacity', '0');
+      else { ag.setAttribute('opacity', '1'); const go = T.read > .45; root.querySelector('#att34').setAttribute('opacity', go ? '0' : '1'); root.querySelector('#att23').setAttribute('opacity', go ? '1' : '0'); }
+    }
+  }
+
+  // ---------------- gráfico ----------------
+  const SERIES = [['atp', '#ffd166', 'ATP', v => v / 100], ['Z', '#6fb7ff', 'β-galactosidase', v => v / 1.3], ['PT', '#e98bd8', 'enzimas do Trp', v => v / 1.1], ['l', '#ffffff', 'lactose aqui', v => v / 2], ['w', '#b06bff', 'Trp aqui', v => v / 2], ['g', '#ffb020', 'glicose aqui', v => v / 2]];
+  function drawChart(cv, H) {
+    const ctx = cv.getContext('2d'), w = cv.width, h = cv.height; ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#0b2530'; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,.06)'; for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, h * i / 4); ctx.lineTo(w, h * i / 4); ctx.stroke(); }
+    if (H.length < 2) return;
+    const n = 240;
+    SERIES.forEach(([k, col, , f], si) => {
+      ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = si < 3 ? 2 : 1.2; ctx.setLineDash(si < 3 ? [] : [4, 3]);
+      H.slice(-n).forEach((p, i, a) => { const x = w - (a.length - 1 - i) * (w / n), y = h - 3 - clamp(f(p[k]), 0, 1) * (h - 8); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.stroke(); ctx.setLineDash([]);
+    });
+    // divisões
+    H.slice(-n).forEach((p, i, a) => { if (p.div) { const x = w - (a.length - 1 - i) * (w / n); ctx.fillStyle = '#7bd389'; ctx.fillRect(x - 1, 0, 2, 6); } });
+  }
+  // =====================================================================
+  // JOGO: estado, laço principal, interface, diagnóstico e lições
+  // =====================================================================
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const pct = v => Math.round(clamp(v, 0, 1) * 100) + '%';
+
+  const LESSONS = {
+    fissao: ['Crescimento bacteriano', 'A <i>E. coli</i> se divide por fissão binária. Em condições ótimas, a cada ~20 minutos: em 10 horas, uma célula pode virar mais de um bilhão. O ritmo depende da energia (ATP) e dos blocos de construção, como os aminoácidos.'],
+    operon: ['O que é um óperon', 'Genes vizinhos transcritos juntos, a partir de um único promotor, num só mRNA (policistrônico). No óperon lac: <b>lacZ</b> (β-galactosidase), <b>lacY</b> (permease) e <b>lacA</b> (transacetilase). François Jacob e Jacques Monod propuseram o modelo em 1961 e ganharam o Nobel em 1965, com André Lwoff. Fabricar proteína é caro: regular genes economiza energia.'],
+    inducao: ['Controle negativo induzível', 'O lac é <b>induzível</b> e de <b>controle negativo</b>: o repressor LacI desliga. O indutor (alolactose, ou o análogo IPTG) se liga ao repressor e muda sua forma (alosteria), e ele solta o operador. A expressão basal ("vazamento") permite a entrada do primeiro indutor.'],
+    cap: ['Controle positivo: CAP-AMPc', 'A CAP (ou CRP) ligada ao AMPc é um <b>ativador</b>: dobra o DNA e recruta a RNA polimerase para o promotor lac, que é fraco sozinho. Glicose baixa → AMPc alto → lac forte. Com dois controles (LacI e CAP), o óperon só fica realmente ligado com lactose <b>e</b> sem glicose. A diauxia foi descrita por Monod em 1941.'],
+    trp: ['Fabricar custa caro', 'O triptofano é um dos aminoácidos mais caros de sintetizar. Por isso faz sentido desligar a via quando há Trp no ambiente: a célula importa o que encontra e só fabrica o que falta.'],
+    atenuacao: ['Repressão e atenuação', 'O trp é <b>reprimível</b>: o Trp atua como <b>correpressor</b> do TrpR. A <b>atenuação</b>, descoberta por Charles Yanofsky, acopla tradução e transcrição: a velocidade do ribossomo nos códons de Trp do líder decide qual grampo o RNA forma (terminador 3:4 ou antiterminador 2:3). Só funciona em bactérias, onde os dois processos acontecem ao mesmo tempo.'],
+    merodiploide: ['Merodiploides e o teste cis-trans', 'Jacob e Monod usaram plasmídeos <b>F′</b> com uma cópia extra do lac para criar células parcialmente diploides. Se o F′ corrige a mutação, ela é <b>recessiva</b> e o produto age em <b>trans</b> (é difusível, como uma proteína). Se não corrige, a mutação pode ser <b>cis-dominante</b> (afeta só o DNA vizinho, como o operador) ou <b>dominante</b> (um produto defeituoso que atrapalha o normal, como o super-repressor).'],
+    iptg: ['IPTG, o indutor gratuito', 'O IPTG se liga ao repressor como a alolactose, mas não é quebrado pela β-galactosidase. Por isso induz até mutantes lacZ⁻, e é usado até hoje para ligar genes clonados atrás do promotor lac.'],
+  };
+  const MUT_D = { 'lacI-': 'repressor lac ausente', 'lacOc': 'operador não reconhecido', 'lacIs': 'super-repressor (não solta)', 'lacZ-': 'sem β-galactosidase', 'lacY-': 'sem permease', 'crp-': 'sem proteína CAP', 'cya-': 'sem adenilato ciclase (sem AMPc)', 'trpR-': 'sem repressor trp', 'attD': 'sem atenuador', 'trpE-': 'sem a enzima TrpE' };
+  const DX = { 3: ['lacI-', 'lacOc', 'lacIs', 'lacZ-'], 4: ['lacI-', 'lacIs', 'lacZ-', 'crp-', 'cya-'], 6: ['trpR-', 'attD', 'trpE-'] };
+  const LAC_TESTS = [
+    ['base', 'Sem açúcar nenhum', {}],
+    ['lac', 'Com lactose', { lactose: true }],
+    ['iptg', 'Com IPTG (indutor gratuito)', { iptg: true }],
+    ['fp', 'F′ lac⁺ (merodiploide), sem indutor', { fprime: true }],
+    ['fpi', 'F′ lac⁺ com IPTG', { fprime: true, iptg: true }],
+    ['camp', 'Lactose + AMPc no meio', { lactose: true, camp: true }],
+  ];
+  const TRP_TESTS = [['tw', 'Com Trp no meio', { trp: true }], ['tn', 'Sem Trp no meio', { trp: false }]];
+
+  // ---------------- progresso salvo ----------------
+  const SAVE = 'operon-v1';
+  let prog = { stars: {}, best: {}, lessons: [] };
+  try { const p = JSON.parse(localStorage.getItem(SAVE)); if (p) prog = Object.assign(prog, p); } catch (e) {}
+  const save = () => { try { localStorage.setItem(SAVE, JSON.stringify(prog)); } catch (e) {} };
+  const learn = k => { if (k && !prog.lessons.includes(k)) { prog.lessons.push(k); save(); } };
+  const lessonHTML = k => k && LESSONS[k] ? `<div class="lesson"><b class="t">📘 ${LESSONS[k][0]}</b><br>${LESSONS[k][1]}</div>` : '';
+
+  // ---------------- som ----------------
+  const SONG = { bpm: 92, play(step, t, d) {
+    const CH = [[45, 52, 57], [41, 48, 53], [43, 50, 55], [40, 47, 52]], bar = Math.floor(step / 16) % 4, s = step % 16, ch = CH[bar];
+    if (s % 8 === 0) Sound.note(midi(ch[0]), t, d * 6, 'sine', .16);
+    if (s % 4 === 2) Sound.note(midi(ch[1] + 12), t, d * 1.2, 'triangle', .035);
+    if (s % 4 === 3) Sound.note(midi(ch[2] + 12), t, d * 1.2, 'triangle', .03);
+    const MEL = [69, 0, 72, 0, 76, 0, 74, 72, 0, 69, 0, 67, 69, 0, 0, 0];
+    if (MEL[s] && bar % 2 === 0) Sound.note(midi(MEL[s] + 12), t, d * 1.8, 'sine', .035);
+  } };
+  let musicOn = false;
+  const wake = () => { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONG); } };
+  const sfx = {
+    tick: () => Sound.tone(900, .03, { type: 'sine', vol: .05 }),
+    div: () => Sound.arp([76, 83, 88], .05, { type: 'sine', vol: .08, dur: .14 }),
+    rival: () => Sound.tone(330, .06, { type: 'sine', vol: .025 }),
+    sw: on => Sound.arp(on ? [60, 67] : [67, 60], .05, { type: 'square', vol: .05 }),
+    mut: () => { Sound.noise(.5, { freq: 300, sweep: 1600, vol: .12 }); Sound.arp([58, 57, 56], .14, { type: 'sawtooth', vol: .05, dur: .3, delay: .1 }); },
+    good: () => Sound.arp([72, 76, 79, 84], .08, { type: 'triangle', vol: .12, dur: .2 }),
+    bad: () => Sound.arp([55, 51], .12, { type: 'square', vol: .06, dur: .25 }),
+    test: () => Sound.arp([84, 79, 88], .04, { type: 'sine', vol: .05 }),
+    end: () => Sound.arp([60, 64, 67, 72, 76, 79, 84], .1, { type: 'triangle', vol: .12, dur: .3 }),
+    meal: () => Sound.arp([67, 71, 74], .09, { type: 'sine', vol: .07, dur: .25 }),
+  };
+
+  // ---------------- estado ----------------
+  let W = null, screen = 'menu', paused = false, speed = 1, modalOpen = false, keys = {}, lastT = 0, uiT = 0, chT = 0;
+
+  function startLevel(L) {
+    const me = newCell(L.geno(), AW / 2, AH / 2); me.lacOn = false; me.trpOn = true;
+    W = { L, F: newField(), t: 0, me, rivals: L.rivals.map((k, i) => newRival(k, 120 + (i % 2) * 720 + rnd(-40, 40), 110 + Math.floor(i / 2) * 340 + rnd(-30, 30))),
+      ghosts: [], pops: [], target: null, hist: [], histT: 0, mut: null, mutDone: [], mistakes: 0, tests: [], ended: false, banner: '', bannerT: 0, fixed: [] };
+    W.onMeal = m => { banner(`${m.n}: ${m.d}`, 5); sfx.meal(); };
+    L.start(W);
+    screen = 'play'; paused = false;
+    renderPlay();
+    openModal(`<h2>Fase ${L.id <= 7 ? L.id : '★'} · ${esc(L.title)}</h2><p class="meta">${esc(L.sub)}</p>${L.intro}
+      <p>🎯 Meta: <b>${L.goal} divisões</b> em ${L.T} segundos.</p>
+      <div class="btns"><button class="btn primary big" data-act="go">Começar</button><button class="btn" data-act="menu">Menu</button></div>`);
+  }
+
+  // ---------------- laço ----------------
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    const rdt = Math.min(0.05, (ts - lastT) / 1000 || 0); lastT = ts;
+    if (screen !== 'play' || !W) return;
+    const running = !paused && !modalOpen && !W.ended;
+    if (running) for (let i = 0; i < speed; i++) tick(rdt);
+    const cv = $('#arena'); if (!cv) return;
+    const ctx = cv.getContext('2d');
+    drawArena(ctx, W, W.t);
+    updateOperons(W.me, W.t, running ? rdt * speed : 0);
+    uiT += rdt; if (uiT > 0.12) { uiT = 0; updateUI(); }
+    chT += rdt; if (chT > 0.25) { chT = 0; const ch = $('#chart'); if (ch) drawChart(ch, W.hist); }
+  }
+  function tick(dt) {
+    if (W.ended) return;
+    W.t += dt;
+    const L = W.L, me = W.me;
+    L.spawn(W, dt);
+    diffuse(W.F, dt, L.floorW);
+    // movimento do jogador
+    let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+    if (dx || dy) W.target = null;
+    else if (W.target) { const ddx = W.target.x - me.x, ddy = W.target.y - me.y, d = Math.hypot(ddx, ddy); if (d < 6) W.target = null; else { dx = ddx / d; dy = ddy / d; } }
+    const n = Math.hypot(dx, dy), moving = n > 0;
+    if (moving) {
+      const sp = (me.atp > 0.5 ? 85 : 30) * dt; me.x = clamp(me.x + dx / n * sp, 14, AW - 14); me.y = clamp(me.y + dy / n * sp, 14, AH - 14);
+      me.ang = angLerp(me.ang, Math.atan2(dy, dx), dt * 8);
+    }
+    const env = sample(W.F, me.x, me.y), up = stepCell(me, env, dt, moving);
+    consume(W.F, me.x, me.y, up, dt);
+    if (up.divided) onDivide(me, true);
+    // rivais
+    for (const r of W.rivals) {
+      r.think -= dt;
+      if (r.think <= 0) { r.think = rnd(.45, .8); aiThink(r); }
+      const ddx = r.tx - r.x, ddy = r.ty - r.y, d = Math.hypot(ddx, ddy), mv = d > 8;
+      if (mv) { const sp = (r.atp > 0.5 ? 62 : 25) * dt; r.x += ddx / d * Math.min(sp, d); r.y += ddy / d * Math.min(sp, d); r.ang = angLerp(r.ang, Math.atan2(ddy, ddx), dt * 6); }
+      const e = sample(W.F, r.x, r.y), u = stepCell(r, e, dt, mv); consume(W.F, r.x, r.y, u, dt);
+      if (u.divided) onDivide(r, false);
+    }
+    for (const g of W.ghosts) { g.life -= dt; g.x += g.vx * dt; g.y += g.vy * dt; }
+    W.ghosts = W.ghosts.filter(g => g.life > 0);
+    for (const p of W.pops) { p.life -= dt * .8; p.y -= 18 * dt; }
+    W.pops = W.pops.filter(p => p.life > 0);
+    // mutações programadas
+    for (const [i, [tm, pool]] of (L.muts || []).entries()) {
+      if (W.t >= tm && !W.mutDone.includes(i) && !W.mut) { W.mutDone.push(i); mutate(pool); }
+    }
+    if (W.bannerT > 0) W.bannerT -= dt;
+    // histórico
+    W.histT += dt;
+    if (W.histT >= 0.25) { W.histT = 0; W.hist.push({ atp: me.atp, Z: me.geno.lacZ === '+' ? me.Z : 0, PT: me.PT, g: env.g, l: env.l, w: env.w, div: W._div }); W._div = false; if (W.hist.length > 400) W.hist.shift(); }
+    if (W.t >= L.T) endLevel();
+  }
+  const angLerp = (a, b, f) => { let d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + d * Math.min(1, f); };
+  function onDivide(c, me) {
+    const a = c.ang + Math.PI / 2 * (Math.random() < .5 ? 1 : -1);
+    W.ghosts.push({ ...c, stats: null, life: 1.5, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40, col: me ? '#c8f7a0' : c.col, div: c.div, geno: c.geno });
+    W.pops.push({ x: c.x, y: c.y - 30, txt: me ? '+1 divisão!' : '+1', col: me ? '#c8f7a0' : c.col, life: 1 });
+    if (me) { sfx.div(); W._div = true; } else sfx.rival();
+  }
+  function aiThink(r) {
+    const g = r.geno, lacOK = g.lacZ === '+' && g.lacY === '+';
+    const lw = lacOK ? (r.Z > .3 ? .95 : .5) : .03, ww = g.trpE === '-' ? (r.trpIn < .6 ? 2.2 : .3) : (r.trpIn < .3 ? 1.1 : .12);
+    const val = (x, y) => { const e = sample(W.F, x, y); return e.g + e.l * lw + e.w * ww; };
+    let best = { x: r.x, y: r.y, v: val(r.x, r.y) * 1.15 + .02 };
+    for (let i = 0; i < 12; i++) for (const d of [80, 170]) {
+      const a = i / 12 * 6.283 + rnd(-.2, .2), x = clamp(r.x + Math.cos(a) * d, 20, AW - 20), y = clamp(r.y + Math.sin(a) * d, 20, AH - 20), v = val(x, y) - d / 2000 + rnd(0, .06);
+      if (v > best.v) best = { x, y, v };
+    }
+    if (best.v < .06) { best.x = clamp(r.x + rnd(-200, 200), 20, AW - 20); best.y = clamp(r.y + rnd(-200, 200), 20, AH - 20); }
+    r.tx = best.x; r.ty = best.y;
+  }
+  function banner(txt, s) { W.banner = txt; W.bannerT = s; }
+
+  // ---------------- mutações e diagnóstico ----------------
+  function mutate(pool) {
+    let list = pool === 'any' ? [...MUT_POOL.lac, ...MUT_POOL.trp] : pool;
+    list = list.filter(k => !W.fixed.includes(k));
+    const k = pick(list.length ? list : MUT_POOL.lac);
+    MUT[k].apply(W.me.geno); W.mut = { k, t: W.t }; W.tests = []; W.wrong = [];
+    banner('🧬 Mutação! Algo mudou no seu genoma', 5);
+    sfx.mut(); renderSideStatic();
+  }
+  function dxOptions() { return DX[W.L.id] || [...MUT_POOL.lac, ...MUT_POOL.trp]; }
+  function baseGeno() { const g = JSON.parse(JSON.stringify(W.me.geno)); if (W.mut) MUT[W.mut.k].fix(g); return g; }
+  function famOf() { const o = dxOptions(); return { lac: o.some(k => MUT[k].fam === 'lac'), trp: o.some(k => MUT[k].fam === 'trp') }; }
+  function runTest(id) {
+    if (!W.tests.includes(id)) W.tests.push(id);
+    sfx.test(); openDiag();
+  }
+  function assayRow(id, g) {
+    const lt = LAC_TESTS.find(x => x[0] === id);
+    if (lt) { const a = lacAssay(g, lt[2]); return { a, kind: 'lac' }; }
+    const tt = TRP_TESTS.find(x => x[0] === id); const a = trpAssay(g, tt[2]); return { a, kind: 'trp' };
+  }
+  const barv = (v, col) => `<span class="bar2"><i style="width:${Math.round(clamp(v, 0, 1) * 100)}%;background:${col}"></i></span>${Math.round(clamp(v, 0, 1.2) * 100)}`;
+  function openDiag(feedback = '') {
+    const fam = famOf(), base = baseGeno(), g = W.me.geno, M = MUT[W.mut.k];
+    const testsBtns = [...(fam.lac ? LAC_TESTS : []), ...(fam.trp ? TRP_TESTS : [])].map(([id, n]) => `<button class="btn ${W.tests.includes(id) ? '' : 'warm'}" data-act="test" data-v="${id}">${W.tests.includes(id) ? '✓ ' : '🧪 '}${n}</button>`).join('');
+    const lacRows = W.tests.filter(id => LAC_TESTS.some(x => x[0] === id)).map(id => { const n = LAC_TESTS.find(x => x[0] === id)[1], A = assayRow(id, g).a, B = assayRow(id, base).a; return `<tr><td>${n}</td><td>${barv(A.Z, '#ff9a1f')}</td><td>${barv(A.Y, '#2f80ff')}</td><td class="meta">${barv(B.Z, '#7a6040')} / ${Math.round(B.Y * 100)}</td></tr>`; }).join('');
+    const trpRows = W.tests.filter(id => TRP_TESTS.some(x => x[0] === id)).map(id => { const n = TRP_TESTS.find(x => x[0] === id)[1], A = assayRow(id, g).a, B = assayRow(id, base).a; return `<tr><td>${n}</td><td>${barv(A.PT, '#e98bd8')}</td><td>${A.grow ? '✅ cresce' : '❌ não cresce'}</td><td class="meta">${Math.round(B.PT * 100)} · ${B.grow ? 'cresce' : 'não cresce'}</td></tr>`; }).join('');
+    const opts = dxOptions().map(k => `<button class="opt" data-act="dx" data-v="${k}" ${W.wrong && W.wrong.includes(k) ? 'disabled' : ''}><b>${MUT[k].n}</b><span class="meta">${MUT_D[k]}</span></button>`).join('');
+    openModal(`<h2>🔬 Laboratório: diagnóstico</h2>
+      <p><b>Sintoma:</b> ${M.sym}</p>
+      <p class="meta">Faça testes com uma amostra da sua linhagem e compare com a cepa selvagem. O jogo fica pausado aqui. Cada palpite errado custa 10 de ATP.</p>
+      <h3>Testes</h3><div class="tests">${testsBtns}</div>
+      ${lacRows ? `<table class="t"><tr><th>Condição</th><th>β-galactosidase</th><th>Permease LacY</th><th>Selvagem (β-gal / LacY)</th></tr>${lacRows}</table>` : ''}
+      ${trpRows ? `<table class="t"><tr><th>Condição</th><th>Enzimas trp</th><th>Crescimento</th><th>Selvagem</th></tr>${trpRows}</table>` : ''}
+      ${feedback}
+      <h3>Qual é a mutação?</h3><div class="opts">${opts}</div>
+      <div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Voltar ao jogo</button></div>`);
+  }
+  function guess(k) {
+    const real = W.mut.k;
+    if (k === real) {
+      MUT[real].fix(W.me.geno); W.fixed.push(real); W.mut = null; W.wrong = []; W.me.atp = Math.min(100, W.me.atp + 15);
+      sfx.good(); learn('merodiploide'); if (W.tests.includes('iptg') || W.tests.includes('fpi')) learn('iptg');
+      openModal(`<h2>✅ Diagnóstico certo: ${MUT[real].n}</h2><p>${MUT[real].ex}</p>
+        <p class="meta">Você selecionou uma revertente no laboratório e a linhagem voltou ao normal (+15 de ATP).</p>
+        ${lessonHTML(MUT[real].fam === 'lac' && (W.tests.includes('fp') || W.tests.includes('fpi')) ? 'merodiploide' : null)}
+        <div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`);
+      renderSideStatic(); return;
+    }
+    W.mistakes++; W.me.atp = Math.max(0, W.me.atp - 10); (W.wrong = W.wrong || []).push(k); sfx.bad();
+    // procura um teste já feito que contradiga a hipótese
+    const hyp = baseGeno(); MUT[k].apply(hyp);
+    let why = '';
+    for (const id of W.tests) {
+      const A = assayRow(id, W.me.geno), H = assayRow(id, hyp), n = [...LAC_TESTS, ...TRP_TESTS].find(x => x[0] === id)[1];
+      if (A.kind === 'lac') { if (lvl(A.a.Z) !== lvl(H.a.Z)) { why = `Se fosse ${MUT[k].n}, no teste "${n}" a β-galactosidase estaria <b>${lvl(H.a.Z)}</b>, mas deu <b>${lvl(A.a.Z)}</b>.`; break; } if (lvl(A.a.Y) !== lvl(H.a.Y)) { why = `Se fosse ${MUT[k].n}, no teste "${n}" a permease estaria <b>${lvl(H.a.Y)}</b>, mas deu <b>${lvl(A.a.Y)}</b>.`; break; } }
+      else { if (A.a.grow !== H.a.grow) { why = `Se fosse ${MUT[k].n}, no teste "${n}" a célula ${H.a.grow ? '' : 'não '}cresceria.`; break; } if (lvl(A.a.PT) !== lvl(H.a.PT)) { why = `Se fosse ${MUT[k].n}, no teste "${n}" as enzimas estariam <b>${lvl(H.a.PT)}</b>, mas deram <b>${lvl(A.a.PT)}</b>.`; break; } }
+    }
+    if (!why) why = W.tests.length ? `Seus testes ainda não separam ${MUT[k].n} de outras hipóteses. Tente outro teste.` : 'Você chutou sem testar! Os testes mostram o que está diferente do selvagem.';
+    openDiag(`<div class="fb no">❌ Não é ${MUT[k].n} (−10 de ATP). ${why}</div>`);
+  }
+
+  // ---------------- fim da fase ----------------
+  function endLevel() {
+    W.ended = true; const L = W.L, me = W.me, best = Math.max(...W.rivals.map(r => r.div));
+    let stars = 0; if (me.div >= L.goal) { stars = 1; if (me.div > best) stars = 2; if (stars === 2 && W.mistakes === 0 && !W.mut && me.div >= L.goal + 3) stars = 3; }
+    const key = L.id; if (stars > (prog.stars[key] || 0)) prog.stars[key] = stars; if (me.div > (prog.best[key] || 0)) prog.best[key] = me.div;
+    if (stars) learn(L.lesson); save();
+    stars ? sfx.end() : sfx.bad();
+    const S = me.stats, ins = [];
+    if (me.geno.lacMode === 'manual' && L.id !== 1) ins.push(S.lacWaste > 8 ? `O lac ficou ligado <b>${Math.round(S.lacWaste)} s</b> sem lactose por perto: energia jogada fora.` : 'Você quase não desperdiçou energia com o lac ligado à toa. Ótimo controle!');
+    if (S.lacE > 1) ins.push(`A lactose rendeu ${Math.round(S.lacE / (S.lacE + S.glcE) * 100)}% da sua energia.`);
+    if (me.geno.trpMode === 'manual') ins.push(S.trpWaste > 8 ? `Você fabricou Trp por <b>${Math.round(S.trpWaste)} s</b> com Trp sobrando.` : 'Bom controle do óperon trp.');
+    if (S.starveT > 6) ins.push(`Passou <b>${Math.round(S.starveT)} s</b> sem energia ou sem Trp: crescimento parado.`);
+    if (W.mut) ins.push(`A mutação <b>${MUT[W.mut.k].n}</b> ficou sem diagnóstico. ${MUT[W.mut.k].ex}`);
+    if (W.mistakes) ins.push(`Palpites errados no diagnóstico: ${W.mistakes}.`);
+    const rows = [[`Você`, me.div, '#c8f7a0'], ...W.rivals.map(r => [r.name, r.div, r.col])].sort((a, b) => b[1] - a[1]).map(([n, d, c]) => `<tr><td><span style="color:${c}">●</span> ${esc(n)}</td><td><b>${d}</b></td></tr>`).join('');
+    const nextL = LEVELS.find(x => x.id === L.id + 1);
+    openModal(`<h2>${stars ? '🎉 Fase concluída!' : '⏱️ O tempo acabou'}</h2>
+      <div class="starsbig">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <p style="text-align:center">${me.div} divisões · meta ${L.goal}${L.id === 8 ? ` · recorde ${prog.best[8] || me.div}` : ''}</p>
+      <table class="t"><tr><th>Linhagem</th><th>Divisões</th></tr>${rows}</table>
+      <p class="meta">★ meta · ★★ vencer todas as rivais · ★★★ e ainda +3 acima da meta, sem erro de diagnóstico</p>
+      ${ins.length ? `<h3>O que aconteceu</h3><ul>${ins.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+      ${stars ? lessonHTML(L.lesson) : ''}
+      <div class="btns">${stars && nextL ? `<button class="btn primary big" data-act="level" data-v="${nextL.id}">Próxima fase →</button>` : ''}
+        ${stars && L.id === 7 ? `<button class="btn primary big" data-act="level" data-v="8">Desafio livre →</button>` : ''}
+        <button class="btn ${stars ? '' : 'primary'}" data-act="level" data-v="${L.id}">↻ Jogar de novo</button><button class="btn" data-act="menu">Menu</button></div>`);
+  }
+
+  // ---------------- telas ----------------
+  function renderHUD() {
+    const h = $('#hud');
+    if (screen !== 'play' || !W) { h.innerHTML = `<button class="ghost" data-act="notes">📘 Caderno (${prog.lessons.length})</button><button class="ghost" data-act="help">Como jogar</button>`; return; }
+    h.innerHTML = `<span class="pill big">Fase <b>${W.L.id <= 7 ? W.L.id : '★'}</b></span><span class="pill big">⏱ <b id="hT"></b></span><span class="pill big">🧫 <b id="hD"></b> / ${W.L.goal}</span>
+      <button class="ghost ${paused ? 'on' : ''}" data-act="pause" id="pauseBtn">${paused ? '▶ Continuar' : '⏸ Pausar'}</button><button class="ghost ${speed === 2 ? 'on' : ''}" data-act="speed">⏩ ${speed}×</button><button class="ghost" data-act="notes">📘</button><button class="ghost" data-act="menu">Menu</button>`;
+  }
+  function renderMenu() {
+    screen = 'menu'; W = null; renderHUD();
+    const unlocked = id => id === 1 || (prog.stars[id - 1] || 0) > 0 || (id === 8 && (prog.stars[7] || 0) > 0);
+    $('#main').innerHTML = `<div class="hero"><svg viewBox="0 0 420 120" width="420" style="max-width:100%;display:block;margin:0 auto 6px" aria-hidden="true">
+        <g stroke="#cfe" stroke-width="2" fill="none" opacity=".7"><path d="M60 60 q-12 -10 -24 0 t-24 0"/><path d="M60 52 q-12 -14 -24 -6 t-26 -8"/><path d="M60 68 q-12 14 -24 6 t-26 8"/></g>
+        <rect x="58" y="22" width="300" height="76" rx="38" fill="#c8f7a0" stroke="#0d2a33" stroke-width="4"/>
+        <path d="M95 60 C 120 40, 140 80, 165 60 S 210 40, 235 60 S 280 80, 320 60" stroke="#2f6b4a" stroke-width="3" fill="none" opacity=".55"/>
+        <g fill="#2f80ff">${[90, 140, 190, 240, 290].map(x => `<rect x="${x}" y="19" width="9" height="9" rx="2"/>`).join('')}${[115, 165, 215, 265, 315].map(x => `<rect x="${x}" y="92" width="9" height="9" rx="2"/>`).join('')}</g>
+        <g fill="#ff9a1f" stroke="#5a3200">${[[120, 44], [200, 78], [280, 42]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7"/>`).join('')}</g>
+        <g fill="#c04bff" stroke="#3a0d5c">${[[160, 80], [250, 48]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6"/>`).join('')}</g>
+        <g><polygon points="380,40 392,47 392,61 380,68 368,61 368,47" fill="#ffd34d" stroke="#8a5a00" stroke-width="2"/><polygon points="398,74 410,81 410,95 398,102 386,95 386,81" fill="#fff" stroke="#557" stroke-width="2"/><circle cx="395" cy="20" r="7" fill="#d070ff"/></g>
+      </svg><h2>OPERON</h2>
+      <p>Você é uma bactéria <i>Escherichia coli</i> nadando no intestino. Coma, cresça e se divida mais rápido que as rivais. Para isso, ligue e desligue os genes certos na hora certa: é para isso que servem os <b>óperons lac e trp</b>.</p>
+      <p class="meta">Do controle manual à regulação automática: repressor, indutor, CAP-AMPc, correpressor, atenuação. E, quando surgirem mutantes, diagnostique-os como Jacob e Monod.</p></div>
+      <div class="levels">${[...LEVELS, FREE].map(L => `<button class="lv" data-act="level" data-v="${L.id}" ${unlocked(L.id) ? '' : 'disabled'}><span class="num">${L.id <= 7 ? 'FASE ' + L.id : 'MODO LIVRE'}</span><span class="t">${esc(L.title)}</span><span class="meta">${esc(L.sub)}</span>
+        <span class="stars">${L.id === 8 ? (prog.best[8] ? `🏆 recorde: ${prog.best[8]} divisões` : '') : '★'.repeat(prog.stars[L.id] || 0) + '☆'.repeat(3 - (prog.stars[L.id] || 0))}${unlocked(L.id) ? '' : ' 🔒'}</span></button>`).join('')}</div>`;
+  }
+  function renderPlay() {
+    renderHUD();
+    const lacMan = W.me.geno.lacMode === 'manual' && !W.L.lacLocked, trpMan = W.me.geno.trpMode === 'manual';
+    $('#main').innerHTML = `<div class="layout"><div>
+        <div class="arena"><canvas id="arena" width="${AW}" height="${AH}"></canvas><div class="banner" id="banner"></div>
+          <div class="sensor" id="sensor"></div></div>
+        <div class="opwrap"><div class="panel" id="ops" style="padding:6px 8px">${operonSVG(W.me.geno)}</div>
+          <div class="ctl">
+            <div class="ctlbox"><h4>lac ${lacMan ? '<span class="meta">tecla L</span>' : W.L.lacLocked ? '<span class="meta">sem lactose nesta fase</span>' : '<span class="auto">automático</span>'}</h4>
+              ${lacMan ? `<button class="switch" id="swL" data-act="swL"></button>` : ''}
+              <div class="rd" id="rdL"></div></div>
+            <div class="ctlbox"><h4>trp ${trpMan ? '<span class="meta">tecla T</span>' : '<span class="auto">automático</span>'}</h4>
+              ${trpMan ? `<button class="switch" id="swT" data-act="swT"></button>` : ''}
+              <div class="rd" id="rdT"></div></div>
+          </div></div>
+      </div>
+      <div class="side">
+        <div id="alertBox"></div>
+        <div class="panel vit"><h3>🦠 Sua célula</h3><div class="rd" id="vit"></div><div class="meta" id="vit2" style="margin-top:4px"></div></div>
+        <div class="panel"><h3>🏁 Divisões</h3><div class="score" id="score"></div></div>
+        <div class="panel"><h3>📈 Últimos 60 segundos</h3><canvas class="chart" id="chart" width="600" height="200"></canvas>
+          <div class="legend">${SERIES.map(([, c, n], i) => `<span><i style="background:${c};${i > 2 ? 'opacity:.7' : ''}"></i>${n}</span>`).join('')}<span><i style="background:#7bd389;width:3px;height:8px"></i>divisão</span></div></div>
+      </div></div>`;
+    const cv = $('#arena');
+    const setT = e => { const r = cv.getBoundingClientRect(); W.target = { x: (e.clientX - r.left) / r.width * AW, y: (e.clientY - r.top) / r.height * AH }; };
+    let drag = false;
+    cv.addEventListener('pointerdown', e => { wake(); drag = true; setT(e); cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', e => { if (drag) setT(e); });
+    cv.addEventListener('pointerup', () => { drag = false; });
+    renderSideStatic(); updateUI();
+  }
+  function renderSideStatic() {
+    const a = $('#alertBox'); if (!a || !W) return;
+    a.innerHTML = W.mut ? `<div class="alert"><h4>🧬 Mutação na sua linhagem!</h4><p style="margin:2px 0 8px">${MUT[W.mut.k].sym}</p><button class="btn warm" data-act="diag">🔬 Diagnosticar</button></div>` : '';
+  }
+  const row = (lab, v, col, txt) => `<span>${lab}</span><span class="b"><i style="width:${Math.round(clamp(v, 0, 1) * 100)}%;background:${col}"></i></span><span class="v">${txt}</span>`;
+  function updateUI() {
+    if (!W) return; const me = W.me, L = me.lacInfo, T = me.trpInfo; if (!L) return;
+    const hT = $('#hT'); if (hT) hT.textContent = Math.max(0, Math.ceil(W.L.T - W.t)) + ' s';
+    const hD = $('#hD'); if (hD) hD.textContent = me.div;
+    const e = me.env;
+    $('#sensor').innerHTML = `Aqui: <span style="color:var(--glc)">glicose <b>${e.g.toFixed(1)}</b></span> · <span style="color:var(--lac)">lactose <b>${e.l.toFixed(1)}</b></span> · <span style="color:var(--trp)">Trp <b>${e.w.toFixed(1)}</b></span>`;
+    const bn = $('#banner'); bn.textContent = W.banner; bn.style.opacity = W.bannerT > 0 ? 1 : 0;
+    const gen = me.mu > 0.005 ? Math.round(Math.LN2 / me.mu) + ' s' : '—';
+    $('#vit').innerHTML = row('ATP', me.atp / 100, me.atp > 20 ? '#ffd166' : '#ff6b6b', Math.round(me.atp))
+      + row('Rumo à divisão', me.B - 1, '#7bd389', Math.round((me.B - 1) * 100) + '%')
+      + row('Trp interno', me.trpIn / 1.2, me.trpIn > .1 ? '#d07bff' : '#ff6b6b', me.trpIn.toFixed(2))
+      + row('Crescimento', me.mu / 0.12, '#7bd389', gen);
+    const net = me.ein - me.cost;
+    $('#vit2').innerHTML = `Energia: entra <b style="color:#ffd166">+${me.ein.toFixed(2)}</b>/s · gasto com genes e manutenção <b style="color:#ff9a9a">−${me.cost.toFixed(2)}</b>/s · tempo de geração ${gen}`;
+    const sw = $('#swL'); if (sw) { sw.className = 'switch ' + (me.lacOn ? 'on' : 'off'); sw.textContent = me.lacOn ? '● LIGADO (custa ATP)' : '○ DESLIGADO'; }
+    const st = $('#swT'); if (st) { st.className = 'switch ' + (me.trpOn ? 'on' : 'off'); st.textContent = me.trpOn ? '● LIGADO (custa ATP)' : '○ DESLIGADO'; }
+    const g = me.geno;
+    $('#rdL').innerHTML = row('transcrição', L.chr, '#4aa3ff', pct(L.chr)) + row('β-galactosidase', (g.lacZ === '+' ? me.Z : 0) / 1.2, '#ff9a1f', (g.lacZ === '+' ? me.Z : 0).toFixed(2)) + row('permease LacY', (g.lacY === '+' ? me.Y : 0) / 1.2, '#2f80ff', (g.lacY === '+' ? me.Y : 0).toFixed(2))
+      + (g.lacMode === 'auto' ? row('alolactose', clamp(me.allo / 0.1, 0, 1), '#ffffff', me.allo.toFixed(2)) : '') + (g.lacMode === 'auto' && g.capSite ? row('AMPc', me.camp, '#ff9f1c', pct(me.camp)) : '');
+    $('#rdT').innerHTML = row('transcrição', T.tx, '#4aa3ff', pct(T.tx)) + row('enzimas trp', me.PT / 1.1, '#e98bd8', me.PT.toFixed(2))
+      + (g.trpMode === 'auto' && g.trpR === '+' ? row('TrpR com Trp', T.act, '#3fbf6f', pct(T.act)) : '') + (g.trpMode === 'auto' && g.atten ? row('passa o atenuador', T.read, '#ffe08a', pct(T.read)) : '');
+    const all = [{ n: 'Você', d: me.div, c: '#c8f7a0', me: 1 }, ...W.rivals.map(r => ({ n: r.name, d: r.div, c: r.col }))].sort((a, b) => b.d - a.d);
+    $('#score').innerHTML = all.map(x => `<div class="r ${x.me ? 'me' : ''}"><span class="dot" style="background:${x.c}"></span><span class="n">${esc(x.n)}</span><b>${x.d}</b></div>`).join('');
+  }
+
+  // ---------------- modais ----------------
+  let modalCb = null;
+  function openModal(html, cb) { modalOpen = true; modalCb = cb || null; $('#modalRoot').innerHTML = `<div class="modalbg"><div class="modal">${html}</div></div>`; }
+  function closeModal() { modalOpen = false; $('#modalRoot').innerHTML = ''; const cb = modalCb; modalCb = null; if (cb) cb(); }
+  function help() {
+    openModal(`<h2>Como jogar</h2>
+      <p>🖱️ <b>Clique ou toque</b> no campo para nadar até lá (pode arrastar). Teclado: <kbd>WASD</kbd> ou setas. <kbd>Espaço</kbd> pausa, <kbd>L</kbd> e <kbd>T</kbd> ligam e desligam os óperons quando estão no modo manual, <kbd>M</kbd> liga e desliga o som.</p>
+      <p>🟡 <b>Glicose</b>, ⚪ <b>lactose</b> e 🟣 <b>triptofano</b> aparecem como nuvens. Sua célula come o que estiver embaixo dela, se tiver as proteínas certas.</p>
+      <p>⚡ O <b>ATP</b> vem da comida e paga tudo: nadar, manter a célula e, principalmente, <b>transcrever e traduzir genes</b>. Com energia e Trp sobrando, a célula cresce e se divide.</p>
+      <p>🧬 O painel embaixo mostra os óperons por dentro: RNA polimerase (azul), repressores, CAP, mRNA e ribossomos. Os pontinhos na célula mostram as enzimas: laranja = β-galactosidase, azul na membrana = permease, roxo = enzimas do Trp.</p>
+      <p>🔬 Quando surgir uma <b>mutação</b>, abra o laboratório, faça testes (IPTG, merodiploide F′, AMPc, com e sem Trp) e descubra qual gene foi afetado.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`);
+  }
+  function notes() {
+    const ks = Object.keys(LESSONS);
+    openModal(`<h2>📘 Caderno de conceitos</h2><p class="meta">Você desbloqueia conceitos ao completar fases e diagnosticar mutantes.</p>
+      ${ks.map(k => prog.lessons.includes(k) ? lessonHTML(k) : `<div class="lesson" style="opacity:.45;border-left-color:#5d8590">🔒 ${LESSONS[k][0]}</div>`).join('')}
+      <div class="btns"><button class="btn primary" data-act="close">Fechar</button></div>`);
+  }
+
+  // ---------------- entrada ----------------
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    wake();
+    const act = b.dataset.act, v = b.dataset.v;
+    switch (act) {
+      case 'level': closeModal(); startLevel(v === '8' ? FREE : LEVELS.find(L => L.id === +v)); break;
+      case 'menu': closeModal(); renderMenu(); break;
+      case 'go': closeModal(); sfx.tick(); break;
+      case 'close': closeModal(); break;
+      case 'help': help(); break;
+      case 'notes': notes(); break;
+      case 'pause': paused = !paused; renderHUD(); break;
+      case 'speed': speed = speed === 1 ? 2 : 1; renderHUD(); break;
+      case 'swL': W.me.lacOn = !W.me.lacOn; sfx.sw(W.me.lacOn); updateUI(); break;
+      case 'swT': W.me.trpOn = !W.me.trpOn; sfx.sw(W.me.trpOn); updateUI(); break;
+      case 'diag': openDiag(); break;
+      case 'test': runTest(v); break;
+      case 'dx': guess(v); break;
+    }
+  });
+  const KM = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (KM[e.code] && screen === 'play') { keys[KM[e.code]] = true; e.preventDefault(); wake(); }
+    if (screen !== 'play' || !W || modalOpen) return;
+    if (e.code === 'Space') { paused = !paused; renderHUD(); e.preventDefault(); }
+    if (e.code === 'KeyL' && W.me.geno.lacMode === 'manual' && !W.L.lacLocked) { W.me.lacOn = !W.me.lacOn; sfx.sw(W.me.lacOn); }
+    if (e.code === 'KeyT' && W.me.geno.trpMode === 'manual') { W.me.trpOn = !W.me.trpOn; sfx.sw(W.me.trpOn); }
+  });
+  addEventListener('keyup', e => { if (KM[e.code]) keys[KM[e.code]] = false; });
+  addEventListener('blur', () => { keys = {}; });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && screen === 'play' && !modalOpen) { paused = true; renderHUD(); } });
+
+  window.__OP = { get W() { return W; }, startLevel, LEVELS, FREE, endLevel, guess, mutate, renderMenu, get prog() { return prog; } };
+  renderMenu();
+  requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
