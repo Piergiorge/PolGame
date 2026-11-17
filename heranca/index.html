@@ -1,1 +1,1504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herança — o jogo da vida e dos genes</title>
+<style>
+  :root { --bg:#1b2b44; --panel:#ffffff; --ink:#1d2433; --muted:#6b7280; --line:#d8dee9; --accent:#e63946; --good:#1f9d55; --bad:#d62839; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:radial-gradient(1200px 600px at 50% -20%, #2c4a74, transparent 70%), var(--bg); color:var(--ink); font:14px/1.45 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
+  button { font:inherit; cursor:pointer; }
+  .wrap { max-width:1400px; margin:0 auto; padding:12px 12px 40px; }
+  header.top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; color:#fff; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand h1 { margin:0; font:900 26px/1 system-ui, sans-serif; letter-spacing:.06em; }
+  .brand h1 span { color:#ffd23f; }
+  .brand small { display:block; color:#b9c7e0; font-size:12px; margin-top:2px; }
+  .res { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .pill { background:#24395c; border:1px solid #3b5786; border-radius:999px; padding:3px 11px; font-size:13px; color:#fff; }
+  .pill b { color:#ffd23f; }
+  .ghost, .soundbtn { background:transparent; border:1px solid #3b5786; color:#b9c7e0; border-radius:8px; padding:4px 10px; font-size:12px; }
+  .ghost:hover, .soundbtn:hover { color:#fff; border-color:#7aa0d8; }
+  .ghost.dark { color:#1d2433; border-color:#c9d3e3; }
+  .ghost.dark:disabled { opacity:.4; }
+  .layout { display:grid; grid-template-columns:minmax(0, 1fr) 330px; gap:12px; align-items:start; }
+  .layout { grid-template-areas:"board side" "hands side"; }
+  .layout > .boardwrap { grid-area:board; } .layout > .side { grid-area:side; } .layout > .hands { grid-area:hands; min-width:0; }
+  @media (max-width:980px) { .layout { grid-template-columns:minmax(0, 1fr); grid-template-areas:"board" "side" "hands"; } }
+  .boardwrap { border-radius:18px; overflow:hidden; box-shadow:0 10px 30px #0008; }
+  .boardwrap { max-height:calc(100vh - 96px); overflow:auto; border-radius:18px; scrollbar-width:thin; }
+  @media (max-width:980px) { .boardwrap { max-height:70vh; } }
+  @media (max-width:700px) { svg.board { min-width:700px; } }
+  svg.board { display:block; width:100%; height:auto; }
+  svg.board .road { stroke:#f4f1de; stroke-width:16; stroke-linecap:round; opacity:.85; }
+  svg.board .ic { font-size:26px; text-anchor:middle; pointer-events:none; }
+  svg.board .ic.sm { font-size:14px; }
+  svg.board .tile { stroke:#1d1d1d; stroke-width:2.5; filter:drop-shadow(0 3px 0 rgba(0,0,0,.25)); }
+  svg.board .stop .tile { stroke-width:4; }
+  svg.board .tl { font:800 12.5px system-ui; fill:#1d2433; text-anchor:middle; pointer-events:none; }
+  svg.board .pare { font:900 8.5px system-ui; fill:#fff; text-anchor:end; paint-order:stroke; stroke:#c0392b; stroke-width:3; letter-spacing:.5px; }
+  svg.board .tage { font:800 10px system-ui; fill:#1d2433; opacity:.7; pointer-events:none; }
+  svg.board .tokg { filter:drop-shadow(0 2px 1px rgba(0,0,0,.45)); }
+  .tokpick { display:flex; flex-wrap:wrap; gap:4px; width:100%; margin:4px 0 6px 18px; }
+  .tok { display:flex; flex-direction:column; align-items:center; background:#fff; border:2px solid #ddd; border-radius:10px; padding:2px 4px 3px; cursor:pointer; font:600 10px system-ui; color:#444; }
+  .tok.on { border-color:var(--c); box-shadow:0 0 0 2px var(--c); background:#fffbe8; }
+  .tok:hover { border-color:var(--c); }
+  svg.board .bl { fill:#fff; font:800 15px system-ui; paint-order:stroke; stroke:#1d4d30; stroke-width:4; }
+  svg.board .tokg.curcar { filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 3px #ffd23f); }
+  svg.board .float { fill:#ffd23f; font:900 16px system-ui; text-anchor:middle; paint-order:stroke; stroke:#1d2433; stroke-width:4; animation:up 1s ease-out forwards; }
+  @keyframes up { to { transform:translateY(-22px); opacity:0; } }
+  .side { display:flex; flex-direction:column; gap:10px; }
+  .panel { background:var(--panel); border-radius:14px; padding:12px; box-shadow:0 6px 18px #0005; }
+  .panel.now { border:3px solid; }
+  .ph { display:flex; gap:8px; align-items:center; }
+  .wheelbox { display:flex; gap:12px; align-items:center; margin:8px 0; }
+  #wheel { transition:transform 1.25s cubic-bezier(.2,.8,.25,1); transform-origin:0 0; }
+  svg .wn { fill:#111; font:900 13px system-ui; text-anchor:middle; }
+  .last { margin-top:6px; font-size:13px; }
+  .money { font-size:22px; font-weight:900; color:var(--good); }
+  .neg { color:var(--bad); }
+  .pos { color:var(--good); }
+  .meta { color:var(--muted); font-size:12.5px; }
+  details summary { cursor:pointer; font-weight:700; margin:6px 0 2px; }
+  table.gtab { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.gtab td, table.gtab th { border-bottom:1px solid var(--line); padding:3px 4px; vertical-align:top; text-align:left; }
+  table.gtab.full th { font-size:11.5px; background:#f3f5f9; }
+  .mono { font-family:ui-monospace, Menlo, Consolas, monospace; font-weight:700; }
+  .q { color:#c27c0e; }
+  .kid { font-size:13px; margin:2px 0; }
+  .orow { display:flex; align-items:center; gap:6px; font-size:13px; padding:2px 0; }
+  .orow span:last-child { margin-left:auto; font-weight:700; }
+  .orow.on { font-weight:800; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; border:1.5px solid #222; flex:0 0 12px; }
+  .log { max-height:180px; overflow:auto; font-size:12.5px; }
+  .log p { margin:3px 0; padding-left:7px; border-left:2px solid var(--line); }
+  .btn { background:#eef2f8; border:1.5px solid #c9d3e3; color:var(--ink); border-radius:10px; padding:6px 12px; font-weight:800; font-size:13.5px; }
+  .btn:hover:not(:disabled) { border-color:var(--accent); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.on { background:#1d2433; color:#fff; border-color:#1d2433; }
+  .btn.big { font-size:16px; padding:9px 18px; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .opt { display:block; width:100%; text-align:left; background:#f6f8fc; border:1.5px solid #d3dbea; border-radius:10px; padding:8px 10px; margin:6px 0; color:var(--ink); }
+  .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .opt:disabled { opacity:.55; cursor:not-allowed; }
+  .card { border:1.5px solid var(--line); border-radius:10px; padding:8px; margin:6px 0; }
+  .big { font-size:22px; font-weight:900; margin:6px 0; }
+  .lesson { background:#eef6ff; border-left:4px solid #2a9df4; border-radius:8px; padding:8px 10px; margin:8px 0; font-size:13.5px; }
+  .hand { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0; }
+  .gcard { width:86px; min-height:96px; border-radius:9px; background:#fff; border:2px solid var(--c); box-shadow:0 2px 6px #0003; padding:5px; font-size:11.5px; line-height:1.2; display:flex; flex-direction:column; gap:3px; cursor:help; }
+  .gcard .ct { background:var(--c); color:#fff; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; border-radius:4px; padding:1px 4px; align-self:flex-start; }
+  .gcard b { font-size:12.5px; }
+  .gcard .cs { color:var(--muted); font-size:10.5px; }
+  .gcard.good { background:#effaf2; }
+  .gcard.back { background:repeating-linear-gradient(45deg, #1d3557, #1d3557 6px, #24406a 6px, #24406a 12px); border-color:#0f1f36; align-items:center; justify-content:center; color:#ffd23f; font-size:22px; position:relative; }
+  .gcard.back i { position:absolute; bottom:4px; right:7px; font-style:normal; font-size:13px; font-weight:900; }
+  .gcard.flip { animation:flip .6s ease; }
+  @keyframes flip { from { transform:rotateY(90deg); } to { transform:rotateY(0); } }
+  .hand.small .gcard { width:66px; min-height:70px; font-size:10px; padding:3px; }
+  .hand.small .gcard b { font-size:10.5px; }
+  .hand.small .gcard .cs { display:none; }
+  .hand.small .gcard.back { font-size:16px; }
+  .revealed { display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#fff8e1; border:1px dashed #e0b400; border-radius:10px; padding:6px; margin:8px 0; }
+  .flood { background:#e3f2fd; border-left:4px solid #1976d2; border-radius:6px; padding:6px 8px; }
+  table.risk { border-collapse:collapse; width:100%; font-size:13.5px; margin:6px 0; }
+  table.risk td { padding:3px 6px; border-bottom:1px solid var(--line); }
+  table.risk td:last-child { text-align:right; font-weight:800; }
+  table.risk tr.tot td { border-top:2px solid #333; font-weight:900; }
+  .riskbar { position:relative; height:16px; background:#e8f5e9; border-radius:8px; overflow:visible; margin:8px 0; }
+  .riskbar i { display:block; height:100%; background:linear-gradient(90deg, #ff9f43, #d62839); border-radius:8px; }
+  .riskbar b { position:absolute; top:-5px; width:4px; height:26px; background:#1d2433; border-radius:2px; transform:translateX(-2px); }
+  .glist { padding-left:18px; margin:6px 0; }
+  .glist li { margin:3px 0; }
+  .others { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:8px; margin-top:10px; }
+  .orow2 { border-left:5px solid; padding:8px 10px; font-size:13px; }
+  .orow2.on { box-shadow:0 0 0 3px #ffd23f; }
+  .hlab { margin-top:8px; font-weight:800; }
+  svg.board .ic.small { font-size:12px; }
+  svg.board .sea { fill:#1e88e5; opacity:.75; }
+  svg.board .agem rect { fill:#ffd23f; stroke:#1d2433; stroke-width:1.5; }
+  svg.board .agem text { font:800 12.5px system-ui; fill:#1d2433; text-anchor:middle; }
+  .wheelbox { align-items:flex-start; }
+  .wcol { display:flex; flex-direction:column; align-items:center; gap:4px; flex:0 0 auto; }
+  .wcol svg { width:120px; height:120px; }
+  .wcol .btn { width:100%; }
+  .wcol .last { font-size:11px; text-align:center; }
+  .sb { flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .sbr { border-left:4px solid; background:rgba(0,0,0,.04); border-radius:6px; padding:3px 6px; font-size:12px; }
+  .sbr.on { background:#fff6c7; box-shadow:0 0 0 2px #ffd23f; }
+  .sbn { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sbm { font-weight:800; font-size:13px; }
+  .sbi { display:flex; flex-wrap:wrap; gap:2px 7px; color:#555; font-size:11px; }
+  .invrow { border:1px solid #ddd; border-radius:8px; padding:6px 8px; margin:6px 0; }
+  table.tx td, table.tx th { font-size:12px; padding:3px 6px; }
+  .evcard { background:#fffbe8; border:2px dashed #e0b400; border-radius:10px; padding:4px 12px; }
+  .mono.small { font-size:11px; font-weight:600; }
+  .modal-bg { position:fixed; inset:0; background:#0b1424cc; display:flex; align-items:center; justify-content:center; padding:14px; z-index:40; }
+  .modal { background:#fff; border-radius:18px; padding:18px; width:min(620px, 100%); max-height:90vh; overflow:auto; box-shadow:0 20px 60px #000a; }
+  .modal h3 { margin:0 0 8px; font-size:21px; }
+  .title { text-align:center; color:#fff; padding:16px 8px; }
+  .title h2 { font:900 56px system-ui; letter-spacing:.12em; margin:0; color:#ffd23f; text-shadow:0 4px 0 #b3361f; }
+  .title .tl { color:#cfe0ff; font-size:17px; margin:2px 0 16px; }
+  .setup { max-width:640px; margin:0 auto; text-align:left; color:var(--ink); }
+  .prow { display:flex; gap:6px; align-items:center; margin:6px 0; flex-wrap:wrap; }
+  input.txt { border:1.5px solid #c9d3e3; border-radius:8px; padding:6px 8px; font:inherit; width:150px; }
+  table.score { width:100%; border-collapse:collapse; }
+  table.score td, table.score th { padding:6px; border-bottom:1px solid var(--line); text-align:left; }
+  .fam { border-left:5px solid; padding:6px 10px; margin:10px 0; background:#fafbfe; border-radius:8px; }
+  .scrollx { overflow-x:auto; }
+  .toast-box { position:fixed; right:14px; bottom:14px; display:flex; flex-direction:column; gap:8px; z-index:50; max-width:min(360px, 92vw); }
+  .toast { background:#fff; border-radius:10px; padding:8px 12px; box-shadow:0 6px 20px #0007; font-size:13.5px; }
+  .backlink { color:#b9c7e0; text-decoration:none; font-size:13px; display:inline-block; margin-bottom:6px; }
+  .backlink:hover { color:#fff; }
+  .backlink[hidden] { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" id="backlink" href="../" hidden>← Todos os jogos</a>
+  <header class="top">
+    <div class="brand">
+      <svg width="44" height="44" viewBox="-22 -22 44 44" aria-hidden="true"><circle r="20" fill="#ffd23f" stroke="#b3361f" stroke-width="3"/><g stroke="#b3361f" stroke-width="2.5"><path d="M-9 -12 C 9 -6, -9 6, 9 12"/><path d="M9 -12 C -9 -6, 9 6, -9 12"/></g><path d="M-6 -7H6M-4 0H4M-6 7H6" stroke="#1d2433" stroke-width="2"/></svg>
+      <div><h1>HERAN<span>ÇA</span></h1><small>o jogo da vida e dos genes</small></div>
+      <button class="soundbtn" id="soundBtn" type="button">🔊 Som ligado (M)</button>
+    </div>
+    <div class="res" id="res"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="toast-box" id="toasts"></div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+  // ================= Som (gerado por código com a Web Audio API) =================
+  const Sound = (() => {
+    let ac = null, master = null, musicBus = null, muted = false, timer = null, step = 0, nextTime = 0, song = null;
+    try { muted = localStorage.getItem('heranca-mudo') === '1'; } catch (e) {}
+    function ensure() {
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          ac = new AC();
+          master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+          musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (e) { ac = null; }
+    }
+    function tone(freq, dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0), vol = o.vol ?? 0.25;
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * o.slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + (o.attack || 0.005));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + dur + 0.03);
+    }
+    function noise(dur, o = {}) {
+      if (!ac || muted) return;
+      const t = ac.currentTime + (o.delay || 0);
+      const len = Math.max(1, Math.ceil(ac.sampleRate * dur));
+      const buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = o.filter || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1200, t); f.Q.value = o.q || 1;
+      if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(o.vol ?? 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t); src.stop(t + dur + 0.03);
+    }
+    const arp = (notes, gap, o = {}) => notes.forEach((n, i) => tone(midi(n), o.dur || 0.14, { ...o, delay: (o.delay || 0) + i * gap }));
+    function note(freq, time, dur, type = 'triangle', vol = 0.5) {
+      const osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, time); g.gain.linearRampToValueAtTime(vol, time + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(musicBus); osc.start(time); osc.stop(time + dur + 0.03);
+    }
+    function schedule() {
+      if (!ac || !song) return;
+      const bpm = typeof song.bpm === 'function' ? song.bpm() : song.bpm;
+      const stepDur = 60 / bpm / 2;
+      if (nextTime < ac.currentTime - 0.5) nextTime = ac.currentTime + 0.05; // aba voltou do segundo plano
+      while (nextTime < ac.currentTime + 0.15) {
+        if (!muted) song.play(step, nextTime, stepDur);
+        step++; nextTime += stepDur;
+      }
+    }
+    function music(s) {
+      song = s;
+      if (!ac || !s) return;
+      step = 0; nextTime = ac.currentTime + 0.08;
+      if (!timer) timer = setInterval(schedule, 40);
+    }
+    function toggle() {
+      muted = !muted;
+      if (master) master.gain.value = muted ? 0 : 0.5;
+      try { localStorage.setItem('heranca-mudo', muted ? '1' : '0'); } catch (e) {}
+      updateSoundButton();
+      return muted;
+    }
+    return { ensure, tone, noise, arp, note, music, toggle, get muted() { return muted; } };
+  })();
+  function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  const soundBtn = document.getElementById('soundBtn');
+  function updateSoundButton() { if (soundBtn) { soundBtn.textContent = Sound.muted ? '🔇 Som desligado (M)' : '🔊 Som ligado (M)'; soundBtn.setAttribute('aria-pressed', String(!Sound.muted)); } }
+  if (soundBtn) soundBtn.addEventListener('click', () => { Sound.ensure(); Sound.toggle(); soundBtn.blur(); });
+  updateSoundButton();
+  addEventListener('keydown', e => { if (e.code === 'KeyM' && !e.repeat) { Sound.ensure(); Sound.toggle(); } });
+  // links "todos os jogos" só aparecem no site publicado
+  for (const a of document.querySelectorAll('.backlink')) if (!/github\.io$/.test(location.hostname)) a.hidden = true;
 
+  // =====================================================================
+  // UTILITÁRIOS
+  // =====================================================================
+  const rand = n => Math.floor(Math.random() * n);
+  const pick = a => a[rand(a.length)];
+  const ri = (a, b) => a + rand(b - a + 1);
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const money = v => (v < 0 ? '−' : '') + 'R$ ' + Math.abs(Math.round(v)).toLocaleString('pt-BR');
+  const pct = x => `${Math.round(x * 100)}%`;
+
+  // =====================================================================
+  // GENOMA (a base é a população comum; as cartas sorteadas definem o que cada pessoa tem de especial)
+  // =====================================================================
+  const bern = p => Math.random() < p;
+  function baseGenome(sex) {
+    const g = {
+      abo: [pick(['O', 'O', 'O', 'A', 'A', 'B']), pick(['O', 'O', 'O', 'A', 'A', 'B'])], rh: ['D', bern(.25) ? 'd' : 'D'],
+      fut: ['H', bern(.1) ? 'h' : 'H'],            // FUT1: hh = fenótipo Bombay ("falso O")
+      hbb: ['A', 'A'], cftr: ['F', 'F'], fh: ['h', 'h'],
+      lct: ['L', bern(.4) ? 'L' : 'l'], actn: [bern(.6) ? 'R' : 'X', bern(.6) ? 'R' : 'X'],
+      apoe: [pick(['e3', 'e3', 'e3', 'e2']), pick(['e3', 'e3', 'e3', 'e2', 'e4'])],
+      dm: Array.from({ length: 8 }, () => bern(.3) ? 1 : 0), has: Array.from({ length: 8 }, () => bern(.3) ? 1 : 0),
+      alt: Array.from({ length: 6 }, () => bern(.5) ? 1 : 0),
+      lon: ['g', bern(.1) ? 'G' : 'g'],              // variante de longevidade (tipo FOXO3)
+      hla: [ri(1, 24), ri(1, 24)],                     // haplótipos HLA (compatibilidade para transplantes)
+    };
+    g.dal = sex === 'M' ? ['N'] : ['N', bern(.08) ? 'd' : 'N'];
+    return g;
+  }
+  function childGenome(mom, dad, sex) {
+    const g = {};
+    for (const l of ['abo', 'rh', 'fut', 'hbb', 'cftr', 'fh', 'lct', 'actn', 'apoe', 'lon', 'hla']) g[l] = [pick(mom[l]), pick(dad[l])];
+    for (const l of ['dm', 'has', 'alt']) { g[l] = []; for (let i = 0; i < mom[l].length / 2; i++) { g[l].push(mom[l][2 * i + rand(2)]); g[l].push(dad[l][2 * i + rand(2)]); } }
+    g.dal = sex === 'M' ? [pick(mom.dal)] : [pick(mom.dal), dad.dal[0]];
+    return g;
+  }
+  const n = (g, l, a) => g[l].filter(x => x === a).length;
+  const has = (g, l, a) => g[l].includes(a);
+  const sum = a => a.reduce((x, y) => x + y, 0);
+  function blood(g) {
+    if (n(g, 'fut', 'h') === 2) return 'O' + (has(g, 'rh', 'D') ? '+' : '−'); // Bombay: sem antígeno H, parece O na tipagem
+    const s = new Set(g.abo); const t = s.has('A') && s.has('B') ? 'AB' : s.has('A') ? 'A' : s.has('B') ? 'B' : 'O';
+    return t + (has(g, 'rh', 'D') ? '+' : '−');
+  }
+  function ph(p) {
+    const g = p.g;
+    return {
+      blood: blood(g), rhNeg: !has(g, 'rh', 'D'), bombay: n(g, 'fut', 'h') === 2,
+      lactose: has(g, 'lct', 'L'), dalt: p.sex === 'M' ? g.dal[0] === 'd' : n(g, 'dal', 'd') === 2,
+      actn: g.actn.slice().sort().join(''),
+      sickle: n(g, 'hbb', 'S') === 2, sickleTrait: n(g, 'hbb', 'S') === 1,
+      cf: n(g, 'cftr', 'f') === 2, cfCarrier: n(g, 'cftr', 'f') === 1, fh: has(g, 'fh', 'H'),
+      e4: n(g, 'apoe', 'e4'), e2: n(g, 'apoe', 'e2'), dm: sum(g.dm), has: sum(g.has), longevo: has(g, 'lon', 'G'),
+      height: Math.round((p.sex === 'M' ? 164 : 152) + sum(g.alt) * 4 + (p.nutri || 0)),
+    };
+  }
+  const genoTxt = {
+    abo: p => `${p.g.abo.join('')} ${p.g.fut.join('')} ${p.g.rh.join('')}`, hbb: p => 'Hb' + p.g.hbb.join('/Hb'), cftr: p => p.g.cftr.join(''), fh: p => p.g.fh.join(''),
+    lct: p => p.g.lct.join(''), actn: p => p.g.actn.join(''), apoe: p => p.g.apoe.map(a => a.replace('e', 'ε')).join('/'),
+    dal: p => p.sex === 'M' ? `X${p.g.dal[0] === 'd' ? 'ᵈ' : 'ᴰ'}Y` : p.g.dal.map(a => a === 'd' ? 'Xᵈ' : 'Xᴰ').join(''),
+    dm: p => `${sum(p.g.dm)}/8`, has: p => `${sum(p.g.has)}/8`,
+  };
+
+  // =====================================================================
+  // CARTAS
+  // cat: gen (genética mendeliana), risk (risco poligênico), hab (hábito), cren (crença)
+  // =====================================================================
+  const CARDS = {
+    hbs:    { cat: 'gen', n: 'HbA/HbS', s: 'Traço falciforme', d: 'Uma cópia do alelo S da hemoglobina. Sem doença, e protege contra malária grave.', set: g => { g.hbb = ['A', 'S']; }, test: P => P.sickleTrait },
+    bombay: { cat: 'gen', n: 'Falso O', s: 'Fenótipo Bombay (hh)', d: 'Sem o antígeno H, o sangue parece O na tipagem comum, mas só pode receber sangue Bombay.', set: g => { g.fut = ['h', 'h']; g.abo = [pick(['A', 'B', 'A']), pick(['O', 'A', 'B'])]; }, test: P => P.bombay },
+    apoe4:  { cat: 'gen', n: 'APOE ε3/ε4', s: 'Uma cópia de APOE ε4', d: 'Aumenta o risco de Alzheimer de início tardio (cerca de 3 vezes). Não é destino: muita gente ε4 nunca desenvolve.', set: g => { g.apoe = ['e3', 'e4']; }, test: P => P.e4 === 1 },
+    apoe44: { cat: 'gen', n: 'APOE ε4/ε4', s: 'Duas cópias de APOE ε4', d: 'Risco de Alzheimer tardio bem mais alto (8 a 12 vezes). Exercício e estudo ajudam a formar reserva cognitiva.', set: g => { g.apoe = ['e4', 'e4']; }, test: P => P.e4 === 2 },
+    fh:     { cat: 'gen', n: 'LDLR mutado', s: 'Hipercolesterolemia familiar', d: 'Variante dominante: colesterol LDL muito alto desde a infância. Com remédio, risco quase normal.', set: g => { g.fh = ['H', 'h']; }, test: P => P.fh },
+    cf:     { cat: 'gen', n: 'CFTR F/f', s: 'Portador(a) de fibrose cística', d: 'Sem sintomas. Com outro portador, 1/4 dos filhos teria fibrose cística.', set: g => { g.cftr = ['F', 'f']; }, test: P => P.cfCarrier },
+    dal:    { cat: 'gen', n: 'Xᵈ', s: 'Daltonismo', d: 'Recessivo ligado ao X: confunde vermelho e verde.', set: (g, p) => { g.dal = p.sex === 'M' ? ['d'] : ['d', 'd']; }, test: P => P.dalt },
+    lct:    { cat: 'gen', n: 'LCT l/l', s: 'Intolerância à lactose', d: 'A lactase desliga depois da infância, como na maioria da humanidade.', set: g => { g.lct = ['l', 'l']; }, test: P => !P.lactose },
+    rr:     { cat: 'gen', n: 'ACTN3 RR', s: 'Fibras rápidas', d: 'Duas cópias funcionais da alfa-actinina-3: vantagem em esportes de explosão.', set: g => { g.actn = ['R', 'R']; }, test: P => P.actn === 'RR' },
+    xx:     { cat: 'gen', n: 'ACTN3 XX', s: 'Sem alfa-actinina-3', d: 'Mais comum em atletas de resistência do que em velocistas.', set: g => { g.actn = ['X', 'X']; }, test: P => P.actn === 'XX' },
+    rhneg:  { cat: 'gen', n: 'Rh d/d', s: 'Rh negativo', d: 'Sem o antígeno D. Na gravidez de um bebê Rh+, precisa de imunoglobulina anti-D.', set: g => { g.rh = ['d', 'd']; }, test: P => P.rhNeg },
+    dm:     { cat: 'risk', n: 'Escore poligênico alto', s: 'Predisposição a diabetes tipo 2', d: 'Muitas variantes de efeito pequeno somadas. Aumenta o risco, mas hábitos pesam tanto quanto.', set: g => { g.dm = [1, 1, 1, 1, 1, 1, 1, 0]; }, test: P => P.dm >= 5 },
+    longevo:{ cat: 'gen', n: 'FOXO3 G', s: 'Variante de longevidade', d: 'Variantes do gene FOXO3 aparecem com mais frequência em centenários. Somam alguns anos à expectativa de vida.', set: g => { g.lon = ['G', 'g']; }, test: P => P.longevo },
+    has:    { cat: 'risk', n: 'Escore poligênico alto', s: 'Predisposição a hipertensão', d: 'Pressão alta tem forte componente poligênico, somado a sal, álcool e sedentarismo.', set: g => { g.has = [1, 1, 1, 1, 1, 1, 0, 1]; }, test: P => P.has >= 5 },
+    sed:    { cat: 'hab', n: 'Sedentarismo', s: 'Quase não se exercita', d: 'Aumenta o risco de diabetes, hipertensão, infarto e demência.', hab: true, fix: { n: 'Entrar na academia', c: 5000, ok: .85, to: 'ativo' } },
+    ativo:  { cat: 'hab', n: 'Atividade física', s: 'Exercício regular', d: 'Protege contra diabetes, infarto e declínio cognitivo.', hab: true, good: true },
+    fumo:   { cat: 'hab', n: 'Tabagismo', s: 'Vício em nicotina', d: 'Principal causa evitável de câncer de pulmão, infarto e AVC.', hab: true, fix: { n: 'Tratamento para parar de fumar', c: 4000, ok: .5 } },
+    alcool: { cat: 'hab', n: 'Álcool em excesso', s: 'Uso abusivo de álcool', d: 'Aumenta pressão, risco de acidentes e de doenças do fígado.', hab: true, fix: { n: 'Grupo de apoio e tratamento', c: 4000, ok: .55 } },
+    dieta:  { cat: 'hab', n: 'Ultraprocessados', s: 'Dieta ruim', d: 'Muito açúcar, sal e gordura. Aumenta o risco de diabetes e hipertensão.', hab: true, fix: { n: 'Consultas com nutricionista', c: 3000, ok: .8 } },
+    neg:    { cat: 'cren', n: 'Negacionismo', s: 'Desconfiança da ciência', d: 'Recusa vacinas e exames. Em pandemias e surtos, o risco sobe para você e para quem está perto.', hab: true, fix: { n: 'Conversa franca com a médica da família', c: 1000, ok: .6 } },
+  };
+  const CAT = { gen: ['Genética', '#7b4bd6'], risk: ['Risco poligênico', '#e67e22'], hab: ['Hábito', '#2e9e5b'], cren: ['Crença', '#6b7280'] };
+  const DECK = ['hbs', 'hbs', 'hbs', 'bombay', 'apoe4', 'apoe4', 'apoe4', 'apoe44', 'fh', 'cf', 'cf', 'dal', 'lct', 'lct', 'rr', 'xx', 'rhneg', 'dm', 'dm', 'has', 'has', 'longevo', 'longevo',
+    'sed', 'sed', 'sed', 'ativo', 'ativo', 'fumo', 'fumo', 'alcool', 'dieta', 'dieta', 'neg', 'neg'];
+  const CONFLICT = [['sed', 'ativo'], ['rr', 'xx'], ['apoe4', 'apoe44']];
+  function dealHand(deck, k) {
+    const hand = [];
+    while (hand.length < k && deck.length) {
+      const i = deck.findIndex(c => !hand.includes(c) && !CONFLICT.some(([a, b]) => (c === a && hand.includes(b)) || (c === b && hand.includes(a))));
+      if (i < 0) break;
+      hand.push(deck.splice(i, 1)[0]);
+    }
+    return hand;
+  }
+  function makePerson(sex, hand, extra = {}) {
+    const p = { sex, g: baseGenome(sex), cards: [], habits: {}, nutri: rand(5) - 2, ...extra };
+    for (const k of hand) { const C = CARDS[k]; if (C.set) C.set(p.g, p); if (C.hab) p.habits[k] = true; p.cards.push({ k, rev: false }); }
+    return p;
+  }
+  // cartas que uma pessoa "tem" a partir do genoma e dos hábitos (para filhos)
+  function cardsFromGenome(p) {
+    const P = ph(p), out = [];
+    for (const [k, C] of Object.entries(CARDS)) if (C.test && C.test(P)) out.push(k);
+    for (const k of Object.keys(p.habits)) out.push(k);
+    return out;
+  }
+  const hasCard = (p, k) => (CARDS[k].hab ? !!p.habits[k] : !!(CARDS[k].test && CARDS[k].test(ph(p))));
+  function reveal(p, k) {
+    const c = p.cards.find(x => x.k === k);
+    if (c && !c.rev) { c.rev = true; return true; }
+    return false;
+  }
+
+  // pais e irmãos "de bastidor", coerentes com o genoma da pessoa (para transplantes e HLA)
+  function makeFamily(p) {
+    const mom = { g: baseGenome('F') }, dad = { g: baseGenome('M') };
+    for (const l of ['abo', 'rh', 'fut', 'hbb', 'cftr', 'fh', 'lct', 'actn', 'apoe', 'lon', 'hla']) { mom.g[l][0] = p.g[l][0]; dad.g[l][0] = p.g[l][1]; }
+    const sibs = [];
+    const nS = ri(1, 3);
+    for (let i = 0; i < nS; i++) { const sex = bern(.5) ? 'F' : 'M'; sibs.push({ name: pick(sex === 'M' ? ['Paulo', 'André', 'Marcos', 'Rodrigo', 'Fábio'] : ['Carla', 'Paula', 'Mônica', 'Sílvia', 'Lúcia']), sex, g: childGenome(mom.g, dad.g, sex), habits: {} }); }
+    return { sibs };
+  }
+  const hlaMatch = (a, b) => { const A = a.g.hla.slice().sort().join(), B = b.g.hla.slice().sort().join(); if (A === B) return 2; return a.g.hla.some(x => b.g.hla.includes(x)) ? 1 : 0; };
+  // compatibilidade ABO/Rh para doar hemácias ou órgão (doador → receptor)
+  function aboOK(donor, recip) {
+    const D = ph(donor), R = ph(recip);
+    if (R.bombay) return D.bombay;
+    if (D.bombay) return true;
+    const ag = P => { const t = P.blood.replace(/[+−]/, ''); return t === 'AB' ? ['A', 'B'] : t === 'O' ? [] : [t]; };
+    return ag(D).every(a => ag(R).includes(a));
+  }
+
+  // =====================================================================
+  // TABULEIRO: a linha da vida, do nascimento à velhice
+  // =====================================================================
+  const SP = {
+    start:   { l: 'Nascimento', n: 'Nascimento', c: '#ffffff', i: '🍼' },
+    pezinho: { l: 'Teste do pezinho', n: 'Teste do pezinho', c: '#74b9ff', i: '🦶' },
+    kev:     { l: 'Infância', n: 'Carta da infância', c: '#fdcb6e', i: '🧸' },
+    school:  { l: 'Escola', n: 'Escola: atividade extracurricular', c: '#ff6b81', i: '🏫', stop: true },
+    vacina:  { l: 'Vacinas', n: 'Vacinação infantil', c: '#55efc4', i: '💉' },
+    sport:   { l: 'Esporte', n: 'Jogos escolares', c: '#7bd389', i: '⚽' },
+    tev:     { l: 'Adolescência', n: 'Carta da adolescência', c: '#a29bfe', i: '🎧' },
+    peer:    { l: 'Amigos', n: 'Pressão dos amigos', c: '#636e72', i: '🚬' },
+    enem:    { l: 'ENEM', n: 'ENEM', c: '#ff6b81', i: '📝', stop: true },
+    split:   { l: 'Encruzilhada', n: 'Encruzilhada', c: '#ffffff', i: '🔀' },
+    mil:     { l: 'Quartel', n: 'Serviço militar', c: '#6ab04c', i: '🪖' },
+    pay:     { l: 'Pagamento', n: 'Dia de pagamento', c: '#ffd23f', i: '💰' },
+    ev:      { l: 'Vida adulta', n: 'Carta da vida adulta', c: '#ff9f43', i: '❓' },
+    gene:    { l: 'Genética', n: 'Evento genético', c: '#7bd389', i: '🧬' },
+    baby:    { l: 'Bebê', n: 'Bebê', c: '#74b9ff', i: '👶' },
+    fam:     { l: 'Filhos?', n: 'Planejamento familiar (pare)', c: '#74b9ff', i: '🍼', stop: true },
+    test:    { l: 'Laboratório', n: 'Laboratório de genética', c: '#b388eb', i: '🔬' },
+    insure:  { l: 'Plano de saúde', n: 'Plano de saúde', c: '#55efc4', i: '🛡️' },
+    health:  { l: 'Saúde', n: 'Saúde: doenças multifatoriais', c: '#ff7675', i: '🫀' },
+    checkup: { l: 'Check-up', n: 'Check-up e hábitos', c: '#81ecec', i: '🩺' },
+    blood:   { l: 'Hemocentro', n: 'Hemocentro', c: '#d63031', i: '🩸' },
+    invest:  { l: 'Investir', n: 'Investimentos', c: '#00b894', i: '📈' },
+    pos:     { l: 'Pós', n: 'Pós-graduação', c: '#e17055', i: '🎓' },
+    transp:  { l: 'Transplante', n: 'Transplante', c: '#e84393', i: '🫘' },
+    oev:     { l: 'Velhice', n: 'Carta da velhice', c: '#dfe6e9', i: '👵' },
+    car_m:   { l: 'Carreira', n: 'Carreira após o quartel', c: '#ff6b81', i: '🎖️', stop: true },
+    car_f:   { l: 'Carreira', n: 'Escolha da carreira', c: '#ff6b81', i: '🎓', stop: true },
+    car_j:   { l: 'Carreira', n: 'Escolha da carreira', c: '#ff6b81', i: '💼', stop: true },
+    marry:   { l: 'Casamento', n: 'Casamento', c: '#ff6b81', i: '💍', stop: true },
+    house:   { l: 'Casa', n: 'Compra da casa', c: '#ff6b81', i: '🏠', stop: true },
+    concurso:{ l: 'Concurso', n: 'Concurso público', c: '#0984e3', i: '🏛️', stop: true },
+    priv:    { l: 'Empresa', n: 'Setor privado', c: '#e67e22', i: '🏢', stop: true },
+    m50:     { l: '50 anos', n: '50 anos', c: '#fab1a0', i: '5️⃣', stop: true },
+    retire:  { l: 'Aposentadoria', n: 'Aposentadoria', c: '#ffd23f', i: '🏖️', stop: true },
+    m80:     { l: '80 anos', n: '80 anos', c: '#fab1a0', i: '8️⃣', stop: true },
+    legado:  { l: 'Legado', n: 'Legado', c: '#ffd23f', i: '🏆', stop: true },
+  };
+  const BOARD = [];
+  function line(pts, types, a0, a1) {
+    const segs = []; let tot = 0;
+    for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(d); tot += d; }
+    const ids = [];
+    types.forEach((t, k) => {
+      let s = types.length === 1 ? 0 : tot * k / (types.length - 1), i = 0;
+      while (i < segs.length - 1 && s > segs[i]) { s -= segs[i]; i++; }
+      const f = segs[i] ? s / segs[i] : 0, x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, y = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f;
+      const age = Math.round(a0 + (a1 - a0) * (types.length === 1 ? 0 : k / (types.length - 1)));
+      const id = BOARD.length; BOARD.push({ id, t, x: Math.round(x), y: Math.round(y), next: [], age }); ids.push(id);
+    });
+    for (let i = 1; i < ids.length; i++) BOARD[ids[i - 1]].next.push(ids[i]);
+    return ids;
+  }
+  const chain = (a, b) => { BOARD[a[a.length - 1]].next.push(b[0]); };
+  // tabuleiro em serpentina: linhas de 9 casas, 110 px entre centros
+  const X = i => 60 + 110 * i, W = 1000, H = 2090;
+  const row = (y, i0, n, dir, types, a0, a1) => { if (types.length !== n) throw new Error('row ' + y); return line([[X(i0), y], [X(i0 + dir * (n - 1)), y]], types, a0, a1); };
+  const S0 = line([[X(0), 70], [X(0), 70]], ['start'], 0, 0);
+  const RA = row(70, 1, 8, 1, ['pezinho', 'kev', 'vacina', 'kev', 'sport', 'kev', 'kev', 'school'], 0, 5);
+  const RB = row(200, 8, 9, -1, ['kev', 'sport', 'kev', 'vacina', 'kev', 'school', 'kev', 'kev', 'sport'], 6, 12);
+  const RC = row(330, 0, 9, 1, ['tev', 'peer', 'tev', 'sport', 'tev', 'gene', 'tev', 'peer', 'tev'], 13, 15);
+  const RD = row(460, 8, 8, -1, ['tev', 'enem', 'tev', 'peer', 'tev', 'gene', 'tev', 'tev'], 16, 17);
+  const SPL1 = line([[X(0), 655], [X(0), 655]], ['split'], 18, 18);
+  const MIL = row(590, 1, 6, 1, ['mil', 'pay', 'tev', 'mil', 'pay', 'car_m'], 18, 21);
+  const FAC = row(720, 1, 7, 1, ['ev', 'test', 'tev', 'gene', 'blood', 'ev', 'car_f'], 18, 23);
+  const JOB = row(850, 1, 5, 1, ['pay', 'gene', 'ev', 'pay', 'car_j'], 18, 20);
+  const R3 = line([[X(8), 720], [X(8), 850]], ['pay', 'marry'], 24, 25);
+  const RE = row(980, 8, 9, -1, ['ev', 'gene', 'blood', 'fam', 'pay', 'invest', 'test', 'ev', 'pay'], 26, 30);
+  const RF = row(1110, 0, 9, 1, ['house', 'ev', 'gene', 'pay', 'baby', 'checkup', 'ev', 'insure', 'pay'], 31, 35);
+  const RG = row(1240, 8, 8, -1, ['blood', 'gene', 'pos', 'ev', 'baby', 'pay', 'test', 'ev'], 36, 39);
+  const SPL2 = line([[X(0), 1370], [X(0), 1370]], ['split'], 40, 40);
+  const PUB = row(1370, 1, 7, 1, ['concurso', 'pay', 'ev', 'gene', 'baby', 'health', 'pay'], 40, 49);
+  const PRI = row(1500, 1, 7, 1, ['priv', 'pay', 'ev', 'invest', 'baby', 'health', 'pay'], 40, 49);
+  const M50 = line([[X(8), 1435], [X(8), 1435]], ['m50'], 50, 50);
+  const RH = row(1630, 8, 9, -1, ['health', 'checkup', 'transp', 'pay', 'ev', 'gene', 'invest', 'pay', 'blood'], 51, 57);
+  const RI = row(1760, 0, 9, 1, ['health', 'ev', 'pay', 'transp', 'gene', 'health', 'invest', 'pay', 'ev'], 58, 64);
+  const RJ = row(1890, 8, 9, -1, ['retire', 'oev', 'pay', 'health', 'oev', 'transp', 'pay', 'oev', 'health'], 65, 79);
+  const RK = row(2020, 0, 9, 1, ['m80', 'oev', 'pay', 'health', 'oev', 'transp', 'pay', 'oev', 'legado'], 80, 90);
+  [S0, RA, RB, RC, RD, SPL1].reduce((a, b) => (chain(a, b), b));
+  BOARD[SPL1[0]].next = [MIL[0], FAC[0], JOB[0]];
+  chain(MIL, R3); chain(FAC, R3); chain(JOB, R3);
+  [R3, RE, RF, RG, SPL2].reduce((a, b) => (chain(a, b), b));
+  BOARD[SPL2[0]].next = [PUB[0], PRI[0]];
+  chain(PUB, M50); chain(PRI, M50);
+  [M50, RH, RI, RJ, RK].reduce((a, b) => (chain(a, b), b));
+  const RET = RJ, LEGADO = RK[RK.length - 1];
+  const BRANCH_N = { [MIL[0]]: '🪖 Serviço militar', [FAC[0]]: '🎓 Faculdade', [JOB[0]]: '💼 Trabalho direto', [PUB[0]]: '🏛️ Serviço público', [PRI[0]]: '🏢 Iniciativa privada' };
+  const BRANCH_D = {
+    [MIL[0]]: 'Um ano de quartel com soldo, exame médico completo e muito exercício. Depois, carreira militar ou sem diploma.',
+    [FAC[0]]: 'Custa R$ 40 mil de empréstimo (grátis com bolsa do ENEM), mas abre as carreiras de salário maior.',
+    [JOB[0]]: 'Começa a ganhar antes, com carreiras sem diploma.',
+    [PUB[0]]: 'Estabilidade: crises não reduzem o salário, e a aposentadoria paga 90% dele.',
+    [PRI[0]]: 'Salário 15% maior, mas crises cortam mais e a aposentadoria paga 50% (invista!).',
+  };
+  const STAGES = [[0, 'Infância'], [13, 'Adolescência'], [18, 'Juventude'], [26, 'Vida adulta'], [50, 'Meia-idade'], [65, 'Velhice']];
+  const stageOf = a => STAGES.filter(s => a >= s[0]).pop()[1];
+  const AGE_MARKS = [S0[0], RC[0], SPL1[0], RE[0], SPL2[0], M50[0], RJ[0], RK[0]];
+
+  // =====================================================================
+  // CARREIRAS
+  // =====================================================================
+  const CAREERS = [
+    { k: 'med', n: 'Médica(o)', sal: 25000, fac: true, d: 'Plantões puxados, salário alto. Na pandemia, trabalha dobrado.' },
+    { k: 'eng', n: 'Engenheira(o)', sal: 21000, fac: true, d: 'Projeta pontes e estações de tratamento. Ganha com a transição verde.' },
+    { k: 'gen', n: 'Geneticista', sal: 20000, fac: true, d: 'Exames genéticos de graça para a família.' },
+    { k: 'pil', n: 'Piloto de avião', sal: 24000, fac: true, d: 'Exige visão de cores normal.', req: P => !P.dalt, reqT: 'não pode ser daltônico(a)', reveal: 'dal' },
+    { k: 'prof', n: 'Professor(a)', sal: 15000, fac: true, d: 'Bônus em eventos de educação e ciência.' },
+    { k: 'adv', n: 'Advogada(o)', sal: 20000, fac: true, d: 'Contratos, audiências e muita leitura.' },
+    { k: 'milc', n: 'Militar de carreira', sal: 14000, mil: true, d: 'Estabilidade e aposentadoria integral. Exige estar em forma.' },
+    { k: 'vel', n: 'Atleta velocista', sal: 17000, fac: false, d: 'Salário depende do ACTN3: RR +6 mil, XX −6 mil.', actn: true },
+    { k: 'bas', n: 'Jogador(a) de basquete', sal: 19000, fac: false, d: 'Exige 180 cm (homens) ou 170 cm (mulheres).', req: (P, p) => P.height >= (p.sex === 'M' ? 180 : 170), reqT: 'altura mínima' },
+    { k: 'ele', n: 'Eletricista', sal: 12000, fac: false, d: 'Fios coloridos: exige visão de cores normal.', req: P => !P.dalt, reqT: 'não pode ser daltônico(a)', reveal: 'dal' },
+    { k: 'chef', n: 'Chef de cozinha', sal: 14000, fac: false, d: 'Restaurantes sofrem em pandemias e secas.' },
+    { k: 'vend', n: 'Vendedor(a)', sal: 12000, fac: false, d: 'Comissão garantida.' },
+    { k: 'art', n: 'Artista', sal: 10000, fac: false, d: 'Salário baixo, mas obras rendem em eventos de sorte.' },
+  ];
+  function baseSalary(p) {
+    const C = CAREERS.find(c => c.k === p.career); if (!C) return p.route === 'mil' ? 3000 : 2500;
+    let s = C.sal;
+    if (C.actn) { const a = ph(p).actn; s += a === 'RR' ? 6000 : a === 'XX' ? -6000 : 0; }
+    s += p.raise || 0;
+    if (p.sector === 'pri') s *= 1.15;
+    return s;
+  }
+  function salary(p) {
+    if (p.pension != null) return Math.round(p.pension);
+    let s = baseSalary(p);
+    if (S && S.econ && p.sector !== 'pub' && p.career !== 'milc') s *= p.sector === 'pri' ? .7 : S.econ.mult;
+    return Math.round(s);
+  }
+
+  // =====================================================================
+  // EVENTOS GENÉTICOS: devolvem { t, h, cash, med, rev: [cartas reveladas], lesson }
+  // =====================================================================
+  const GENE_EV = [
+    p => { const P = ph(p); return P.lactose
+      ? { t: '🍕 Rodízio de pizza', h: 'Quatro queijos, catupiry e milk-shake. Sua lactase continua ativa na vida adulta: saiu inteiro(a) e ainda ganhou o concurso.', cash: 3000, lesson: 'lactose' }
+      : { t: '🍕 Rodízio de pizza', h: 'Sem lactase na vida adulta (l/l), a lactose fermentou no intestino: dois dias de cólica.', cash: -4000, med: true, rev: ['lct'], lesson: 'lactose' }; },
+    p => { const P = ph(p); p.knowBlood = true;
+      if (P.bombay) return { t: '🩸 Campanha de doação de sangue', h: 'Na tipagem você parecia O, mas o hemocentro fez um teste a mais: <b>você é Bombay</b> (hh, o "falso O"). Seu sangue é raríssimo e agora você faz parte de um cadastro internacional de doadores.', cash: 6000, rev: ['bombay'], lesson: 'bombay' };
+      return { t: '🩸 Campanha de doação de sangue', h: P.blood === 'O−' ? 'Seu sangue é O−, o <b>doador universal</b>. O hemocentro te premiou.' : `Seu sangue é ${P.blood}. Obrigado pela doação!`, cash: P.blood === 'O−' ? 8000 : 2000, rev: P.rhNeg ? ['rhneg'] : [], lesson: 'abo' }; },
+    p => { const P = ph(p), known = p.cards.some(c => c.k === 'bombay' && c.rev); p.knowBlood = true;
+      if (P.bombay) return { t: '🚑 Acidente: transfusão de emergência', h: known ? 'O hospital já sabia que você é Bombay e buscou sangue compatível no cadastro nacional. Caro, mas seguro.' : 'A tipagem disse "O" e você recebeu sangue O. Houve uma <b>reação transfusional grave</b>: você não tem o antígeno H e seu plasma atacou as hemácias O. Só então descobriram o <b>fenótipo Bombay</b>.', cash: known ? -10000 : -28000, med: true, rev: ['bombay'], lesson: 'bombay' };
+      return { t: '🚑 Acidente: transfusão de emergência', h: P.blood === 'O−' ? 'Você é O−: só pode receber O−, que é raro no estoque.' : `Recebeu sangue ${P.blood} compatível.`, cash: P.blood === 'O−' ? -10000 : -5000, med: true, rev: P.rhNeg ? ['rhneg'] : [], lesson: 'abo' }; },
+    p => { const a = ph(p).actn;
+      return { t: '🏃 Corrida de 100 metros', h: `O teste no clube revelou seu ACTN3: <b>${a}</b>. ${a === 'RR' ? 'Fibras rápidas a todo vapor: primeiro lugar!' : a === 'RX' ? 'Chegou em terceiro.' : 'Sem alfa-actinina-3, ficou no meio do pelotão.'}`, cash: a === 'RR' ? 12000 : a === 'RX' ? 3000 : 0, rev: ['rr', 'xx'], lesson: 'actn' }; },
+    p => { const a = ph(p).actn, sed = p.habits.sed;
+      return { t: '🏅 Maratona da cidade', h: sed ? 'Você se inscreveu, mas sem treino não passou do quilômetro 10. Genes ajudam pouco sem preparo.' : `ACTN3 <b>${a}</b>. ${a === 'XX' ? 'O genótipo XX é mais comum em atletas de resistência: ótimo tempo!' : 'Completou a prova.'}`, cash: sed ? -1000 : a === 'XX' ? 9000 : 3000, rev: sed ? ['sed'] : ['rr', 'xx'], lesson: sed ? 'multi' : 'actn' }; },
+    p => { const P = ph(p);
+      return { t: '🦟 Viagem para região de malária', h: P.sickleTrait ? 'A equipe toda pegou malária, menos você. O exame mostrou <b>HbA/HbS</b>: o parasita não se multiplica bem nas suas hemácias.' : 'Você pegou malária e precisou de tratamento.', cash: P.sickleTrait ? 6000 : -8000, med: !P.sickleTrait, rev: ['hbs'], lesson: 'hbb' }; },
+    p => { const P = ph(p);
+      return { t: '🎨 Promoção na agência de design', h: P.dalt ? 'A vaga exigia distinguir vermelho de verde. O teste de Ishihara mostrou que você é <b>daltônico(a)</b>.' : 'Você passou no teste de cores e foi promovido(a).', cash: P.dalt ? -3000 : 7000, rev: ['dal'], lesson: 'dal' }; },
+    p => { const P = ph(p), ok = P.height >= (p.sex === 'M' ? 185 : 172);
+      return { t: '🏐 Peneira de vôlei', h: ok ? `Com ${P.height} cm, você entrou no time da cidade.` : `Com ${P.height} cm, ficou na reserva. Altura é poligênica e também depende da nutrição na infância.`, cash: ok ? 10000 : 0, lesson: 'alt' }; },
+    p => { const P = ph(p);
+      return { t: '👨‍⚕️ Um primo tem fibrose cística', h: `Você fez o teste de portador: ${P.cfCarrier ? '<b>é portador(a) (F/f)</b>, sem sintomas, mas pode passar o alelo aos filhos.' : '<b>não é portador(a)</b>.'}`, cash: -1500, rev: ['cf'], lesson: 'cf' }; },
+    p => { const P = ph(p);
+      return { t: '🩺 Exame de colesterol', h: P.fh ? 'LDL altíssimo. O teste genético confirmou <b>hipercolesterolemia familiar</b> (LDLR, dominante). Você começou o remédio e o risco de infarto caiu muito.' : 'Colesterol normal.', cash: P.fh ? -4000 : 0, med: P.fh, rev: ['fh'], lesson: P.fh ? 'fh' : null, after: () => { if (P.fh) p.treatFH = true; } }; },
+    p => { const neg = p.habits.neg, prof = p.career === 'prof';
+      if (neg && Math.random() < .5) { delete p.habits.neg; p.cards = p.cards.filter(c => c.k !== 'neg'); return { t: '🔭 Feira de ciências', h: 'Você levou a família à feira de ciências, conversou com pesquisadores e saiu de lá mudando de ideia sobre vacinas. <b>A carta "Negacionismo" foi descartada.</b>', cash: 0, lesson: 'neg' }; }
+      return { t: '🔭 Feira de ciências', h: 'Você explicou o quadro de Punnett para uma turma do ensino médio.' + (prof ? ' Bônus de professor(a)!' : ''), cash: prof ? 6000 : 1000 }; },
+    p => ({ t: '🧪 Teste de ancestralidade', h: 'Seu DNA mostra a mistura que formou o Brasil: ancestralidades europeia, africana e indígena, em proporções que nem seus irmãos têm iguais.', cash: -1000 }),
+    p => { const P = ph(p);
+      return { t: '☕ Café com a vizinha cardiologista', h: P.has >= 5 ? 'Ela mediu sua pressão por curiosidade: alta. Seu escore poligênico para hipertensão é alto. Melhor cuidar do sal e do exercício.' : 'Pressão ótima!', cash: 0, rev: ['has'] }; },
+  ];
+  const LIFE_EV = [
+    () => ({ t: '📈 Promoção', h: 'Aumento no salário!', raise: 3000 }),
+    () => ({ t: '🎰 Rifa da quermesse', h: 'Ganhou um carro, que vendeu.', cash: 15000 }),
+    () => ({ t: '🔧 O carro quebrou', h: 'Câmbio e embreagem.', cash: -5000 }),
+    () => ({ t: '🎁 Herança de uma tia-avó', h: 'Ela deixou um sítio.', cash: 20000 }),
+    () => ({ t: '📚 Especialização', h: 'Investimento na carreira.', cash: -5000, raise: 2000 }),
+    () => ({ t: '🏆 Funcionário(a) do ano', h: 'Bônus!', cash: 8000 }),
+    () => ({ t: '💸 Multa de trânsito', h: 'Radar escondido.', cash: -3000 }),
+    () => ({ t: '🎨 Vendeu um quadro', h: 'Um colecionador gostou.', cash: 5000, artBonus: true }),
+    () => ({ t: '🦷 Dentista', h: 'Canal e coroa.', cash: -4000, med: true }),
+    () => ({ t: '📉 Investimento ruim', h: 'Criptomoeda da moda.', cash: -10000 }),
+    () => ({ t: '🌱 Horta no quintal', h: 'Economia no mercado.', cash: 3000 }),
+  ];
+  const AV_EV = [
+    () => ({ t: '⛰️ Escalada no Himalaia', h: 'Patrocínio e documentário.', cash: 18000 }),
+    () => ({ t: '⛵ Naufrágio de veleiro', h: 'O seguro não cobria.', cash: -15000 }),
+    () => ({ t: '🎬 Figurante de novela', h: 'Cachê e fama.', cash: 12000 }),
+    () => ({ t: '🎲 Cassino em alto-mar', h: 'A banca sempre ganha.', cash: -12000 }),
+  ];
+
+  // =====================================================================
+  // DOENÇAS MULTIFATORIAIS: risco = base + genes + hábitos
+  // =====================================================================
+  const DISEASES = [
+    { k: 'dm', n: 'Diabetes tipo 2', cost: 12000, chronic: 1500, f: p => { const P = ph(p); return [['Risco de base na população', .07], ['Genética: escore poligênico', P.dm * .025, 'dm'], ['Sedentarismo', p.habits.sed ? .12 : 0, 'sed'], ['Dieta ultraprocessada', p.habits.dieta ? .12 : 0, 'dieta'], ['Atividade física', p.habits.ativo ? -.08 : 0, 'ativo']]; } },
+    { k: 'has', n: 'Hipertensão', cost: 6000, chronic: 1000, f: p => { const P = ph(p); return [['Risco de base na população', .08], ['Genética: escore poligênico', P.has * .025, 'has'], ['Álcool em excesso', p.habits.alcool ? .1 : 0, 'alcool'], ['Tabagismo', p.habits.fumo ? .06 : 0, 'fumo'], ['Sedentarismo', p.habits.sed ? .06 : 0, 'sed'], ['Dieta ultraprocessada', p.habits.dieta ? .06 : 0, 'dieta'], ['Atividade física', p.habits.ativo ? -.06 : 0, 'ativo']]; } },
+    { k: 'iam', n: 'Infarto', cost: 30000, chronic: 1000, f: p => { const P = ph(p); return [['Risco de base na população', .04], ['Genética: hipercolesterolemia familiar', P.fh ? (p.treatFH ? .04 : .3) : 0, 'fh'], ['Tabagismo', p.habits.fumo ? .12 : 0, 'fumo'], ['Sedentarismo', p.habits.sed ? .07 : 0, 'sed'], ['Dieta ultraprocessada', p.habits.dieta ? .05 : 0, 'dieta'], ['Hipertensão diagnosticada', p.dis && p.dis.has ? .06 : 0], ['Atividade física', p.habits.ativo ? -.05 : 0, 'ativo']]; } },
+    { k: 'cp', n: 'Câncer de pulmão', cost: 35000, chronic: 0, f: p => [['Risco de base na população', .015], ['Tabagismo', p.habits.fumo ? .22 : 0, 'fumo']] },
+    { k: 'fig', n: 'Doença do fígado', cost: 20000, chronic: 1000, f: p => [['Risco de base na população', .02], ['Álcool em excesso', p.habits.alcool ? .2 : 0, 'alcool'], ['Dieta ultraprocessada (gordura no fígado)', p.habits.dieta ? .05 : 0, 'dieta']] },
+    { k: 'alz', n: 'Doença de Alzheimer', late: true, cost: 20000, chronic: 2500, f: p => { const P = ph(p); return [['Risco de base na população', .05], ['Genética: APOE ε4', P.e4 === 2 ? .3 : P.e4 === 1 ? .12 : 0, P.e4 === 2 ? 'apoe44' : 'apoe4'], ['Sedentarismo', p.habits.sed ? .04 : 0, 'sed'], ['Atividade física e estudo (reserva cognitiva)', (p.habits.ativo ? -.04 : 0) + (p.fac ? -.03 : 0), 'ativo']]; } },
+  ];
+
+  // =====================================================================
+  // EVENTOS GLOBAIS (afetam todos: terreno, casas, renda)
+  // =====================================================================
+  const GLOBAL = [
+    { k: 'pandemia', t: '🦠 Pandemia!', w: 2 },
+    { k: 'desinfo', t: '📢 Onda de desinformação', w: 2 },
+    { k: 'mar', t: '🌊 O nível do mar subiu', w: 2 },
+    { k: 'chuva', t: '⛈️ Chuvas extremas', w: 2 },
+    { k: 'calor', t: '🌡️ Onda de calor recorde', w: 1 },
+    { k: 'seca', t: '🌵 Seca prolongada', w: 1 },
+    { k: 'crise', t: '📉 Crise econômica', w: 1 },
+    { k: 'tech', t: '💻 Revolução tecnológica', w: 1 },
+    { k: 'precisao', t: '🧬 Medicina de precisão', w: 1 },
+  ];
+
+  // =====================================================================
+  // LIÇÕES
+  // =====================================================================
+  const LESSONS = {
+    lactose: { t: 'Persistência da lactase', h: 'Na maioria da humanidade, o gene <i>LCT</i> "desliga" depois do desmame. Em povos com longa história de criação de gado, uma variante regulatória dominante mantém a lactase ativa: é um dos exemplos mais claros de seleção natural recente em humanos.' },
+    abo: { t: 'Sistema ABO e Rh', h: 'A e B são <b>codominantes</b> e O é recessivo. O Rh depende do gene <i>RHD</i> (D dominante). O− não tem antígenos A, B nem D: pode doar para todos.' },
+    bombay: { t: 'O "falso O" (fenótipo Bombay)', h: 'Os antígenos A e B são construídos em cima de um antígeno básico, o H, feito pela enzima do gene <i>FUT1</i>. Quem é <b>hh</b> não faz o H, então não consegue exibir A nem B, mesmo tendo esses alelos: na tipagem comum parece O. É um caso clássico de <b>epistasia</b>. Pessoas Bombay só podem receber sangue Bombay, e dois pais "O" podem ter um filho A ou B se um deles for Bombay.' },
+    actn: { t: 'O "gene da velocidade"', h: 'O <i>ACTN3</i> produz a alfa-actinina-3 das fibras rápidas. A variante X (R577X) cria um códon de parada. Velocistas de elite quase nunca são XX, mas nenhum gene sozinho faz um atleta.' },
+    fh: { t: 'Hipercolesterolemia familiar', h: 'Variantes dominantes no gene <i>LDLR</i> deixam o LDL muito alto desde a infância (cerca de 1 em 250 pessoas). Sem tratamento, o risco de infarto precoce é enorme; com remédio, fica quase normal. <b>Saber o genótipo muda o desfecho.</b>' },
+    hbb: { t: 'Vantagem do heterozigoto', h: 'HbA/HbS (traço falciforme) protege contra malária grave; HbS/HbS causa anemia falciforme. Por isso o alelo S é frequente onde houve malária, inclusive no Brasil.' },
+    cf: { t: 'Portadores', h: 'Fibrose cística é recessiva: portadores (F/f) não têm sintomas. Dois portadores têm 1/4 de chance de ter um filho f/f a cada gestação. O teste do pezinho do SUS detecta a doença ao nascer.' },
+    dal: { t: 'Daltonismo', h: 'Recessivo ligado ao X. Homens precisam de um alelo só; mulheres, de dois. Um filho daltônico herda o X da mãe.' },
+    alt: { t: 'Altura: genes e ambiente', h: 'A altura depende de milhares de variantes de efeito pequeno e também da nutrição e da saúde na infância.' },
+    filho: { t: 'Metade de cada um', h: 'Cada filho recebe um alelo de cada gene da mãe e um do pai, sorteados. Por isso irmãos são diferentes entre si.' },
+    familia: { t: 'Familiar não é o mesmo que genético', h: 'Filhos de pais sedentários, fumantes ou com dieta ruim têm mais chance de ter os mesmos hábitos, mas isso vem do <b>ambiente em casa</b>, não do DNA. Muita coisa que "corre na família" é aprendida. Separar genes e ambiente é um dos grandes desafios da genética humana (estudos com gêmeos e adotados ajudam nisso).' },
+    rh: { t: 'Incompatibilidade Rh', h: 'Mãe Rh− com bebê Rh+ pode produzir anticorpos que atacam o feto numa gravidez seguinte. A imunoglobulina anti-D depois do parto evita isso.' },
+    pezinho: { t: 'Teste do pezinho', h: 'Detecta doença falciforme, fibrose cística, fenilcetonúria e outras logo ao nascer. Tratamento precoce muda a vida da criança.' },
+    teste: { t: 'Aconselhamento genético', h: 'O teste de portador mostra se os dois carregam a mesma variante recessiva. Saber o risco ajuda a família a se preparar.' },
+    multi: { t: 'Doenças multifatoriais', h: 'Diabetes tipo 2, hipertensão, infarto e Alzheimer não seguem as leis de Mendel. O risco é a soma de <b>muitas variantes genéticas de efeito pequeno</b> (escore poligênico) com <b>ambiente e hábitos</b>. Por isso ninguém está "condenado" pelos genes: mudar hábitos reduz o risco, mesmo para quem tem predisposição.' },
+    apoe: { t: 'APOE ε4 e Alzheimer', h: 'Uma cópia do alelo ε4 aumenta cerca de 3 vezes o risco de Alzheimer tardio; duas cópias, de 8 a 12 vezes. Mas é um <b>fator de risco</b>, não uma sentença: muitas pessoas ε4/ε4 nunca desenvolvem a doença. Exercício, escolaridade e controle da pressão estão associados a menor risco.' },
+    vicio: { t: 'Dependência é doença', h: 'Tabagismo e alcoolismo têm componente genético (variantes em receptores de nicotina e no metabolismo do álcool), mas dependem muito do ambiente. Parar é difícil e recaídas são comuns: tentar de novo, com apoio, aumenta a chance de sucesso.' },
+    neg: { t: 'Negacionismo científico', h: 'Recusar vacinas não afeta só quem recusa: quando a cobertura vacinal cai, doenças controladas voltam (como o sarampo) e atingem bebês e pessoas que não podem se vacinar. A <b>imunidade coletiva</b> depende de quase todos estarem vacinados.' },
+    pandemia: { t: 'Pandemias, genes e vacinas', h: 'Numa pandemia, o risco individual depende de idade, doenças prévias e até de variantes genéticas do sistema imune, mas a vacinação é o fator que mais reduz casos graves e mortes.' },
+    clima: { t: 'Mudanças climáticas', h: 'O aquecimento global eleva o nível do mar e torna chuvas extremas, secas e ondas de calor mais frequentes. Áreas costeiras e encostas são as mais atingidas, e o impacto na saúde e na renda é desigual.' },
+    precisao: { t: 'Medicina de precisão', h: 'O sequenciamento ficou barato: o genoma completo, que custou bilhões no Projeto Genoma (2003), hoje sai por algumas centenas de dólares. Isso permite prevenção e tratamentos escolhidos pelo genótipo.' },
+  };
+
+  // =====================================================================
+  // CARTAS DE EVENTO POR FASE DA VIDA
+  // =====================================================================
+  const KEV = [
+    p => ({ t: '🤒 Catapora', h: 'Uma semana de coceira. Os anticorpos ficam para sempre.', cash: 0 }),
+    p => ({ t: '🎨 Concurso de desenho', h: 'Primeiro lugar na escola! A avó guardou o prêmio na poupança.', cash: 2000 }),
+    p => { const P = ph(p); return { t: '👓 Teste de visão na escola', h: P.dalt ? 'No teste de cores de Ishihara, os números sumiram: você é <b>daltônico(a)</b>.' : 'Enxerga todos os números do teste de cores.', rev: ['dal'], lesson: P.dalt ? 'dal' : null }; },
+    p => { const P = ph(p); return { t: '🥛 Leite na merenda', h: P.lactose ? 'Leite com achocolatado todo dia, sem problema.' : 'Por volta dos 7 anos o leite começou a dar dor de barriga: a lactase está desligando, como na maioria das pessoas.', rev: ['lct'], lesson: 'lactose' }; },
+    p => ({ t: '🦴 Quebrou o braço', h: 'Caiu da árvore. Gesso por um mês.', cash: -1500, med: true }),
+    p => ({ t: '🚲 Ganhou uma bicicleta', h: 'Pedala o dia todo pelo bairro.', cash: 0, gain: 'ativo', gainP: .35 }),
+    p => ({ t: '📺 Férias na frente da TV', h: 'Desenho, videogame e salgadinho.', cash: 0, gain: 'sed', gainP: .3 }),
+    p => { const P = ph(p); p.nutri = (p.nutri || 0) + 2; return { t: '🍲 Merenda escolar nutritiva', h: `Boa alimentação na infância ajuda a criança a atingir o potencial genético de altura. Hoje você tem ${ph(p).height} cm.`, lesson: 'alt' }; },
+  ];
+  const TEV = [
+    p => ({ t: '💼 Primeiro emprego', h: 'Jovem aprendiz no mercadinho do bairro.', cash: 3000 }),
+    p => ({ t: '📏 Estirão de crescimento', h: `Você cresceu 12 cm em um ano e chegou a ${ph(p).height} cm.`, lesson: 'alt' }),
+    p => ({ t: '🧮 Olimpíada de matemática', h: p.study ? 'Medalha de prata! Os anos de estudo renderam.' : 'Menção honrosa.', cash: p.study ? 4000 : 1000 }),
+    p => ({ t: '🎸 Banda da escola', h: 'Ensaios na garagem e um show no grêmio.', cash: -1000 }),
+    p => ({ t: '🏀 Time da escola', h: 'Treinos três vezes por semana.', gain: 'ativo', gainP: .4 }),
+    p => ({ t: '🍔 Fast-food com os amigos', h: 'Todo fim de semana.', gain: 'dieta', gainP: .3 }),
+  ];
+  const OEV = [
+    p => ({ t: '👶 Nasceu um neto', h: p.kids.length ? 'Os netos herdaram cerca de 1/4 dos seus genes.' : 'Um sobrinho-neto nasceu e você virou padrinho/madrinha.', cash: -2000, lesson: p.kids.length ? 'netos' : null }),
+    p => ({ t: '✈️ Viagem dos sonhos', h: 'Aposentadoria é para isso.', cash: -8000 }),
+    p => ({ t: '🦴 Queda em casa', h: p.habits.ativo ? 'Você caiu, mas os músculos e ossos fortes evitaram uma fratura.' : 'Fratura no fêmur. Sedentarismo deixa ossos e músculos mais frágeis.', cash: p.habits.ativo ? 0 : -10000, med: !p.habits.ativo }),
+    p => ({ t: '📱 Aprendeu a usar o celular', h: 'Agora manda áudio de 5 minutos no grupo da família.', cash: 0 }),
+    p => ({ t: '🎓 Universidade da terceira idade', h: 'Aulas de história e de genética. Aprender coisas novas ajuda a manter a reserva cognitiva.', cash: -1000 }),
+    p => ({ t: '🏡 Os filhos vieram almoçar', h: `${p.kids.length ? `${p.kids.length} filho(s) e netos à mesa.` : 'Os amigos de sempre vieram almoçar.'}`, cash: 0 }),
+  ];
+  Object.assign(LESSONS, {
+    gemeos: { t: 'Gêmeos idênticos e fraternos', h: '<b>Gêmeos idênticos</b> (monozigóticos) vêm de um único zigoto que se dividiu: têm o mesmo genoma e o mesmo sexo. <b>Fraternos</b> (dizigóticos) vêm de dois óvulos fecundados por dois espermatozoides: são irmãos comuns que nasceram juntos. Comparar os dois tipos ajuda a separar o efeito dos genes do efeito do ambiente.' },
+    hla: { t: 'HLA e transplantes', h: 'As moléculas HLA (do complexo MHC) mostram ao sistema imune o que é "próprio". Os genes HLA são herdados em bloco, como <b>haplótipos</b>: um da mãe e um do pai. Por isso cada irmão tem 1/4 de chance de ser idêntico em HLA, 1/2 de compartilhar um haplótipo e 1/4 de não compartilhar nenhum. Pais e filhos sempre compartilham metade.' },
+    transfusao: { t: 'Quem doa para quem', h: 'Para hemácias, o doador não pode ter antígenos que o receptor não tem. O (sem A nem B) doa para todos os tipos; AB recebe de todos. Rh− recebe só de Rh−. O fenótipo Bombay (hh) só recebe de outro Bombay.<br><table class="compat"><tr><th>doador ↓ receptor →</th><th>O</th><th>A</th><th>B</th><th>AB</th></tr><tr><th>O</th><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr><th>A</th><td>✗</td><td>✓</td><td>✗</td><td>✓</td></tr><tr><th>B</th><td>✗</td><td>✗</td><td>✓</td><td>✓</td></tr><tr><th>AB</th><td>✗</td><td>✗</td><td>✗</td><td>✓</td></tr></table>' },
+    redome: { t: 'Cadastro de doadores de medula', h: 'Só cerca de 25% dos pacientes que precisam de transplante de medula têm um irmão compatível. Os outros dependem de doadores voluntários. O REDOME, no Brasil, é um dos maiores cadastros do mundo: basta uma amostra de sangue para entrar.' },
+    longevidade: { t: 'Quanto vivemos?', h: 'A longevidade é só em parte genética (estimativas de herdabilidade de 15 a 25%). Hábitos como não fumar, fazer exercício e comer bem somam muitos anos. Variantes em genes como <i>FOXO3</i> e o alelo ε2 do <i>APOE</i> são mais comuns entre centenários; o ε4 é menos comum.' },
+    netos: { t: 'Netos', h: 'Cada neto herda, em média, 1/4 dos seus genes, mas o valor real varia, porque a recombinação embaralha os cromossomos a cada geração.' },
+    adolescencia: { t: 'Adolescência e vícios', h: 'O cérebro adolescente ainda está amadurecendo o controle de impulsos, e quem começa a fumar ou beber cedo tem muito mais chance de desenvolver dependência. Fatores genéticos aumentam a vulnerabilidade, mas o ambiente e as amizades pesam muito.' },
+    vacinas: { t: 'Calendário vacinal', h: 'As vacinas da infância treinam o sistema imune com antígenos inofensivos. Quando quase todos estão vacinados, até quem não pode se vacinar fica protegido (imunidade coletiva).' },
+    previdencia: { t: 'Juros compostos', h: 'Dinheiro investido cedo cresce sobre o próprio rendimento. Investimentos de risco podem render mais, mas sofrem em crises.' },
+  });
+
+  // =====================================================================
+  // ESTADO
+  // =====================================================================
+  const SAVE_KEY = 'heranca-save-v2';
+  let S = null;
+  const COLORS = ['#e63946', '#2a9df4', '#2ec27e', '#f4a261'];
+  const NAMES_M = ['Rafael', 'Lucas', 'Pedro', 'Gabriel', 'Mateus', 'Thiago', 'Bruno', 'Caio', 'Diego', 'Felipe', 'Gustavo', 'Henrique', 'Igor', 'João', 'Leonardo', 'Marcelo', 'Otávio', 'Ricardo', 'Samuel', 'Vítor'];
+  const NAMES_F = ['Ana', 'Beatriz', 'Camila', 'Daniela', 'Fernanda', 'Gabriela', 'Helena', 'Isabela', 'Júlia', 'Larissa', 'Mariana', 'Natália', 'Patrícia', 'Renata', 'Sofia', 'Tatiana', 'Valentina', 'Yasmin', 'Luana', 'Clara'];
+  const HAND = 6;
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() { try { const t = localStorage.getItem(SAVE_KEY); if (t) return JSON.parse(t); } catch (e) {} return null; }
+  const cur = () => S.players[S.cur];
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  function toast(h) { const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = h; $('#toasts').appendChild(el); while ($('#toasts').children.length > 3) $('#toasts').firstChild.remove(); setTimeout(() => el.remove(), 3800); }
+  let modalCb = null;
+  function modal(html, cb) { modalCb = cb || null; $('#modalRoot').innerHTML = `<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; }
+  function closeModalSilently() { $('#modalRoot').innerHTML = ''; modalCb = null; }
+  function closeModal() { $('#modalRoot').innerHTML = ''; const cb = modalCb; modalCb = null; if (cb) cb(); }
+  const modalOpen = () => !!$('#modalRoot').innerHTML;
+  const log = t => { S.log.push(t); if (S.log.length > 80) S.log.shift(); };
+  const humans = () => S.players.some(p => !p.cpu);
+
+  function newGame(cfg) {
+    S = { players: [], cur: 0, log: [], lessons: {}, phase: 'play', doneOrder: 0, turnNo: 1, sea: 0, flood: [], econ: null, labPrice: 5000, globals: [] };
+    const deck = shuffle(DECK.slice());
+    cfg.forEach((c, i) => {
+      const hand = dealHand(deck, HAND);
+      const p = makePerson(c.sex, hand, { id: i, name: c.name, cpu: c.cpu, color: COLORS[i], token: c.token || 'carro', pos: S0[0], cash: 10000, debt: 0, career: null, raise: 0, fac: false, spouse: null, kids: [], house: null, insured: false, done: false, seen: [], treatFH: false, dis: {}, chronic: 0, knowBlood: false, route: null, sector: null, study: false, bolsa: false, inv: [], pension: null, donor: 0, redome: false, altruism: 0, life: null, tx: {} });
+      p.family = makeFamily(p);
+      S.players.push(p);
+    });
+    log(`Começou a partida! Cada jogador recebeu ${HAND} cartas viradas para baixo.`);
+  }
+  function addCash(p, v, quiet) {
+    p.cash += v;
+    while (p.cash < 0) { p.cash += 20000; p.debt += 20000; if (!quiet) log(`${p.name} pegou um empréstimo de R$ 20 mil.`); }
+  }
+  const lesson = k => { if (!k || S.lessons[k]) return ''; S.lessons[k] = true; const L = LESSONS[k]; return `<div class="lesson"><b>📖 ${L.t}</b><br>${L.h}</div>`; };
+  function revealCards(p, keys) {
+    const got = (keys || []).filter(k => reveal(p, k));
+    return got.length ? `<div class="revealed">${got.map(k => cardHTML(k, true, true)).join('')}<div class="meta">Carta${got.length > 1 ? 's' : ''} revelada${got.length > 1 ? 's' : ''}!</div></div>` : '';
+  }
+  const SEA_X = [99999, 600, 300, -1];
+  const flooded = id => S.flood.includes(id) || (BOARD[id].y >= 1600 && BOARD[id].x >= SEA_X[S.sea] && !['retire', 'legado', 'm80'].includes(BOARD[id].t));
+
+  // =====================================================================
+  // MOVIMENTO
+  // =====================================================================
+  let busy = false;
+  function spin() {
+    if (busy || modalOpen() || S.phase !== 'play') return;
+    const p = cur(); if (p.done) { nextPlayer(); return; }
+    busy = true;
+    const v = ri(1, 10);
+    const w = $('#wheel');
+    S.wheelRot = (S.wheelRot || 0) + 1440 + (360 - (v - 1) * 36) - ((S.wheelRot || 0) % 360);
+    if (w) w.style.transform = `rotate(${S.wheelRot}deg)`;
+    sfx.spin();
+    setTimeout(() => { log(`${p.name} tirou ${v} na roleta${S.fast ? ' (+3)' : ''}.`); S.lastSpin = v; move(p, v + (S.fast ? 3 : 0)); }, 1300);
+  }
+  function move(p, steps) {
+    if (steps <= 0) { land(p); return; }
+    const here = BOARD[p.pos];
+    if (here.next.length > 1) { chooseBranch(p, here, nx => { p.pos = nx; afterStep(p, steps - 1); }); return; }
+    if (!here.next.length) { land(p); return; }
+    p.pos = here.next[0];
+    afterStep(p, steps - 1);
+  }
+  function afterStep(p, left) {
+    const sp = BOARD[p.pos];
+    if (p.pos === FAC[0]) { p.fac = true; p.route = 'fac'; if (!p.bolsa) { addCash(p, -40000, true); log(`${p.name} foi para a faculdade (empréstimo estudantil).`); } else log(`${p.name} foi para a faculdade com bolsa do ENEM.`); }
+    if (p.pos === MIL[0]) { p.route = 'mil'; p.knowBlood = true; left = 0; }
+    if (p.pos === JOB[0]) p.route = 'job';
+    if (sp.t === 'pay') {
+      const s = salary(p); addCash(p, s); sfx.coin(); floatText(p, `+${money(s)}`); medicalBills(p); growInvest(p);
+      if (p.cpu) while (p.debt > 0 && p.cash >= 50000) { p.cash -= 20000; p.debt -= 20000; }
+    }
+    renderBoard();
+    if (SP[sp.t].stop) left = 0;
+    setTimeout(() => move(p, left), left ? 230 : 280);
+  }
+  function medicalBills(p) {
+    const ill = p.kids.filter(k => ph(k).sickle || ph(k).cf).length;
+    const c = (ill * 2000 + (p.chronic || 0)) * (p.insured ? .5 : 1);
+    if (c) { addCash(p, -c); log(`${p.name}: tratamentos de saúde (${money(-c)}).`); }
+  }
+  function chooseBranch(p, node, cb) {
+    const opts = node.next;
+    if (p.cpu) { cb(pick(opts)); return; }
+    modal(`<h3>🔀 Escolha o caminho</h3>${opts.map(id => `<button class="opt" data-act="branch" data-v="${id}"><b>${BRANCH_N[id]}</b><br><span class="meta">${BRANCH_D[id]}</span></button>`).join('')}`);
+    S._branchCb = cb;
+  }
+
+  // =====================================================================
+  // CASAS DO TABULEIRO
+  // =====================================================================
+  function land(p) {
+    const sp = BOARD[p.pos], t = sp.t;
+    const done = () => { busy = false; render(); setTimeout(nextPlayer, p.cpu ? 500 : 0); };
+    let floodNote = '';
+    if (flooded(p.pos)) { addCash(p, -4000); floodNote = `<p class="flood">🌊 Esta casa do tabuleiro está alagada: ${money(-4000)} de prejuízo.</p>`; log(`${p.name} caiu numa área alagada (−R$ 4 mil).`); }
+    const show = (title, body, cb) => {
+      if (p.cpu) { toast(`<b style="color:${p.color}">${esc(p.name)}</b>: ${title}`); log(`${p.name}: ${title.replace(/<[^>]+>/g, '')}.`); (cb || done)(); return; }
+      modal(`<h3>${title}</h3>${floodNote}${body}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, cb || done);
+    };
+    if (t === 'pay') { show('💰 Dia de pagamento', `<p>${esc(p.name)} recebeu ${money(salary(p))}.</p>`); return; }
+    if (t === 'ev' || t === 'gene') {
+      let E;
+      if (t === 'gene') { const opts = GENE_EV.map((_, i) => i).filter(i => !p.seen.includes(i)); const i = opts.length ? pick(opts) : rand(GENE_EV.length); p.seen.push(i); E = GENE_EV[i](p); }
+      else E = pick(LIFE_EV)(p);
+      if (t === 'ev' && p.redome && !p.tx.redome && Math.random() < .2) { p.tx.redome = true; p.altruism += 15000; E = { t: '📞 O REDOME ligou!', h: 'Você é compatível com uma criança que precisa de transplante de medula. Doou e salvou uma vida.', lesson: 'redome' }; }
+      applyEvent(p, E, show); return;
+    }
+    if (t === 'kev' || t === 'tev' || t === 'oev') {
+      const deck = t === 'kev' ? KEV : t === 'tev' ? TEV : OEV;
+      let E = pick(deck)(p);
+      if (t === 'oev' && p.redome && !p.tx.redome && Math.random() < .35) { p.tx.redome = true; p.altruism += 15000; E = { t: '📞 O REDOME ligou!', h: 'Você é compatível com uma criança que precisa de transplante de medula. Doou e salvou uma vida.', lesson: 'redome' }; }
+      applyEvent(p, E, show); return;
+    }
+    if (t === 'pezinho') { const P = ph(p); show('🦶 Teste do pezinho', `<p>No terceiro dia de vida, uma gota de sangue do calcanhar. O teste triou fenilcetonúria, hipotireoidismo, doença falciforme, fibrose cística e outras.</p><p>${P.sickleTrait ? 'Resultado: <b>traço falciforme (HbA/HbS)</b>. Não é doença, mas a família foi orientada.' : 'Resultado: normal.'}</p>${revealCards(p, ['hbs'])}${lesson('pezinho')}`); return; }
+    if (t === 'vacina') {
+      const skip = Math.random() < .15;
+      if (skip) { addCash(p, -2000); show('💉 Vacinação infantil', `<p>Seus pais acreditaram num boato e atrasaram as vacinas. Você pegou sarampo e passou duas semanas internado(a) (${money(-2000)}).</p>${lesson('vacinas')}`); }
+      else show('💉 Vacinação infantil', `<p>Caderneta em dia: sarampo, pólio, coqueluche… protegido(a), e ajudando a proteger quem não pode se vacinar.</p>${lesson('vacinas')}`);
+      return;
+    }
+    if (t === 'sport') { const a = ph(p).actn, act = p.habits.ativo; const c = (a === 'RR' ? 3000 : a === 'RX' ? 1500 : 500) + (act ? 2000 : 0); applyEvent(p, { t: '⚽ Jogos escolares', h: `Corrida de 50 metros: seu ACTN3 é <b>${a}</b>${act ? ' e você treina sempre' : ''}. ${a === 'RR' ? 'Medalha de ouro!' : a === 'RX' ? 'Medalha de bronze.' : 'Faltou explosão, mas você foi ótimo(a) no revezamento longo.'}`, cash: c, rev: ['rr', 'xx'], lesson: 'actn' }, show); return; }
+    if (t === 'school') { school(p, done); return; }
+    if (t === 'peer') { peer(p, done); return; }
+    if (t === 'enem') { const sc = ri(40, 85) + (p.study ? 20 : 0); p.bolsa = sc >= 80; show('📝 ENEM', `<p>Sua nota: <b>${sc}</b>. ${p.bolsa ? 'Nota alta: <b>bolsa integral</b> se for para a faculdade!' : 'Dá para entrar na faculdade, mas com financiamento estudantil.'}</p>${p.study ? '<p class="meta">Os anos de estudo extra ajudaram.</p>' : ''}`); return; }
+    if (t === 'mil') {
+      const first = !p.tx.mil1; p.tx.mil1 = true;
+      if (first) { p.knowBlood = true; let tr = ''; if (p.habits.sed) { delete p.habits.sed; p.cards = p.cards.filter(c => c.k !== 'sed'); gainHabit(p, 'ativo', true); tr = '<p>O treinamento físico diário acabou com o sedentarismo: <b>a carta virou Atividade física</b>.</p>'; } show('🪖 Exame do alistamento', `<p>Exame médico completo: tipagem sanguínea (${ph(p).blood}), visão de cores, altura (${ph(p).height} cm) e condicionamento físico.</p>${tr}${revealCards(p, ['dal', 'rhneg', 'sed'])}`); }
+      else applyEvent(p, { t: '🪖 Treinamento na selva', h: 'Uma semana no mato com mochila de 20 kg. Você voltou mais forte e com um bônus no soldo.', cash: 2000 }, show);
+      return;
+    }
+    if (t === 'blood') { hemocentro(p, done); return; }
+    if (t === 'invest') { invest(p, done); return; }
+    if (t === 'pos') { pos(p, done); return; }
+    if (t === 'concurso') { const pass = Math.random() < (p.study ? .85 : .6) + (p.fac ? .1 : 0); p.sector = pass ? 'pub' : 'pri'; if (pass) p.raise += 2000; show('🏛️ Concurso público', pass ? '<p>Aprovado(a)! Salário estável: crises não reduzem seu salário, e a aposentadoria paga 90% dele.</p>' : '<p>Não passou desta vez. Você segue no setor privado, com salário 15% maior, mas mais exposto(a) às crises.</p>'); return; }
+    if (t === 'priv') { p.sector = 'pri'; show('🏢 Setor privado', '<p>Salário 15% maior e chances de bônus. Em crises, os cortes são mais fortes, e a aposentadoria paga 50% do salário: investir faz diferença.</p>'); return; }
+    if (t === 'transp') { transplant(p, show, done); return; }
+    if (t === 'm50') { checkup(p, done, '5️⃣ 50 anos: exames de rotina'); return; }
+    if (t === 'm80') { m80(p, show); return; }
+    if (t === 'legado') { legado(p, show); return; }
+    if (t === 'fam') {
+      if (!p.spouse) { show('🍼 Planejamento familiar', '<p>Sem cônjuge por enquanto. Você virou o tio/tia favorito(a) da família.</p>'); return; }
+      if (p.cpu) { if (Math.random() < .8) baby(p, show); else done(); return; }
+      modal(`<h3>🍼 Planejamento familiar</h3><p>Vocês querem ter um filho agora? Cada filho vale ${money(20000)} no fim, herda metade dos genes de cada um e custa caro se nascer com uma doença genética.</p>${p.spouse && (p.seq || p.spouse.seq) ? '' : '<p class="meta">Dica: o laboratório de genética mostra o risco do casal antes.</p>'}<div class="btns"><button class="btn primary" data-act="fam" data-v="1">Ter um bebê</button><button class="btn" data-act="fam" data-v="0">Agora não</button></div>`);
+      S._fam = yes => { closeModalSilently(); if (yes) baby(p, show); else done(); };
+      return;
+    }
+    if (t === 'baby') { baby(p, show); return; }
+    if (t === 'test') { lab(p, done); return; }
+    if (t === 'checkup') { checkup(p, done); return; }
+    if (t === 'health') { health(p, show); return; }
+    if (t === 'insure') {
+      if (p.insured) { show('🛡️ Plano de saúde', '<p>Você já tem plano de saúde.</p>'); return; }
+      if (p.cpu) { if (p.cash > 20000) { addCash(p, -10000); p.insured = true; } show(p.insured ? '🛡️ contratou plano de saúde' : '🛡️ ficou sem plano de saúde'); return; }
+      modal(`<h3>🛡️ Plano de saúde</h3>${floodNote}<p>Por ${money(10000)}, o plano paga metade de todas as despesas médicas daqui para frente: eventos, doenças e tratamentos contínuos.</p>
+        <div class="btns"><button class="btn primary" data-act="insure">Contratar (${money(10000)})</button><button class="btn" data-act="close">Agora não</button></div>`, done); return;
+    }
+    if (t === 'car_f' || t === 'car_j' || t === 'car_m') { career(p, t, done); return; }
+    if (t === 'marry') { marry(p, show); return; }
+    if (t === 'house') { house(p, done); return; }
+    if (t === 'retire') { retire(p, show); return; }
+    if (floodNote) { show('🌊 Área alagada', ''); return; }
+    done();
+  }
+
+  function career(p, t, done) {
+    const fl = t === 'car_f' ? c => c.fac : t === 'car_j' ? c => !c.fac && !c.mil : c => !c.fac && !c.mil;
+    let pool = shuffle(CAREERS.filter(fl)).slice(0, t === 'car_m' ? 2 : 3); const P = ph(p);
+    if (t === 'car_m') pool.unshift(CAREERS.find(c => c.k === 'milc'));
+    const ok = c => !c.req || c.req(P, p);
+    if (pool.some(c => !ok(c) && c.reveal)) reveal(p, pool.find(c => !ok(c) && c.reveal).reveal);
+    if (p.cpu) { const c = pool.filter(ok).sort((a, b) => b.sal - a.sal)[0] || CAREERS.find(c => c.k === 'vend'); p.career = c.k; toast(`<b style="color:${p.color}">${esc(p.name)}</b> virou ${c.n}`); log(`${p.name} virou ${c.n} (${money(salary(p))}/pagamento).`); done(); return; }
+    modal(`<h3>${t === 'car_f' ? '🎓' : t === 'car_m' ? '🪖' : '💼'} Escolha sua carreira</h3><p class="meta">Algumas carreiras dependem dos seus genes.</p>
+      ${pool.map(c => `<button class="opt" data-act="career" data-v="${c.k}" ${ok(c) ? '' : 'disabled'}><b>${c.n}</b> · ${money(c.sal)} por pagamento${c.actn ? ' (± ACTN3)' : ''}<br><span class="meta">${c.d}${!ok(c) ? ` <b class="neg">Bloqueada: ${c.reqT}.</b>` : ''}</span></button>`).join('')}
+      ${pool.every(c => !ok(c)) ? `<button class="opt" data-act="career" data-v="vend"><b>Vendedor(a)</b> · ${money(12000)}</button>` : ''}`);
+    S._careerDone = done;
+  }
+  function setCareer(k) {
+    const p = cur(); p.career = k;
+    const C = CAREERS.find(c => c.k === k);
+    log(`${p.name} virou ${C.n} (${money(salary(p))} por pagamento).`);
+    sfx.good();
+    let extra = '';
+    if (C.actn) extra = `<p>O exame do clube revelou seu ACTN3: <b>${ph(p).actn}</b>. Salário: ${money(salary(p))}.</p>${revealCards(p, ['rr', 'xx'])}${lesson('actn')}`;
+    if (k === 'gen') extra = `<p>Como geneticista, você sequenciou o próprio genoma.</p>${revealCards(p, p.cards.filter(c => CARDS[c.k].cat === 'gen' || CARDS[c.k].cat === 'risk').map(c => c.k))}`;
+    if (extra) modal(`<h3>${C.n}</h3>${extra}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, S._careerDone);
+    else { closeModal(); S._careerDone && S._careerDone(); }
+  }
+
+  function marry(p, show) {
+    const sex = p.sex === 'M' ? 'F' : 'M';
+    const sp = makePerson(sex, dealHand(shuffle(DECK.slice()), 3), { name: pick(sex === 'M' ? NAMES_M : NAMES_F) });
+    p.spouse = sp;
+    let gifts = 0;
+    for (const o of S.players) if (o !== p && !o.done) { addCash(o, -3000, true); gifts += 3000; }
+    addCash(p, gifts);
+    sfx.bells();
+    log(`${p.name} casou com ${sp.name}!`);
+    show(`💍 ${esc(p.name)} casou com ${esc(sp.name)}!`, `<p>Os outros jogadores deram ${money(gifts)} de presente.</p>
+      <p>${esc(sp.name)} também traz cartas viradas para baixo. Os genes delas vão para os filhos; os hábitos influenciam a casa.</p>
+      <div class="hand">${sp.cards.map(c => cardHTML(c.k, c.rev)).join('')}</div>`);
+  }
+  function makeKid(p) {
+    const mom = p.sex === 'F' ? p : p.spouse, dad = p.sex === 'F' ? p.spouse : p;
+    const sex = Math.random() < .5 ? 'F' : 'M';
+    const k = { name: pick(sex === 'M' ? NAMES_M : NAMES_F), sex, g: childGenome(mom.g, dad.g, sex), habits: {}, cards: [], nutri: rand(5) - 2 };
+    // hábitos vêm do ambiente da casa, não dos genes
+    for (const h of ['sed', 'fumo', 'alcool', 'dieta', 'neg', 'ativo']) {
+      const fam = mom.habits[h] || dad.habits[h];
+      if (Math.random() < (fam ? .4 : (h === 'sed' || h === 'dieta' ? .08 : 0))) k.habits[h] = true;
+    }
+    if (k.habits.sed && k.habits.ativo) delete k.habits.sed;
+    k.cards = cardsFromGenome(k).map(x => ({ k: x, rev: false }));
+    return { k, mom, dad };
+  }
+  function baby(p, show) {
+    if (!p.spouse) { addCash(p, -2000); show('👶 Batizado do afilhado', `<p>${esc(p.name)} virou padrinho/madrinha e deu um presente (${money(-2000)}).</p>`); return; }
+    if (p.kids.length >= 6) { show('👶 Carro lotado', '<p>O carro já está cheio! Vocês decidiram não ter mais filhos.</p>'); return; }
+    const twins = Math.random() < .14 && p.kids.length <= 4, mz = twins && Math.random() < .4;
+    const made = [makeKid(p)];
+    if (twins) {
+      if (mz) { const a = made[0].k, b = { ...a, g: JSON.parse(JSON.stringify(a.g)), habits: { ...a.habits }, cards: a.cards.map(c => ({ ...c })), name: pick(a.sex === 'M' ? NAMES_M : NAMES_F) }; a.mz = b.mz = Date.now(); made.push({ k: b, mom: made[0].mom, dad: made[0].dad }); }
+      else made.push(makeKid(p));
+    }
+    let extra = '', cost = 0;
+    for (const { k, mom, dad } of made) {
+      p.kids.push(k);
+      const K = ph(k);
+      if (ph(mom).rhNeg && !K.rhNeg) { cost += 1500; extra += `<p>🩸 ${esc(mom === p ? 'Você' : mom.name)} é Rh− e ${esc(k.name)} é Rh+: anti-D aplicada depois do parto.</p>${mom === p ? revealCards(p, ['rhneg']) : ''}${lesson('rh')}`; }
+      if (K.sickle || K.cf) { extra += `<p>🦶 O <b>teste do pezinho</b> detectou ${K.sickle ? 'anemia falciforme (HbS/HbS)' : 'fibrose cística (f/f)'} em ${esc(k.name)}. Tratamento desde já.</p>${revealCards(p, K.sickle ? ['hbs'] : ['cf'])}${lesson('pezinho')}`; }
+      if (ph(mom).blood.startsWith('O') && ph(dad).blood.startsWith('O') && !K.blood.startsWith('O') && !K.bombay) {
+        extra += `<p>🧩 <b>Mistério:</b> os dois pais têm sangue tipo O na tipagem, mas ${esc(k.name)} nasceu com sangue <b>${K.blood}</b>. Um dos pais carrega A ou B "escondido" pelo fenótipo Bombay.</p>${revealCards(p, ['bombay'])}${lesson('bombay')}`;
+      }
+    }
+    if (cost) addCash(p, -(p.insured ? cost / 2 : cost));
+    sfx.baby();
+    log(`${p.name} teve ${twins ? 'gêmeos' : 'um bebê'}: ${made.map(m => m.k.name).join(' e ')}.`);
+    const famLesson = p.kids.length >= 2 ? lesson('familia') : '';
+    if (twins) extra += `<p>👯 ${mz ? '<b>Gêmeos idênticos</b>: vieram do mesmo zigoto e têm exatamente o mesmo genoma (e o mesmo sexo).' : '<b>Gêmeos fraternos</b>: dois óvulos, dois espermatozoides. São tão parecidos quanto quaisquer irmãos.'}</p>${lesson('gemeos')}`;
+    show(`👶 ${twins ? (mz ? 'Gêmeos idênticos!' : 'Gêmeos!') : 'Nasceu!'}`, made.map(({ k }) => `<div class="card"><b>${esc(k.name)}</b> ${k.sex === 'F' ? '♀' : '♂'} · ${k.cards.length} carta(s) virada(s) para baixo<div class="hand small">${k.cards.map(c => cardHTML(c.k, false)).join('')}</div></div>`).join('') + extra + lesson('filho') + famLesson);
+  }
+  function lab(p, done) {
+    const free = p.career === 'gen', price = free ? 0 : S.labPrice;
+    const opts = [];
+    const hidden = x => x.cards.some(c => !c.rev && (CARDS[c.k].cat === 'gen' || CARDS[c.k].cat === 'risk'));
+    if (hidden(p)) opts.push(['self', `Sequenciar ${p.name}`]);
+    if (p.spouse && hidden(p.spouse)) opts.push(['spouse', `Sequenciar ${p.spouse.name}`]);
+    if (p.cpu) {
+      for (const [k] of opts) if (free || p.cash > 20000) { if (!free) addCash(p, -price); seqAll(k === 'self' ? p : p.spouse); }
+      toast(`<b style="color:${p.color}">${esc(p.name)}</b> passou no laboratório`); done(); return;
+    }
+    modal(`<h3>🔬 Laboratório de genética</h3>
+      <p>O sequenciamento revela as cartas <b>genéticas</b> e de <b>risco poligênico</b>${free ? ' (de graça para geneticistas!)' : ` por ${money(price)} por pessoa`}. Hábitos e crenças não aparecem no DNA.</p>
+      ${p.neg && false ? '' : ''}
+      ${p.habits.neg ? '<p class="meta">Sua carta "Desconfiança da ciência" faria você recusar o exame… mas aqui a curiosidade venceu.</p>' : ''}
+      ${opts.length ? opts.map(([k, t]) => `<button class="opt" data-act="lab" data-v="${k}">${t}${free ? '' : ` (${money(price)})`}</button>`).join('') : '<p>Todas as cartas genéticas da família já foram reveladas.</p>'}
+      ${p.spouse && !hidden(p) && !hidden(p.spouse) ? coupleRisk(p) : ''}
+      <div class="btns"><button class="btn primary" data-act="close">Sair do laboratório</button></div>`, done);
+  }
+  function seqAll(x) { for (const c of x.cards) if (CARDS[c.k].cat === 'gen' || CARDS[c.k].cat === 'risk') c.rev = true; x.seq = true; }
+  function coupleRisk(p) {
+    const a = p, b = p.spouse, out = [];
+    const c2 = (x, l, al) => n(x.g, l, al);
+    if (c2(a, 'hbb', 'S') && c2(b, 'hbb', 'S')) out.push('Anemia falciforme: <b>25%</b> por filho');
+    if (c2(a, 'cftr', 'f') && c2(b, 'cftr', 'f')) out.push('Fibrose cística: <b>25%</b> por filho');
+    if (has(a.g, 'fh', 'H') || has(b.g, 'fh', 'H')) out.push('Hipercolesterolemia familiar: <b>50%</b> por filho (dominante)');
+    const e4 = c2(a, 'apoe', 'e4') + c2(b, 'apoe', 'e4'); if (e4) out.push(`APOE ε4: cada filho tem ${e4 >= 3 ? 'pelo menos uma cópia com certeza' : e4 === 2 && (c2(a, 'apoe', 'e4') === 2 || c2(b, 'apoe', 'e4') === 2) ? '100% de chance de ao menos uma cópia' : e4 === 2 ? '75% de chance de ao menos uma cópia' : '50% de chance de uma cópia'} (fator de risco, não diagnóstico)`);
+    if (c2(a, 'fut', 'h') && c2(b, 'fut', 'h')) out.push('Fenótipo Bombay: possível nos filhos');
+    return `<div class="lesson"><b>Aconselhamento genético do casal</b><br>${out.length ? out.join('<br>') : 'Nenhum risco aumentado nas variantes testadas.'}</div>${lesson('teste')}`;
+  }
+
+  // ---------- check-up: revela hábitos e oferece mudança ----------
+  function checkup(p, done, title) {
+    const keys = p.cards.filter(c => ['hab', 'cren', 'risk'].includes(CARDS[c.k].cat) || c.k === 'fh').map(c => c.k);
+    const revealedHtml = revealCards(p, keys);
+    if (has(p.g, 'fh', 'H') && !p.treatFH) p.treatFH = true;
+    const fixable = p.cards.filter(c => c.rev && CARDS[c.k].fix);
+    if (p.cpu) {
+      for (const c of fixable) if (p.cash > 15000) tryFix(p, c.k);
+      toast(`<b style="color:${p.color}">${esc(p.name)}</b> fez um check-up`); done(); return;
+    }
+    modal(`<h3>${title || '🩺 Check-up'}</h3><p>Exames de sangue, pressão e uma conversa franca sobre hábitos.${p.treatFH && keys.includes('fh') ? ' O colesterol alto foi tratado.' : ''}</p>${revealedHtml}
+      ${fixable.length ? `<p><b>Quer mudar algum hábito?</b> Mudar hábitos reduz o risco das doenças multifatoriais.</p>${fixable.map(c => { const F = CARDS[c.k].fix; return `<button class="opt" data-act="fix" data-v="${c.k}">${F.n} · ${money(F.c)} · chance de sucesso ${pct(F.ok)}<br><span class="meta">${CARDS[c.k].n}: ${CARDS[c.k].d}</span></button>`; }).join('')}` : '<p class="meta">Nenhum hábito para mudar agora.</p>'}
+      <div class="btns"><button class="btn primary" data-act="close">Sair do consultório</button></div>`, done);
+  }
+  function tryFix(p, k) {
+    const F = CARDS[k].fix; if (!F || p.cash < F.c) return null;
+    addCash(p, -F.c);
+    const ok = Math.random() < F.ok;
+    if (ok) {
+      delete p.habits[k]; p.cards = p.cards.filter(c => c.k !== k);
+      if (F.to) { p.habits[F.to] = true; p.cards.push({ k: F.to, rev: true }); }
+      log(`${p.name} conseguiu: ${F.n}.`);
+    } else log(`${p.name} tentou (${F.n}), mas teve uma recaída.`);
+    return ok;
+  }
+
+  // ---------- doenças multifatoriais ----------
+  function health(p, show) {
+    const late = BOARD[p.pos].age >= 65;
+    const pool = DISEASES.filter(d => !p.dis[d.k] && (!d.late || late));
+    if (!pool.length) { show('🫀 Saúde em dia', '<p>Nada de novo nos exames.</p>'); return; }
+    const scored = pool.map(d => { const f = d.f(p), r = clamp(f.reduce((a, x) => a + x[1], 0), .01, .9); return { d, f, r }; });
+    let tot = scored.reduce((a, s) => a + s.r + .05, 0), x = Math.random() * tot, sel = scored[0];
+    for (const s of scored) { x -= s.r + .05; if (x <= 0) { sel = s; break; } }
+    const { d, f, r } = sel, roll = Math.random(), sick = roll < r;
+    const keys = f.filter(z => z[1] !== 0 && z[2]).map(z => z[2]);
+    let cost = 0;
+    if (sick) { p.dis[d.k] = true; cost = d.cost * (p.insured ? .5 : 1); addCash(p, -cost); p.chronic += d.chronic; if (d.k === 'iam' && has(p.g, 'fh', 'H')) p.treatFH = true; sfx.lose(); } else sfx.good();
+    log(`${p.name}: risco de ${d.n} ${pct(r)} → ${sick ? 'teve a doença' : 'escapou'}.`);
+    const rows = f.filter(z => z[1] !== 0).map(z => `<tr><td>${z[0]}</td><td class="${z[1] > 0 ? 'neg' : 'pos'}">${z[1] > 0 ? '+' : '−'}${pct(Math.abs(z[1]))}</td></tr>`).join('');
+    const body = `<p>Os anos passam. Seu risco de <b>${d.n}</b> nesta fase da vida:</p>
+      <table class="risk">${rows}<tr class="tot"><td>Risco total</td><td>${pct(r)}</td></tr></table>
+      <div class="riskbar"><i style="width:${r * 100}%"></i><b style="left:${roll * 100}%"></b></div>
+      <p class="big ${sick ? 'neg' : 'pos'}">${sick ? `Diagnóstico: ${d.n}. ${money(-cost)}${d.chronic ? ` e tratamento contínuo de ${money(-d.chronic * (p.insured ? .5 : 1))} a cada pagamento` : ''}` : 'Saudável desta vez!'}</p>
+      ${p.insured && sick ? '<p class="meta">🛡️ O plano pagou metade.</p>' : ''}
+      ${revealCards(p, keys)}${lesson('multi')}${d.k === 'alz' ? lesson('apoe') : ''}${keys.some(k => k === 'fumo' || k === 'alcool') ? lesson('vicio') : ''}`;
+    show(`🫀 ${d.n}`, body);
+  }
+
+  function house(p, done) {
+    const H = [{ n: 'Apartamento na cidade', loc: 'cidade', c: 40000, v: 55000 }, { n: 'Casa na encosta', loc: 'encosta', c: 30000, v: 45000 }, { n: 'Casa com quintal', loc: 'quintal', c: 80000, v: 115000 }, { n: 'Casa de praia', loc: 'praia', c: 140000, v: 200000 }];
+    if (p.house) { done(); return; }
+    if (p.cpu) { const h = H.filter(x => x.c <= p.cash + 20000).sort((a, b) => b.c - a.c)[0] || H[1]; addCash(p, -h.c); p.house = { ...h }; toast(`<b style="color:${p.color}">${esc(p.name)}</b> comprou: ${h.n}`); log(`${p.name} comprou ${h.n}.`); done(); return; }
+    modal(`<h3>🏠 Compra da casa</h3><p>No fim, a casa vale mais do que custou… se o clima deixar. Encostas sofrem com chuvas extremas, e casas de praia com a subida do mar.</p>
+      ${H.map((h, i) => `<button class="opt" data-act="house" data-v="${i}"><b>${h.n}</b> · custa ${money(h.c)} · vale ${money(h.v)} na aposentadoria</button>`).join('')}
+      <div class="btns"><button class="btn" data-act="close">Continuar de aluguel</button></div>`, done);
+    S._houses = H;
+  }
+  function retire(p, show) {
+    const base = baseSalary(p), rate = p.sector === 'pub' || p.career === 'milc' ? .9 : .5;
+    p.pension = Math.round(base * rate);
+    sfx.good();
+    log(`${p.name} se aposentou (aposentadoria de ${money(p.pension)}).`);
+    show(`🏖️ ${esc(p.name)} se aposentou aos 65!`, `<p>Daqui para frente, cada dia de pagamento paga a aposentadoria: <b>${money(p.pension)}</b> (${pct(rate)} do salário${rate < .9 ? ', porque no setor privado o benefício é menor' : ''}).</p>${invTotal(p) ? `<p>Seus investimentos somam ${money(invTotal(p))} e continuam rendendo.</p>` : '<p class="meta">Você não tem investimentos. Eles ajudariam a completar a renda agora.</p>'}${lesson('previdencia')}`);
+  }
+
+  // =====================================================================
+  // EVENTOS GLOBAIS (no começo de cada rodada)
+  // =====================================================================
+  function globalEvent() {
+    const pool = GLOBAL.flatMap(g => Array(g.w).fill(g)).filter(g => !(g.k === 'mar' && S.sea >= 3) && !(g.k === 'precisao' && S.labPrice < 5000) && !(g.k === 'crise' && S.econ));
+    const G = pick(pool), act = S.players.filter(p => !p.done), lines = [];
+    let intro = '', les = '';
+    const pay = (p, v, why, med) => { if (med && v < 0 && p.insured) v = Math.round(v / 2); addCash(p, v, true); lines.push(`<li><b style="color:${p.color}">${esc(p.name)}</b>: ${why} <b class="${v >= 0 ? 'pos' : 'neg'}">${v ? (v > 0 ? '+' : '') + money(v) : ''}</b></li>`); };
+    if (G.k === 'pandemia') {
+      intro = 'Um vírus novo se espalha pelo mundo. Vacinas chegam rápido, de graça, pelo SUS.';
+      for (const p of act) {
+        if (p.habits.neg) { reveal(p, 'neg'); Math.random() < .45 ? pay(p, -20000, 'recusou a vacina e foi internado(a)', true) : pay(p, -4000, 'recusou a vacina, adoeceu e ficou semanas sem trabalhar', true); }
+        else Math.random() < .08 ? pay(p, -3000, 'vacinado(a), teve um caso leve', true) : pay(p, 0, 'vacinado(a), passou bem');
+        if (p.career === 'med') pay(p, 10000, 'plantões extras na pandemia');
+        if (['art', 'chef', 'vend'].includes(p.career)) pay(p, -8000, 'o trabalho parou com o isolamento');
+      }
+      les = lesson('pandemia') + (act.some(p => p.habits.neg) ? lesson('neg') : '');
+    } else if (G.k === 'desinfo') {
+      intro = 'Boatos nas redes fazem a vacinação infantil despencar. O sarampo, que estava eliminado, voltou.';
+      for (const p of act) {
+        const neg = p.habits.neg; if (neg) reveal(p, 'neg');
+        if (!p.kids.length) { pay(p, 0, neg ? 'acreditou nos boatos, mas não tem filhos pequenos' : 'não tem filhos pequenos'); continue; }
+        if (neg) { const sick = p.kids.filter(() => Math.random() < .4).length; pay(p, -4000 * sick, sick ? `não vacinou os filhos: ${sick} pegaram sarampo` : 'não vacinou os filhos e teve sorte desta vez', true); }
+        else pay(p, 0, 'filhos vacinados e protegidos');
+      }
+      les = lesson('neg');
+    } else if (G.k === 'mar') {
+      S.sea++;
+      intro = `O derretimento do gelo polar elevou o nível do mar. ${S.sea === 1 ? 'A orla do tabuleiro (canto inferior direito) foi invadida pela água.' : 'A água avançou mais pela parte de baixo do tabuleiro.'} Casas alagadas cobram prejuízo de quem cai nelas.`;
+      for (const p of act) if (p.house && p.house.loc === 'praia') { p.house.v = Math.round(p.house.v * .6); pay(p, -5000, 'a casa de praia perdeu 40% do valor e precisou de reforma'); }
+      les = lesson('clima');
+    } else if (G.k === 'chuva') {
+      const cand = BOARD.filter(s => ['ev', 'gene', 'pay'].includes(s.t) && !S.flood.includes(s.id) && s.y > 200);
+      for (const s of shuffle(cand).slice(0, 3)) S.flood.push(s.id);
+      intro = 'Tempestades nunca vistas: alagamentos e deslizamentos. Três ruas do tabuleiro ficaram alagadas.';
+      for (const p of act) {
+        if (p.house && p.house.loc === 'encosta') { p.house.v = Math.round(p.house.v * .5); pay(p, -10000, 'deslizamento atingiu a casa na encosta (valor caiu pela metade)'); }
+        else if (p.house && p.house.loc === 'quintal') pay(p, -3000, 'o quintal alagou');
+        else pay(p, 0, 'passou sem danos');
+      }
+      les = lesson('clima');
+    } else if (G.k === 'calor') {
+      intro = 'A temperatura bateu recorde por semanas. Hospitais lotados de casos de pressão alta e desidratação.';
+      for (const p of act) { const risk = p.habits.sed || p.dis.has || p.dis.iam; pay(p, risk ? -5000 : -1500, risk ? 'passou mal no calor (sedentarismo ou doença cardiovascular)' : 'ar-condicionado e conta de luz', risk); }
+      les = lesson('clima');
+    } else if (G.k === 'seca') {
+      intro = 'Meses sem chuva. Os preços dos alimentos dispararam.';
+      for (const p of act) pay(p, p.career === 'chef' ? -6000 : -2000, p.career === 'chef' ? 'o restaurante sofreu com os preços' : 'conta do mercado subiu');
+      les = lesson('clima');
+    } else if (G.k === 'crise') {
+      S.econ = { mult: .8, rounds: 2 };
+      for (const p of act) for (const v of p.inv) if (v.type === 'aco') v.amt = Math.round(v.amt * .7);
+      intro = 'Recessão por duas rodadas: salários do setor privado caem 30%, os sem setor definido 20%, e servidores públicos e militares não são afetados. Ações perdem 30%.';
+    } else if (G.k === 'tech') {
+      intro = 'Inteligência artificial e biotecnologia mudam o mercado de trabalho.';
+      for (const p of act) {
+        if (['eng', 'gen'].includes(p.career)) { p.raise += 4000; pay(p, 0, 'salário +R$ 4 mil (carreira em alta)'); }
+        else if (p.career === 'vend') { p.raise -= 2000; pay(p, 0, 'salário −R$ 2 mil (vendas automatizadas)'); }
+      }
+    } else if (G.k === 'precisao') {
+      S.labPrice = 2500;
+      intro = 'O sequenciamento de genomas ficou muito mais barato: o laboratório agora cobra metade.';
+      les = lesson('precisao');
+    }
+    S.globals.push(G.k);
+    log(`🌍 ${G.t.replace(/^\S+\s/, '')}`);
+    sfx.global();
+    return `<h3>🌍 ${G.t}</h3><p>${intro}</p>${lines.length ? `<ul class="glist">${lines.join('')}</ul>` : ''}${les}`;
+  }
+
+  function nextPlayer() {
+    if (S.players.every(p => p.done)) { S.phase = 'end'; sfx.end(); render(); return; }
+    let newRound = false;
+    do { S.cur = (S.cur + 1) % S.players.length; if (S.cur === 0) { S.turnNo++; newRound = true; } } while (cur().done);
+    busy = false;
+    if (newRound) {
+      if (S.econ && --S.econ.rounds <= 0) { S.econ = null; log('A economia se recuperou.'); }
+      if (S.turnNo >= 3 && Math.random() < .45) {
+        const html = globalEvent(); render();
+        if (humans()) { modal(html + `<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, () => { render(); if (cur().cpu) setTimeout(spin, 600); }); return; }
+        toast(html.replace(/<(?!b|\/b)[^>]+>/g, ' ').slice(0, 140));
+      }
+    }
+    render();
+    if (cur().cpu) setTimeout(spin, 700);
+  }
+  function score(p) {
+    const kids = p.kids.length * 20000, house = p.house ? p.house.v : 0, debt = Math.round(p.debt * 1.25), inv = invTotal(p);
+    const life = p.life || lifespan(p).total, lifeB = (life - 76) * 2000;
+    return { cash: p.cash, house, kids, debt, inv, life, lifeB, alt: p.altruism, total: p.cash + house + kids + inv + lifeB + p.altruism - debt };
+  }
+
+  function gainHabit(p, k, revealed) {
+    if (p.habits[k]) return false;
+    if (k === 'ativo' && p.habits.sed) { delete p.habits.sed; p.cards = p.cards.filter(c => c.k !== 'sed'); }
+    if (k === 'sed' && p.habits.ativo) return false;
+    p.habits[k] = true; p.cards.push({ k, rev: !!revealed }); return true;
+  }
+  function applyEvent(p, E, show) {
+    let c = E.cash || 0;
+    if (E.med && c < 0 && p.insured) c = Math.round(c / 2);
+    if (E.artBonus && p.career === 'art') c *= 3;
+    addCash(p, c); if (E.raise) p.raise += E.raise; if (E.after) E.after();
+    let gained = '';
+    if (E.gain && Math.random() < E.gainP && gainHabit(p, E.gain, false)) gained = '<p class="meta">Algo mudou nos seus hábitos… uma carta nova entrou na sua mão, virada para baixo.</p>';
+    if (c > 0) sfx.coin(); else if (c < 0) sfx.lose();
+    const body = `<div class="evcard"><p>${E.h}</p></div>${c || E.raise ? `<p class="big ${c >= 0 ? 'pos' : 'neg'}">${c ? (c > 0 ? '+' : '') + money(c) : ''}${E.raise ? ` · salário +${money(E.raise)}` : ''}</p>` : ''}${E.med && p.insured && (E.cash || 0) < 0 ? '<p class="meta">🛡️ O plano de saúde pagou metade.</p>' : ''}${gained}${revealCards(p, E.rev)}${lesson(E.lesson)}`;
+    show(E.t, body);
+  }
+  function school(p, done) {
+    const apply = k => {
+      let h = '';
+      if (k === 'esp') { p.nutri = (p.nutri || 0) + 1; h = gainHabit(p, 'ativo', true) ? 'O esporte virou hábito: <b>carta Atividade física</b>.' : 'Você gostou do esporte.'; }
+      if (k === 'est') { p.study = true; h = 'Reforço, leitura e olimpíadas: vai ajudar no ENEM e em concursos.'; }
+      if (k === 'tel') { h = Math.random() < .5 && gainHabit(p, 'sed', false) ? 'Muitas horas de tela… uma carta nova entrou na sua mão, virada para baixo.' : 'Você se divertiu com os games.'; }
+      log(`${p.name} escolheu ${k === 'esp' ? 'esporte' : k === 'est' ? 'estudos' : 'videogame'} na escola.`);
+      return h;
+    };
+    if (p.cpu) { apply(pick(['esp', 'est', 'tel'])); done(); return; }
+    modal(`<h3>🏫 Atividade extracurricular</h3><p>O que você faz depois da aula?</p>
+      <button class="opt" data-act="school" data-v="esp"><b>⚽ Esporte</b><br><span class="meta">Chance de criar o hábito de atividade física (e ajuda a crescer).</span></button>
+      <button class="opt" data-act="school" data-v="est"><b>📚 Estudos e leitura</b><br><span class="meta">Melhora a nota do ENEM e a chance em concursos.</span></button>
+      <button class="opt" data-act="school" data-v="tel"><b>🎮 Videogame e TV</b><br><span class="meta">Diversão garantida… e risco de sedentarismo.</span></button>`);
+    S._school = k => { const h = apply(k); modal(`<h3>🏫 Escola</h3><p>${h}</p><div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done); };
+  }
+  function peer(p, done) {
+    const k = p.tx.peer1 ? 'alcool' : 'fumo', what = k === 'fumo' ? 'um cigarro' : 'uma garrafa de vodca no meio da semana';
+    p.tx.peer1 = true;
+    const accept = () => { const got = Math.random() < .5 && gainHabit(p, k, false); log(`${p.name} aceitou ${what}.`); return `<p>Você aceitou ${what}. ${got ? 'Virou costume… <b>uma carta nova entrou na sua mão, virada para baixo</b>.' : 'Não gostou muito e não repetiu.'}</p>${lesson('adolescencia')}`; };
+    if (p.cpu) { if (Math.random() < .3) accept(); done(); return; }
+    modal(`<h3>🚬 Pressão dos amigos</h3><p>Numa festa, oferecem ${what}. Todo mundo está olhando.</p>
+      <div class="btns"><button class="btn" data-act="peer" data-v="1">Aceitar</button><button class="btn primary" data-act="peer" data-v="0">Recusar</button></div>`);
+    S._peer = yes => modal(`<h3>🚬 Pressão dos amigos</h3>${yes ? accept() : `<p>Você recusou. Os amigos de verdade nem ligaram.</p>${lesson('adolescencia')}`}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done);
+  }
+  function hemocentro(p, done) {
+    const P = ph(p);
+    if (p.cpu) { p.knowBlood = true; p.donor++; if (Math.random() < .5) p.redome = true; toast(`<b style="color:${p.color}">${esc(p.name)}</b> doou sangue`); done(); return; }
+    modal(`<h3>🩸 Hemocentro</h3><p>Uma bolsa de sangue pode ajudar até quatro pessoas. Doadores frequentes ganham um dia de folga e têm prioridade se precisarem de sangue.</p>
+      <button class="opt" data-act="hemo" data-v="doar"><b>Doar sangue</b><br><span class="meta">Descobre seu tipo sanguíneo. Transfusões futuras ficam mais baratas.</span></button>
+      ${p.redome ? '<p class="meta">✅ Você já está no cadastro de doadores de medula.</p>' : `<button class="opt" data-act="hemo" data-v="redome"><b>Entrar no cadastro de doadores de medula (REDOME)</b><br><span class="meta">Um dia o telefone pode tocar.</span></button>`}
+      ${lesson('transfusao')}
+      <div class="btns"><button class="btn" data-act="close">Sair</button></div>`, done);
+    S._hemo = v => {
+      if (v === 'doar') { p.knowBlood = true; p.donor++; addCash(p, 1500); sfx.good(); const nb = P.bombay ? '<p>A triagem descobriu algo raro: <b>você é Bombay</b> ("falso O"). Seu sangue foi para um banco especial.</p>' : ''; modal(`<h3>🩸 Obrigado!</h3><p>Seu sangue é <b>${P.blood}</b>${P.blood === 'O−' ? ', o doador universal' : ''}. Dia de folga: +${money(1500)}.</p>${nb}${revealCards(p, ['rhneg', 'bombay'])}${P.bombay ? lesson('bombay') : ''}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done); }
+      else { p.redome = true; sfx.good(); modal(`<h3>🧬 Cadastro feito</h3><p>Uma amostra do seu sangue foi tipada para os genes HLA.</p>${lesson('redome')}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done); }
+    };
+  }
+  const INV = { pou: ['Poupança', .01, 0], tes: ['Tesouro Direto', .025, 0], aco: ['Ações', .04, .1] };
+  function growInvest(p) {
+    for (const v of p.inv) { const [, m, sd] = INV[v.type]; v.amt = Math.round(v.amt * (1 + m + (Math.random() * 2 - 1) * sd)); }
+  }
+  const invTotal = p => p.inv.reduce((a, v) => a + v.amt, 0);
+  function invest(p, done) {
+    if (p.cpu) { if (p.cash > 30000) { const a = Math.round(p.cash * .3 / 1000) * 1000; addCash(p, -a); p.inv.push({ type: pick(['tes', 'aco', 'pou']), amt: a }); toast(`<b style="color:${p.color}">${esc(p.name)}</b> investiu ${money(a)}`); } done(); return; }
+    const opts = [10000, 30000, 60000].filter(a => a <= p.cash);
+    modal(`<h3>📈 Investimentos</h3><p>Quanto investir? O dinheiro rende a cada dia de pagamento e conta no seu legado final. ${invTotal(p) ? `Você já tem ${money(invTotal(p))} investidos.` : ''}</p>
+      ${opts.length ? Object.entries(INV).map(([k, [nm, m, sd]]) => `<div class="invrow"><b>${nm}</b> <span class="meta">${sd ? 'rende mais em média, mas oscila e cai nas crises' : `+${(m * 100).toFixed(1)}% por pagamento, seguro`}</span><div class="btns">${opts.map(a => `<button class="btn" data-act="inv" data-v="${k}:${a}">${money(a)}</button>`).join('')}</div></div>`).join('') : '<p class="meta">Sem dinheiro sobrando para investir agora.</p>'}
+      ${lesson('previdencia')}
+      <div class="btns"><button class="btn primary" data-act="close">Não investir agora</button></div>`, done);
+  }
+  function pos(p, done) {
+    const c = 15000;
+    if (p.cpu) { if (p.fac && p.cash > 30000) { addCash(p, -c); p.raise += 3000; p.study = true; } done(); return; }
+    modal(`<h3>🎓 Pós-graduação</h3><p>Mestrado, especialização ou MBA à noite: custa ${money(c)} e aumenta o salário em ${money(p.fac ? 3000 : 1500)} por pagamento${p.fac ? '' : ' (menos para quem não tem graduação)'}.</p>
+      <div class="btns"><button class="btn primary" data-act="pos">Fazer a pós (${money(c)})</button><button class="btn" data-act="close">Agora não</button></div>`, done);
+  }
+  function transplant(p, show, done) {
+    const age = BOARD[p.pos].age;
+    const fam = [...p.family.sibs.map(x => [x, 'irmão(ã) ' + x.name]), ...(p.spouse ? [[p.spouse, 'cônjuge ' + p.spouse.name]] : []), ...p.kids.map(k => [k, 'filho(a) ' + k.name])];
+    const rows = (list, recip) => list.map(([d, nm]) => { const a = aboOK(d, recip), h = hlaMatch(d, recip); return `<tr><td>${esc(nm)}</td><td>${ph(d).blood}</td><td class="${a ? 'pos' : 'neg'}">${a ? '✓' : '✗'}</td><td>${['nenhum', 'metade (1 haplótipo)', 'idêntico'][h]}</td></tr>`; }).join('');
+    const table = (list, recip) => `<table class="risk tx"><tr><th>Possível doador</th><th>Sangue</th><th>ABO</th><th>HLA</th></tr>${rows(list, recip)}</table>`;
+    // 1) insuficiência renal (diabetes ou hipertensão)
+    if ((p.dis.dm || p.dis.has) && !p.tx.rim) {
+      p.tx.rim = true; p.knowBlood = true;
+      const ok = fam.filter(([d]) => aboOK(d, p)).sort((a, b) => hlaMatch(b[0], p) - hlaMatch(a[0], p));
+      let res;
+      if (ok.length) { addCash(p, -(p.insured ? 4000 : 8000)); res = `<p>✅ ${esc(ok[0][1])} é compatível e doou um rim. Transplante feito pelo SUS: ${money(-(p.insured ? 4000 : 8000))} de despesas.</p>`; }
+      else { p.chronic += 3000; res = `<p>❌ Ninguém da família é compatível no ABO. Você entrou na fila de transplante e faz hemodiálise três vezes por semana: ${money(-3000)} a cada pagamento.</p>`; }
+      sfx.lose();
+      show('🫘 Insuficiência renal', `<p>Anos de ${p.dis.dm ? 'diabetes' : 'pressão alta'} danificaram os rins. É preciso um transplante.</p>${table(fam, p)}${res}${lesson('hla')}${lesson('transfusao')}`); return;
+    }
+    // 2) leucemia em um filho: irmãos idênticos em HLA são os melhores doadores
+    if (p.kids.length && !p.tx.medula && age < 70) {
+      p.tx.medula = true;
+      const kid = pick(p.kids), others = [...p.kids.filter(k => k !== kid).map(k => [k, 'irmão(ã) ' + k.name]), [p, 'você (genitor)'], ...(p.spouse ? [[p.spouse, p.spouse.name + ' (genitor)']] : [])];
+      const full = others.find(([d]) => hlaMatch(d, kid) === 2), half = others.find(([d]) => hlaMatch(d, kid) >= 1);
+      const redome = !full && Math.random() < .35;
+      const cost = p.insured ? 7000 : 14000; addCash(p, -cost); sfx.lose();
+      const mz = kid.mz && p.kids.find(k => k.mz === kid.mz && k !== kid);
+      const res = full ? `<p>✅ ${esc(full[1])} tem HLA <b>idêntico</b>${mz ? ' (gêmeo idêntico!)' : ''}: transplante com ótima chance de sucesso.</p>` : redome ? '<p>✅ Ninguém da família era idêntico, mas o REDOME achou um doador voluntário compatível.</p>' : `<p>⚠️ Sem doador idêntico. ${half ? esc(half[1]) + ' é <b>haploidêntico</b> (metade)' : 'Um familiar haploidêntico'} doou, com um protocolo mais arriscado, e deu certo.</p>`;
+      show(`🫘 ${esc(kid.name)} precisa de transplante de medula`, `<p>Diagnóstico de leucemia. A medula precisa vir de alguém com HLA compatível.</p>${table(others, kid)}${res}<p class="meta">Despesas: ${money(-cost)}</p>${lesson('hla')}${lesson('redome')}`); return;
+    }
+    // 3) um irmão precisa de rim: você pode doar
+    const sib = pick(p.family.sibs); p.knowBlood = true;
+    const a = aboOK(p, sib), h = hlaMatch(p, sib);
+    if (!a) { show(`🫘 ${esc(sib.name)} precisa de um rim`, `<p>Seu irmão(ã) ${esc(sib.name)} precisa de transplante de rim. Você fez os exames: seu sangue é ${ph(p).blood} e o dele(a) é ${ph(sib).blood}. <b>ABO incompatível</b>: você não pode doar.</p>${lesson('transfusao')}${lesson('hla')}`); return; }
+    if (p.cpu) { if (Math.random() < .6) { p.altruism += 20000; addCash(p, -3000); log(`${p.name} doou um rim para ${sib.name}.`); } done(); return; }
+    modal(`<h3>🫘 ${esc(sib.name)} precisa de um rim</h3><p>Você é ABO compatível (${ph(p).blood} → ${ph(sib).blood}) e compartilha <b>${['nenhum', 'um', 'os dois'][h]}</b> haplótipo(s) HLA com ${esc(sib.name)}. Dá para viver bem com um rim só, mas a cirurgia exige um mês de recuperação.</p>${lesson('hla')}
+      <div class="btns"><button class="btn primary" data-act="donate" data-v="1">Doar o rim (−${money(3000)}, +legado)</button><button class="btn" data-act="donate" data-v="0">Não doar</button></div>`);
+    S._donate = yes => { if (yes) { p.altruism += 20000; addCash(p, -3000); sfx.good(); log(`${p.name} doou um rim para ${sib.name}.`); } modal(`<h3>🫘 ${yes ? 'Doação feita' : 'Decisão respeitada'}</h3><p>${yes ? `O transplante deu certo. ${esc(sib.name)} voltou a trabalhar e a família nunca esqueceu.` : 'Doar órgãos em vida é uma escolha pessoal. Seu irmão(ã) entrou na fila de transplante.'}</p><div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done); };
+  }
+  function lifespan(p) {
+    const P = ph(p), f = [['Expectativa de vida média no Brasil', 76], ['Acaso e fatores não medidos', p.lifeRand ?? (p.lifeRand = ri(-4, 4))]];
+    if (p.habits.ativo) f.push(['Atividade física', 4]); if (p.habits.sed) f.push(['Sedentarismo', -3]);
+    if (p.habits.fumo) f.push(['Tabagismo', -8]); if (p.habits.alcool) f.push(['Álcool em excesso', -4]); if (p.habits.dieta) f.push(['Dieta ultraprocessada', -3]);
+    if (P.longevo) f.push(['Variante de longevidade (FOXO3)', 3]);
+    if (P.e2) f.push(['APOE ε2', 2]); if (P.e4 === 2) f.push(['APOE ε4/ε4', -3]);
+    if (P.fh && !p.treatFH) f.push(['Hipercolesterolemia sem tratamento', -7]);
+    const nd = Object.keys(p.dis).length; if (nd) f.push([`${nd} doença(s) crônica(s)`, -3 * nd]);
+    if (p.study || p.fac) f.push(['Escolaridade', 2]);
+    return { f, total: f.reduce((a, x) => a + x[1], 0) };
+  }
+  function m80(p, show) {
+    const L = lifespan(p), alz = DISEASES.find(d => d.k === 'alz');
+    let alzTxt = '';
+    if (!p.dis.alz) { const f = alz.f(p), r = clamp(f.reduce((a, x) => a + x[1], 0), .01, .9); if (Math.random() < r) { p.dis.alz = true; p.chronic += alz.chronic; addCash(p, -(p.insured ? alz.cost / 2 : alz.cost)); alzTxt = `<p class="neg"><b>Os esquecimentos viraram diagnóstico: doença de Alzheimer</b> (risco era ${pct(r)}).</p>`; } else alzTxt = `<p class="pos">Memória afiada! (risco de Alzheimer era ${pct(r)})</p>`; alzTxt += revealCards(p, f.filter(z => z[1] && z[2]).map(z => z[2])) + lesson('apoe'); }
+    show('8️⃣ 80 anos!', `<p>Festa com bolo e netos.</p>${alzTxt}<p>Pelo jeito, você deve viver até uns <b>${L.total} anos</b>.</p>${revealCards(p, ['longevo', 'apoe4', 'apoe44'])}${lesson('longevidade')}`);
+  }
+  function legado(p, show) {
+    p.done = true; S.doneOrder++;
+    const L = lifespan(p); p.life = L.total;
+    const rows = L.f.map(([n, v], i) => `<tr><td>${n}</td><td class="${i === 0 ? '' : v >= 0 ? 'pos' : 'neg'}">${i === 0 ? v : (v >= 0 ? '+' : '') + v}</td></tr>`).join('');
+    sfx.good();
+    log(`${p.name} chegou ao fim da jornada: viveu até ${L.total} anos.`);
+    for (const c of p.cards) c.rev = true;
+    show(`🏆 O legado de ${esc(p.name)}`, `<p>Uma vida inteira. Você viveu até <b>${L.total} anos</b>.</p><table class="risk">${rows}<tr class="tot"><td>Total</td><td>${L.total} anos</td></tr></table>
+      <p class="meta">Cada ano acima de 76 vale ${money(2000)} no legado (e cada ano abaixo tira o mesmo). Todas as suas cartas foram reveladas.</p>${lesson('longevidade')}`);
+  }
+
+  // =====================================================================
+  // CARTAS NA TELA
+  // =====================================================================
+  function cardHTML(k, rev, flip) {
+    const C = CARDS[k];
+    if (!rev) return `<div class="gcard back" title="Carta virada: ainda não se sabe"><span>🧬</span><i>?</i></div>`;
+    const [cn, col] = CAT[C.cat];
+    return `<div class="gcard ${flip ? 'flip' : ''} ${C.good ? 'good' : ''}" style="--c:${col}" title="${esc(C.d)}"><div class="ct">${cn}</div><b>${C.n}</b><div class="cs">${C.s}</div></div>`;
+  }
+  function handHTML(p, small) {
+    return `<div class="hand ${small ? 'small' : ''}">${p.cards.map(c => cardHTML(c.k, c.rev)).join('')}</div>`;
+  }
+  const TOKENS = {
+    carro: ['Carro', c => `<rect x="-15" y="-9" width="30" height="18" rx="6" fill="${c}" stroke="#222" stroke-width="1.5"/><rect x="-9" y="-6" width="18" height="11" rx="3" fill="#fff" opacity=".85"/><circle cx="-9" cy="9" r="3.2" fill="#222"/><circle cx="9" cy="9" r="3.2" fill="#222"/>`],
+    pipeta: ['Pipeta', c => `<g transform="rotate(-30)"><ellipse cx="0" cy="-14" rx="6.5" ry="6" fill="${c}" stroke="#222" stroke-width="1.5"/><rect x="-3.5" y="-9" width="7" height="19" rx="1.5" fill="#fff" stroke="#222" stroke-width="1.5"/><rect x="-2" y="1" width="4" height="8" fill="${c}"/><path d="M-3.5 10 L0 18 L3.5 10Z" fill="#fff" stroke="#222" stroke-width="1.5"/><circle cy="20" r="1.8" fill="${c}"/></g>`],
+    dna: ['DNA', c => `<path d="M-8 -16 C 10 -10, 10 -2, -8 4 S -8 14, 8 18" fill="none" stroke="#222" stroke-width="5" stroke-linecap="round"/><path d="M8 -16 C -10 -10, -10 -2, 8 4 S 8 14, -8 18" fill="none" stroke="#222" stroke-width="5" stroke-linecap="round"/><path d="M-8 -16 C 10 -10, 10 -2, -8 4 S -8 14, 8 18" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M8 -16 C -10 -10, -10 -2, 8 4 S 8 14, -8 18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><g stroke="#222" stroke-width="1.5"><path d="M-4 -12 H4"/><path d="M-4 0 H4"/><path d="M-4 9 H4"/></g>`],
+    celula: ['Célula', c => `<ellipse rx="16" ry="13" fill="${c}" opacity=".35" stroke="#222" stroke-width="1.5"/><ellipse rx="16" ry="13" fill="none" stroke="${c}" stroke-width="2.5"/><circle cx="2" cy="-1" r="5.5" fill="${c}" stroke="#222" stroke-width="1.2"/><circle cx="3" cy="-2" r="1.6" fill="#222"/><ellipse cx="-9" cy="5" rx="3" ry="1.6" fill="#ff9f43" stroke="#222" stroke-width=".8"/><circle cx="9" cy="6" r="1.2" fill="#222"/><circle cx="-6" cy="-7" r="1.2" fill="#222"/>`],
+    ervilha: ['Ervilha de Mendel', c => `<path d="M-17 2 Q0 -14 17 -2 Q2 14 -17 2Z" fill="${c}" stroke="#222" stroke-width="1.5"/><circle cx="-8" cy="0" r="4" fill="#9ee66b" stroke="#222"/><circle cx="0" cy="-1" r="4" fill="#9ee66b" stroke="#222"/><circle cx="8" cy="-2" r="4" fill="#9ee66b" stroke="#222"/><path d="M17 -2 q4 -4 2 -9" fill="none" stroke="#2e7d32" stroke-width="2"/>`],
+    mosca: ['Drosófila', c => `<ellipse cx="-7" cy="-7" rx="9" ry="5" fill="#e3f2fd" opacity=".9" stroke="#222" transform="rotate(-25 -7 -7)"/><ellipse cx="7" cy="-7" rx="9" ry="5" fill="#e3f2fd" opacity=".9" stroke="#222" transform="rotate(25 7 -7)"/><ellipse cy="4" rx="6" ry="11" fill="${c}" stroke="#222" stroke-width="1.5"/><path d="M-5 5 H5 M-5 9 H5" stroke="#222" stroke-width="1.2"/><circle cy="-8" r="5" fill="${c}" stroke="#222" stroke-width="1.3"/><circle cx="-3.6" cy="-9" r="2.6" fill="#d50000"/><circle cx="3.6" cy="-9" r="2.6" fill="#d50000"/>`],
+    cromossomo: ['Cromossomo', c => `<g stroke="#222" stroke-width="1.5"><rect x="-4.5" y="-17" width="9" height="34" rx="4.5" fill="${c}" transform="rotate(28)"/><rect x="-4.5" y="-17" width="9" height="34" rx="4.5" fill="${c}" transform="rotate(-28)"/></g><circle r="3.5" fill="#fff" stroke="#222"/><g stroke="#fff" stroke-width="1.5" opacity=".8"><path d="M-8 -11 l3 1.5 M6 -12 l3 -1.5 M-9 11 l3 -1.5 M6 12 l3 1.5"/></g>`],
+  };
+  function car(p, sz = 1) {
+    const T = TOKENS[p.token] || TOKENS.carro, kids = p.kids.slice(0, 6);
+    const fam = p.spouse || kids.length ? `<g transform="translate(0 22)"><rect x="${-4 - (kids.length + (p.spouse ? 1 : 0)) * 3.6}" y="-4.5" width="${8 + (kids.length + (p.spouse ? 1 : 0)) * 7.2}" height="9" rx="4.5" fill="#fff" stroke="#222"/>${[...(p.spouse ? ['#555'] : []), ...kids.map(k => k.sex === 'F' ? '#ff6fa8' : '#4aa3ff')].map((col, i, arr) => `<circle cx="${(i - (arr.length - 1) / 2) * 7.2}" cy="0" r="2.8" fill="${col}"/>`).join('')}</g>` : '';
+    return `<g transform="scale(${sz})">${T[1](p.color)}${fam}</g>`;
+  }
+
+  // =====================================================================
+  // TELAS
+  // =====================================================================
+  let fastMode = false;
+  let setup = [{ name: 'Você', sex: 'F', cpu: false, token: 'carro' }, { name: 'Computador 2', sex: 'M', cpu: true, token: 'dna' }, { name: 'Computador 3', sex: 'F', cpu: true, token: 'pipeta' }];
+  function render() {
+    if (!S || S.phase === 'setup') { $('#main').innerHTML = rSetup(); $('#res').innerHTML = ''; return; }
+    $('#res').innerHTML = `<span class="pill">Rodada <b>${S.turnNo}</b></span>${S.sea ? `<span class="pill">🌊 mar +${S.sea}</span>` : ''}${S.econ ? `<span class="pill">📉 crise econômica</span>` : ''}${S.labPrice < 5000 ? `<span class="pill">🧬 exames mais baratos</span>` : ''}<button class="ghost" data-act="rules">Como jogar</button><button class="ghost" data-act="reset">Nova partida</button>`;
+    if (S.phase === 'end') { $('#main').innerHTML = rEnd(); save(); return; }
+    const ob = $('#board'), st = ob ? [ob.scrollTop, ob.scrollLeft] : null;
+    $('#main').innerHTML = `<div class="layout"><div class="boardwrap" id="board">${boardSVG()}</div><div class="side">${rSide()}</div><div class="hands">${rHands()}</div></div>`;
+    const nb = $('#board'); if (st) { nb.scrollTop = st[0]; nb.scrollLeft = st[1]; } follow(!st);
+    save();
+  }
+  function renderBoard() { const b = $('#board'); if (b) { b.innerHTML = boardSVG(); follow(); } const s = $('.side'); if (s) s.innerHTML = rSide(); const h = $('.hands'); if (h) h.innerHTML = rHands(); }
+  function rSetup() {
+    const old = load();
+    return `<div class="title"><h2>HERANÇA</h2><div class="tl">o jogo da vida… e dos genes</div>
+      <div class="panel setup">
+        <p>Uma vida inteira num tabuleiro: do teste do pezinho aos 90 anos. Escolha seu peão, gire a roleta, decida entre quartel, faculdade ou trabalho, case, tenha filhos, doe sangue, invista e deixe o maior legado.</p>
+        <p>Cada jogador recebe <b>${HAND} cartas viradas para baixo</b>: genes (traço falciforme, falso O, APOE ε4…), riscos poligênicos (diabetes, hipertensão), hábitos (sedentarismo, vícios) e até crenças (negacionismo). Você só descobre o que tem com exames, check-ups e as surpresas da vida. E o mundo muda no caminho: pandemias, mar subindo, chuvas extremas.</p>
+        ${old && old.phase === 'play' ? `<p><button class="btn primary" data-act="continue">Continuar a partida salva</button></p><hr>` : ''}
+        <h3>Jogadores</h3>
+        ${setup.map((c, i) => `<div class="prow"><span class="dot" style="background:${COLORS[i]}"></span>
+          <input class="txt" data-i="${i}" value="${esc(c.name)}" maxlength="14">
+          <button class="btn ${c.sex === 'F' ? 'on' : ''}" data-act="ssex" data-i="${i}" data-v="F">♀</button><button class="btn ${c.sex === 'M' ? 'on' : ''}" data-act="ssex" data-i="${i}" data-v="M">♂</button>
+          <button class="btn ${c.cpu ? 'on' : ''}" data-act="scpu" data-i="${i}">${c.cpu ? '🤖 computador' : '🧑 pessoa'}</button>
+          ${setup.length > 1 ? `<button class="ghost dark" data-act="sdel" data-i="${i}">✕</button>` : ''}
+          <div class="tokpick">${Object.entries(TOKENS).map(([k, [nm]]) => `<button class="tok ${c.token === k ? 'on' : ''}" data-act="stok" data-i="${i}" data-v="${k}" title="${nm}" style="--c:${COLORS[i]}"><svg viewBox="-22 -22 44 50" width="38" height="40">${car({ token: k, color: COLORS[i], kids: [], spouse: null })}</svg><span>${nm.split(' ')[0]}</span></button>`).join('')}</div></div>`).join('')}
+        ${setup.length < 4 ? `<button class="ghost dark" data-act="sadd">+ jogador</button>` : ''}
+        <h3>Duração</h3><div class="prow"><button class="btn ${!fastMode ? 'on' : ''}" data-act="sfast" data-v="0">🐢 Vida inteira <span class="meta">(roleta 1 a 10)</span></button><button class="btn ${fastMode ? 'on' : ''}" data-act="sfast" data-v="1">⚡ Partida rápida <span class="meta">(+3 casas por jogada, boa para uma aula)</span></button></div>
+        <p style="margin-top:14px"><button class="btn primary big" data-act="start">Começar</button></p>
+        <p class="meta">Dá para jogar em turma: várias pessoas no mesmo computador, cada uma na sua vez.</p>
+      </div></div>`;
+  }
+  function lum(hex) { const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+  function wrapLabel(t) { if (t.length <= 12 || !t.includes(' ')) return [t]; const w = t.split(' '), h = Math.ceil(w.length / 2); return [w.slice(0, h).join(' '), w.slice(h).join(' ')]; }
+  function boardSVG() {
+    let L = '';
+    for (const s of BOARD) for (const nx of s.next) { const t = BOARD[nx]; L += `<line x1="${s.x}" y1="${s.y}" x2="${t.x}" y2="${t.y}" class="road"/>`; }
+    // faixas das fases da vida
+    const bands = STAGES.map(([a0, nm], i) => { const ys = BOARD.filter(s => stageOf(s.age) === nm).map(s => s.y); return { nm, y0: Math.min(...ys) - 58, y1: Math.max(...ys) + 58, i }; });
+    bands.forEach((b, i) => { if (i) { const m = Math.round((bands[i - 1].y1 + b.y0) / 2); bands[i - 1].y1 = m; b.y0 = m; } });
+    bands[0].y0 = -28; bands[bands.length - 1].y1 = H - 8;
+    const BAND = ['#4caf73', '#43a06a', '#3c9561', '#358a59', '#2f7f51', '#2a7449'];
+    const bandsS = bands.map(b => `<rect x="8" y="${b.y0}" width="${W - 16}" height="${b.y1 - b.y0}" fill="${BAND[b.i]}"/>`).join('');
+    const seaX = SEA_X[S.sea], sx = Math.max(0, seaX), seaD = `M${Math.max(0, sx - 40)} ${H} L${Math.max(0, sx - 40)} 1580 Q${sx + 20} 1555 ${sx + 70} 1568 T${W} 1560 L${W} ${H}Z`;
+    const sea = S.sea ? `<path d="${seaD}" class="sea"/><path d="${seaD}" fill="url(#wv)" opacity=".6"/>` : '';
+    let N = '';
+    for (const s of BOARD) {
+      const T = SP[s.t], stop = T.stop, f = flooded(s.id), w = 96, h = 76, lab = wrapLabel(T.l), dark = lum(T.c) < .45;
+      N += `<g class="sp ${stop ? 'stop' : ''}"><rect x="${s.x - w / 2}" y="${s.y - h / 2}" width="${w}" height="${h}" rx="14" fill="${T.c}" class="tile"/>
+        ${stop ? `<rect x="${s.x - w / 2 + 3}" y="${s.y - h / 2 + 3}" width="${w - 6}" height="${h - 6}" rx="11" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="5 4" opacity=".9"/>` : ''}
+        <text x="${s.x}" y="${s.y - (lab.length > 1 ? 7 : 2)}" class="ic">${T.i}</text>
+        ${lab.map((t, i) => `<text x="${s.x}" y="${s.y + (lab.length > 1 ? 15 : 25) + i * 12}" class="tl" ${dark ? 'fill="#fff"' : ''}>${t}</text>`).join('')}
+        <text x="${s.x - w / 2 + 7}" y="${s.y - h / 2 + 13}" class="tage" ${dark ? 'fill="#fff"' : ''}>${s.age}</text>
+        ${stop ? `<text x="${s.x + w / 2 - 6}" y="${s.y - h / 2 + 13}" class="pare">PARE</text>` : ''}
+        ${f ? `<rect x="${s.x - w / 2}" y="${s.y - h / 2}" width="${w}" height="${h}" rx="14" fill="#1e88e5" opacity=".45"/><text x="${s.x - w / 2 + 14}" y="${s.y - h / 2 + 18}" class="ic sm">🌊</text>` : ''}
+        <title>${T.n} · ${s.age} anos${stop ? ' · o carrinho para aqui' : ''}${f ? ' · alagada: −R$ 4 mil' : ''}</title></g>`;
+    }
+    const labels = Object.entries(BRANCH_N).map(([id, t]) => { const s = BOARD[id]; return `<text x="${s.x - 48}" y="${s.y - 46}" class="bl">${t}</text>`; }).join('');
+    const ages = AGE_MARKS.filter(id => BOARD[id].t !== 'split').map(id => {
+      const s = BOARD[id], n = BOARD[s.next[0]], dir = n && n.y === s.y ? Math.sign(n.x - s.x) : 1;
+      const txt = `${s.age} anos · ${stageOf(s.age)}`, w = txt.length * 7 + 18, x = clamp(s.x + dir * 110, w / 2 + 12, W - 12 - w / 2), y = s.y - 65;
+      return `<g class="agem"><rect x="${x - w / 2}" y="${y - 11}" width="${w}" height="21" rx="10.5"/><text x="${x}" y="${y + 4}">${txt}</text></g>`;
+    }).join('');
+    const at = {}, OFF = [[-24, -14], [24, -14], [-24, 14], [24, 14]];
+    const cars = S.players.map(p => { const k = (at[p.pos] = (at[p.pos] || 0) + 1) - 1, s = BOARD[p.pos], [dx, dy] = OFF[k % 4]; return `<g transform="translate(${s.x + dx} ${s.y + dy})" class="tokg ${p === cur() ? 'curcar' : ''}">${car(p, 1.25)}</g>`; }).join('');
+    return `<svg class="board" viewBox="0 -36 ${W} ${H + 36}"><defs><pattern id="wv" width="24" height="10" patternUnits="userSpaceOnUse"><path d="M0 6 Q6 0 12 6 T24 6" stroke="#bfe6ff" stroke-width="1.5" fill="none"/></pattern></defs>
+      <rect y="-36" width="${W}" height="${H + 36}" rx="18" fill="#2f7d4f"/>${bandsS}${sea}${L}${N}${labels}${ages}${cars}<g id="fx"></g></svg>`;
+  }
+  function follow(instant) {
+    const wrap = $('#board'); if (!wrap || !S || S.phase !== 'play') return;
+    const s = BOARD[cur().pos], sc = wrap.clientWidth / W, y = (s.y + 36) * sc, h = wrap.clientHeight;
+    if (wrap.scrollHeight <= h + 4) return;
+    if (y < wrap.scrollTop + 90 * sc || y > wrap.scrollTop + h - 90 * sc) wrap.scrollTo({ top: y - h / 2, behavior: instant ? 'auto' : 'smooth' });
+    const sx = s.x * sc, wv = wrap.clientWidth; if (wrap.scrollWidth > wv + 4 && (sx < wrap.scrollLeft + 60 || sx > wrap.scrollLeft + wv - 60)) wrap.scrollTo({ left: sx - wv / 2, behavior: instant ? 'auto' : 'smooth' });
+  }
+  function floatText(p, t) { const fx = $('#fx'); if (!fx) return; const s = BOARD[p.pos]; fx.insertAdjacentHTML('beforeend', `<text x="${s.x}" y="${s.y - 30}" class="float">${t}</text>`); }
+  function wheelSVG() {
+    const W = Array.from({ length: 10 }, (_, i) => {
+      const a0 = (i * 36 - 90 - 18) * Math.PI / 180, a1 = ((i + 1) * 36 - 90 - 18) * Math.PI / 180, r = 60;
+      const col = ['#e63946', '#f4a261', '#ffd23f', '#2ec27e', '#2a9df4', '#9b5de5', '#f15bb5', '#00bbf9', '#fee440', '#00f5d4'][i], ta = (i * 36 - 90) * Math.PI / 180;
+      return `<path d="M0 0L${r * Math.cos(a0)} ${r * Math.sin(a0)}A${r} ${r} 0 0 1 ${r * Math.cos(a1)} ${r * Math.sin(a1)}Z" fill="${col}" stroke="#222" stroke-width="1"/><text x="${44 * Math.cos(ta)}" y="${44 * Math.sin(ta) + 5}" class="wn">${i + 1}</text>`;
+    }).join('');
+    return `<svg width="140" height="140" viewBox="-75 -75 150 150"><g id="wheel" style="transform:rotate(${S.wheelRot || 0}deg)">${W}<circle r="10" fill="#222"/></g><path d="M0 -72 L-8 -58 L8 -58Z" fill="#fff" stroke="#222" stroke-width="1.5"/></svg>`;
+  }
+  function rSide() {
+    const p = cur(), C = CAREERS.find(c => c.k === p.career), P = ph(p);
+    const dis = Object.keys(p.dis).map(k => DISEASES.find(d => d.k === k).n);
+    const age = BOARD[p.pos].age, inv = p.inv.reduce((a, v) => a + v.amt, 0);
+    const route = { mil: '🪖 serviço militar', fac: '🎓 faculdade', job: '💼 trabalho direto' }[p.route], sector = { pub: '🏛️ servidor(a) público(a)', pri: '🏢 setor privado' }[p.sector];
+    return `<div class="panel now" style="border-color:${p.color}">
+        <div class="ph"><svg width="46" height="50" viewBox="-22 -22 44 50">${car(p)}</svg><div><b style="font-size:17px">${esc(p.name)}</b> ${p.sex === 'F' ? '♀' : '♂'}${p.cpu ? ' 🤖' : ''}<div class="meta">🎂 ${age} anos · ${stageOf(age)}${p.done ? ' · 🏁' : ''}</div><div class="meta">${p.pension != null ? `🏖️ aposentado(a) · ${money(salary(p))}/pagamento` : C ? `${C.n} · ${money(salary(p))}/pagamento` : `sem carreira ainda${age >= 18 ? ` · ${money(salary(p))}/pagamento` : ''}`}</div></div></div>
+        <div class="wheelbox"><div class="wcol">${wheelSVG()}<button class="btn primary" data-act="spin" ${busy || p.cpu ? 'disabled' : ''}>🎡 Girar</button><div class="last">${p.cpu ? '🤖 jogando…' : 'sua vez'} · último: <b>${S.lastSpin || '–'}</b>${S.fast ? ' <span title="partida rápida">(+3)</span>' : ''}</div></div>${scoreboard()}</div>
+        <div class="money">💵 ${money(p.cash)}</div>${p.debt ? `<div class="neg" style="font-weight:700">Dívida: ${money(p.debt)} <span class="meta">(+25% de juros no fim)</span> ${!p.cpu ? `<button class="ghost dark" data-act="payoff" ${p.cash >= 20000 && !busy ? '' : 'disabled'}>quitar R$ 20 mil</button>` : ''}</div>` : ''}
+        <div class="meta">${p.spouse ? `💍 ${esc(p.spouse.name)}` : 'solteiro(a)'} · ${p.kids.length} filho(s) · ${p.house ? `🏠 ${p.house.n} (${money(p.house.v)})` : 'aluguel'}${p.insured ? ' · 🛡️ plano' : ''}</div>
+        ${route || sector || inv ? `<div class="meta">${[route, sector, inv ? `📈 investido ${money(inv)}` : '', p.donor ? `🩸 doou ${p.donor}×` : '', p.redome ? '🧬 REDOME' : ''].filter(Boolean).join(' · ')}</div>` : ''}
+        <div class="meta">Altura ${P.height} cm · sangue ${p.knowBlood ? P.blood : '?'}${dis.length ? ` · <span class="neg">${dis.join(', ')}</span>` : ''}</div>
+        <div class="hlab">🃏 Suas cartas <span class="meta">(${p.cards.filter(c => c.rev).length}/${p.cards.length} reveladas · passe o mouse para ler)</span></div>${handHTML(p)}
+        ${p.spouse ? `<details><summary>💍 Cartas de ${esc(p.spouse.name)}</summary>${handHTML(p.spouse, true)}</details>` : ''}
+        ${p.kids.length ? `<details><summary>👶 Filhos</summary>${p.kids.map(k => `<div class="kid">${k.sex === 'F' ? '♀' : '♂'} <b>${esc(k.name)}</b>${ph(k).sickle ? ' · anemia falciforme' : ''}${ph(k).cf ? ' · fibrose cística' : ''} ${handHTML(k, true)}</div>`).join('')}</details>` : ''}
+      </div>
+      <div class="panel"><b>Acontecimentos</b><div class="log" id="log">${S.log.slice(-30).map(l => `<p>${esc(l)}</p>`).join('')}</div></div>`;
+  }
+  function scoreboard() {
+    return `<div class="sb">${S.players.map(o => { const rv = o.cards.filter(c => c.rev).length, a = BOARD[o.pos].age; return `<div class="sbr ${o === cur() ? 'on' : ''}" style="border-color:${o.color}"><div class="sbn"><span class="dot" style="background:${o.color}"></span><b>${esc(o.name)}</b>${o.done ? ' 🏁' : ''}</div><div class="sbm ${o.cash < 0 ? 'neg' : ''}">${money(o.cash)}</div><div class="sbi"><span title="cartas reveladas / total">🃏 ${rv}/${o.cards.length}</span><span title="idade">🎂 ${a}</span><span title="filhos">👶 ${o.kids.length}</span>${o.debt ? `<span class="neg" title="dívida">💳 ${Math.round(o.debt / 1000)}k</span>` : ''}${o.inv.length ? `<span title="investimentos">📈 ${Math.round(o.inv.reduce((x, v) => x + v.amt, 0) / 1000)}k</span>` : ''}</div></div>`; }).join('')}</div>`;
+  }
+  function rHands() {
+    return `<div class="others">${S.players.map(o => `<div class="panel orow2 ${o === cur() ? 'on' : ''}" style="border-color:${o.color}"><div><span class="dot" style="background:${o.color}"></span> <b>${esc(o.name)}</b>${o.done ? ' 🏁' : o.pension != null ? ' 🏖️' : ''} <span class="meta">${BOARD[o.pos].age} anos</span> <span class="meta">${money(o.cash)}${o.debt ? ` · dívida ${money(o.debt)}` : ''} · ${o.kids.length} filho(s)</span></div>${handHTML(o, true)}</div>`).join('')}</div>`;
+  }
+  function rEnd() {
+    const rank = S.players.map(p => ({ p, s: score(p) })).sort((a, b) => b.s.total - a.s.total);
+    return `<div class="panel" style="max-width:1100px;margin:0 auto">
+      <h2>🏆 ${esc(rank[0].p.name)} venceu!</h2>
+      <div class="scrollx"><table class="score"><tr><th></th><th>Dinheiro</th><th>Casa</th><th>Filhos</th><th>Investimentos</th><th>Longevidade</th><th>Doações</th><th>Dívidas (+25%)</th><th>Total</th><th>Saúde</th></tr>
+      ${rank.map(({ p, s }, i) => `<tr><td><span class="dot" style="background:${p.color}"></span> ${i + 1}º ${esc(p.name)}</td><td>${money(s.cash)}</td><td>${money(s.house)}</td><td>${money(s.kids)}</td><td>${s.inv ? money(s.inv) : '–'}</td><td class="${s.lifeB >= 0 ? 'pos' : 'neg'}">${s.life} anos (${s.lifeB >= 0 ? '+' : ''}${money(s.lifeB)})</td><td>${s.alt ? money(s.alt) : '–'}</td><td class="neg">${s.debt ? '−' + money(s.debt) : '–'}</td><td><b>${money(s.total)}</b></td><td class="meta">${Object.keys(p.dis).map(k => DISEASES.find(d => d.k === k).n).join(', ') || 'sem doenças crônicas'}</td></tr>`).join('')}</table></div>
+      ${S.globals.length ? `<p class="meta">Eventos globais da partida: ${S.globals.map(k => GLOBAL.find(g => g.k === k).t).join(' · ')}</p>` : ''}
+      <h3 style="margin-top:16px">🃏 Todas as cartas reveladas</h3>
+      <p class="meta">Agora dá para ver tudo. Repare quais cartas genéticas passaram dos pais para os filhos, e quais hábitos vieram da convivência em casa.</p>
+      ${S.players.map(familyBlock).join('')}
+      <h3>📖 O que a partida ensinou</h3>${Object.keys(S.lessons).map(k => `<div class="lesson"><b>${LESSONS[k].t}</b><br>${LESSONS[k].h}</div>`).join('')}
+      <div class="btns" style="margin-top:12px"><button class="btn primary" data-act="again">Nova partida</button></div></div>`;
+  }
+  function familyBlock(p) {
+    const people = [[p.name + ' (jogador)', p], ...(p.spouse ? [[p.spouse.name + ' (cônjuge)', p.spouse]] : []), ...p.kids.map(k => [k.name + ' (filho/a)', k])];
+    const rows = people.map(([nm, x]) => { const P = ph(x); const ks = cardsFromGenome(x); return `<tr><td><b>${esc(nm)}</b><div class="meta">sangue ${P.blood}${P.bombay ? ' (Bombay)' : ''} · ${P.height} cm</div></td><td><div class="hand small">${ks.map(k => cardHTML(k, true)).join('') || '<span class="meta">nenhuma carta especial</span>'}</div></td><td class="mono small">HBB ${genoTxt.hbb(x)} · APOE ${genoTxt.apoe(x)} · ABO/FUT/Rh ${genoTxt.abo(x)} · CFTR ${genoTxt.cftr(x)} · LDLR ${genoTxt.fh(x)} · DM ${genoTxt.dm(x)} · HAS ${genoTxt.has(x)}</td></tr>`; }).join('');
+    return `<div class="fam" style="border-color:${p.color}"><b style="color:${p.color}">Família de ${esc(p.name)}</b><div class="scrollx"><table class="gtab full"><tr><th>Pessoa</th><th>Cartas</th><th>Genótipos</th></tr>${rows}</table></div></div>`;
+  }
+  function rules() {
+    modal(`<h3>Como jogar</h3>
+      <ul>
+        <li>O tabuleiro é uma vida inteira, do <b>nascimento aos 90 anos</b>: infância (escola, esporte, vacinas), adolescência (ENEM, pressão dos amigos), juventude (🪖 serviço militar, 🎓 faculdade ou 💼 trabalho), vida adulta (casamento, filhos, casa, pós), 🏛️ serviço público ou 🏢 iniciativa privada, meia-idade, aposentadoria aos 65 e velhice.</li>
+        <li>Na sua vez, <b>gire a roleta</b> e ande de 1 a 10 casas. 💰 paga salário sempre que você passa. As casas grandes (carreira, casamento, concurso, 50 e 80 anos…) param o carrinho.</li>
+        <li>Você começa com <b>${HAND} cartas viradas</b>. Elas se revelam com 🔬 laboratório (cartas genéticas e de risco), 🩺 check-up (hábitos, crenças e riscos) e eventos da vida.</li>
+        <li>🫀 <b>Saúde</b>: o risco de doenças multifatoriais (diabetes, hipertensão, infarto, câncer, Alzheimer) soma genes e hábitos. No check-up dá para tentar mudar hábitos.</li>
+        <li>🧬 <b>Evento genético</b> e ❓ <b>evento da vida</b>: o resultado pode depender das suas cartas.</li>
+        <li>👶 Os filhos herdam genes sorteados dos dois pais, e os hábitos da casa, sem precisar de genes.</li>
+        <li>🌍 No começo das rodadas podem acontecer <b>eventos globais</b>: pandemias, desinformação, mar subindo, chuvas extremas, crises. Eles alagam casas do tabuleiro, desvalorizam imóveis e mexem nos salários.</li>
+        <li>🩸 Doe sangue e entre no REDOME. 🫘 Transplantes dependem de compatibilidade <b>ABO</b> e <b>HLA</b>: irmãos (e gêmeos idênticos!) costumam ser os melhores doadores.</li>
+        <li>📈 Investimentos rendem a cada pagamento. No setor privado a aposentadoria paga só 50% do salário; no público e militar, 90%.</li>
+        <li>🏆 Na última casa calcula-se <b>até que idade você viveu</b> (genes + hábitos + doenças). No fim vence quem tiver mais: dinheiro + casa + investimentos + R$ 20 mil por filho + R$ 2 mil por ano acima de 76 (ou menos, abaixo) + doações − dívidas com juros.</li>
+      </ul>
+      <p class="meta">As variantes raras aparecem mais que na vida real, para surgirem nas partidas. Os riscos de doença são simplificados, para fins didáticos.</p>
+      <div class="btns"><button class="btn primary" data-act="close">Entendi</button></div>`);
+  }
+
+  // =====================================================================
+  // SOM
+  // =====================================================================
+  const SONG = { bpm: 108, play(step, t, d) {
+    const CH = [[48, 52, 55], [53, 57, 60], [55, 59, 62], [48, 52, 55]], MEL = [72, 74, 76, 79, 76, 74, 72, 69, 71, 72, 74, 72, 67, 69, 71, 72];
+    const bar = Math.floor(step / 8) % 4, s = step % 8, ch = CH[bar];
+    if (s % 4 === 0) Sound.note(midi(ch[0] - 12), t, d * 2, 'triangle', .14);
+    if (s % 2 === 1) Sound.note(midi(ch[1 + (s % 4 === 1 ? 0 : 1)]), t, d * .8, 'square', .03);
+    if (s % 2 === 0) Sound.note(midi(MEL[Math.floor(step / 2) % 16]), t, d * 1.6, 'triangle', .06);
+  } };
+  let musicOn = false;
+  function wakeAudio() { Sound.ensure(); if (!musicOn) { musicOn = true; Sound.music(SONG); } }
+  const sfx = {
+    tick: () => Sound.tone(800, .03, { type: 'sine', vol: .05 }),
+    spin: () => { for (let i = 0; i < 18; i++) Sound.tone(900, .02, { type: 'square', vol: .04, delay: i * .065 * (1 + i * .04) }); },
+    coin: () => Sound.arp([84, 91], .06, { type: 'square', vol: .06 }),
+    lose: () => Sound.arp([60, 56], .12, { type: 'triangle', vol: .1, dur: .25 }),
+    good: () => Sound.arp([72, 76, 79, 84], .08, { type: 'triangle', vol: .12, dur: .2 }),
+    bells: () => [79, 76, 72, 79, 84].forEach((m, i) => Sound.tone(midi(m), .45, { type: 'sine', vol: .1, delay: i * .15 })),
+    baby: () => Sound.arp([84, 88, 91, 96], .09, { type: 'sine', vol: .1, dur: .2 }),
+    global: () => { Sound.noise(.6, { freq: 400, sweep: 120, vol: .12 }); Sound.arp([55, 58, 62], .2, { type: 'sawtooth', vol: .05, dur: .4, delay: .2 }); },
+    end: () => Sound.arp([60, 64, 67, 72, 76, 79, 84], .11, { type: 'triangle', vol: .13, dur: .3 }),
+  };
+
+  // =====================================================================
+  // AÇÕES
+  // =====================================================================
+  document.addEventListener('input', e => { const i = e.target.dataset.i; if (i != null && e.target.classList.contains('txt')) setup[+i].name = e.target.value; });
+  document.addEventListener('click', e => {
+    wakeAudio();
+    const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+    const a = el.dataset.act, v = el.dataset.v, i = el.dataset.i != null ? +el.dataset.i : null;
+    switch (a) {
+      case 'close': closeModal(); break;
+      case 'ssex': setup[i].sex = v; render(); break;
+      case 'scpu': setup[i].cpu = !setup[i].cpu; if (setup[i].cpu && /^(Você|Jogador)/.test(setup[i].name)) setup[i].name = `Computador ${i + 1}`; if (!setup[i].cpu && /^Computador/.test(setup[i].name)) setup[i].name = `Jogador ${i + 1}`; render(); break;
+      case 'sadd': setup.push({ name: `Jogador ${setup.length + 1}`, sex: pick(['F', 'M']), cpu: false, token: pick(Object.keys(TOKENS).filter(k => !setup.some(c => c.token === k))) }); render(); break;
+      case 'sfast': fastMode = v === '1'; render(); break;
+      case 'stok': setup[i].token = v; sfx.tick(); render(); break;
+      case 'sdel': setup.splice(i, 1); render(); break;
+      case 'start': newGame(setup.map(c => ({ ...c, name: c.name.trim() || 'Jogador' }))); S.fast = fastMode; busy = false; render(); rules(); if (cur().cpu) setTimeout(spin, 900); break;
+      case 'continue': S = load(); busy = false; render(); if (cur().cpu) setTimeout(spin, 700); break;
+      case 'reset': modal(`<h3>Nova partida?</h3><p>A partida atual será perdida.</p><div class="btns"><button class="btn primary" data-act="again">Sim</button><button class="btn" data-act="close">Cancelar</button></div>`); break;
+      case 'again': $('#modalRoot').innerHTML = ''; modalCb = null; S = null; busy = false; try { localStorage.removeItem(SAVE_KEY); } catch (e2) {} render(); break;
+      case 'rules': rules(); break;
+      case 'spin': spin(); break;
+      case 'payoff': { const p = cur(); if (p.debt > 0 && p.cash >= 20000 && !p.cpu && !busy) { p.cash -= 20000; p.debt -= 20000; log(`${p.name} quitou R$ 20 mil da dívida.`); sfx.coin(); renderBoard(); } break; }
+      case 'branch': { const cb = S._branchCb; S._branchCb = null; $('#modalRoot').innerHTML = ''; modalCb = null; sfx.tick(); cb && cb(+v); break; }
+      case 'career': setCareer(v); break;
+      case 'insure': { const p = cur(); addCash(p, -10000); p.insured = true; log(`${p.name} contratou plano de saúde.`); sfx.good(); closeModal(); break; }
+      case 'lab': { const p = cur(), free = p.career === 'gen'; if (!free) addCash(p, -S.labPrice); seqAll(v === 'self' ? p : p.spouse); sfx.good(); const done = modalCb; modalCb = null; lab(p, done); render(); break; }
+      case 'fix': {
+        const p = cur(), k = v, C = CARDS[k], done = modalCb; modalCb = null;
+        if (p.cash < C.fix.c) { toast('Dinheiro insuficiente.'); modalCb = done; break; }
+        const ok = tryFix(p, k); render(); ok ? sfx.good() : sfx.lose();
+        modal(`<h3>${ok ? '✅ Conseguiu!' : '😓 Recaída'}</h3><p>${C.fix.n}: ${ok ? (C.fix.to ? 'a carta virou <b>Atividade física</b>.' : `a carta <b>${C.n}</b> foi descartada.`) : 'não deu certo desta vez. No próximo check-up dá para tentar de novo.'}</p>${k === 'fumo' || k === 'alcool' ? lesson('vicio') : k === 'neg' ? lesson('neg') : lesson('multi')}<div class="btns"><button class="btn primary" data-act="close">Continuar</button></div>`, done);
+        break;
+      }
+      case 'fam': S._fam && S._fam(v === '1'); break;
+      case 'school': S._school && S._school(v); break;
+      case 'peer': S._peer && S._peer(v === '1'); break;
+      case 'hemo': S._hemo && S._hemo(v); render(); break;
+      case 'donate': S._donate && S._donate(v === '1'); render(); break;
+      case 'inv': { const p = cur(), [k, a] = v.split(':'); addCash(p, -+a); p.inv.push({ type: k, amt: +a }); log(`${p.name} investiu ${money(+a)} em ${INV[k][0]}.`); sfx.coin(); closeModal(); break; }
+      case 'pos': { const p = cur(); addCash(p, -15000); p.raise += p.fac ? 3000 : 1500; p.study = true; log(`${p.name} fez pós-graduação.`); sfx.good(); closeModal(); break; }
+      case 'house': { const p = cur(), h = S._houses[+v]; addCash(p, -h.c); p.house = { ...h }; log(`${p.name} comprou ${h.n}.`); sfx.good(); closeModal(); break; }
+    }
+    const lg = $('#log'); if (lg) lg.scrollTop = lg.scrollHeight;
+  });
+  if (/github\.io$/.test(location.hostname)) $('#backlink').hidden = false;
+  S = null; render();
+  window.__HE = { get S() { return S; }, spin, render, ph, score, cur, BOARD, get busy() { return busy; }, globalEvent, flooded };
+
+})();
+</script>
+</body>
+</html>
