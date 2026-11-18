@@ -3,269 +3,273 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PolGame — jogos de genética e biologia</title>
-<meta name="description" content="Jogos de genética e biologia que rodam no navegador">
+<title>Vale do Sereno · jogos de genética e biologia</title>
+<meta name="description" content="Jogos educativos de genética, imunologia e biologia que rodam no navegador. Todos se passam no Vale do Sereno.">
 <style>
-  :root { --bg:#120a1f; --card:#1d1430; --card2:#251a3c; --text:#efe9f7; --muted:#a99bc0; --A:#4caf50; --T:#ef5350; --C:#42a5f5; --G:#ffca28; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:radial-gradient(1200px 600px at 50% -200px, #2b1748 0%, var(--bg) 60%); color:var(--text); font:15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height:100vh; }
-  main { max-width:1040px; margin:0 auto; padding:48px 20px 40px; }
-  header { text-align:center; margin-bottom:36px; }
-  .helix { display:block; margin:0 auto 10px; }
-  h1 { margin:0; font-size:clamp(30px, 5vw, 44px); letter-spacing:-.01em; }
-  h1 span { background:linear-gradient(90deg, var(--A), var(--C), var(--G), var(--T)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  header p { color:var(--muted); margin:8px auto 0; max-width:560px; }
-  .grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; }
-  @media (max-width:720px) { .grid { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid #2f2347; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:transform .15s ease, border-color .15s ease; }
-  .card:hover { transform:translateY(-3px); border-color:#4a3870; }
-  .art { aspect-ratio:320/150; height:auto; display:block; width:100%; background:var(--card2); }
-  .body { padding:16px 18px 18px; display:flex; flex-direction:column; gap:8px; flex:1; }
-  .card h2 { margin:0; font-size:22px; }
-  .genre { color:var(--muted); font-size:13px; margin-top:-4px; }
-  .card p { margin:0; color:#d9d1e6; font-size:14px; }
-  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
-  .tags span { background:#2c2240; color:#cbbfe0; border-radius:999px; padding:2px 9px; font-size:12px; }
-  .play { margin-top:auto; align-self:flex-start; display:inline-block; background:#ffca28; color:#1d1230; text-decoration:none; font-weight:700; border-radius:9px; padding:9px 18px; }
-  .play:hover { filter:brightness(1.08); }
-  .card:nth-child(2) .play { background:#42a5f5; }
-  .card:nth-child(3) .play { background:#81d4fa; color:#0d1b2a; }
-  .card:nth-child(4) .play { background:#b39ddb; color:#1a1035; }
-  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:40px; line-height:1.8; }
-  footer a { color:#cbbfe0; }
+  :root {
+    --ink: #e9e4d6; --muted: #a9a6b8; --bg: #0d1226; --panel: #151b36; --line: #2a3260;
+    --gold: #f2c46d; --rose: #e58a76; --mist: rgba(220, 228, 255, .14);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at 50% -10%, #262c58 0%, var(--bg) 55%) fixed; }
+  a { color: var(--gold); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+  header.top { padding: 34px 0 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .brand h1 { margin: 0; font: 600 clamp(2.2rem, 5vw, 3.6rem)/1 Georgia, "Times New Roman", serif; letter-spacing: .01em; }
+  .brand h1 em { font-style: italic; color: var(--gold); }
+  .brand p { margin: .55rem 0 0; color: var(--muted); max-width: 52ch; }
+  .hint { color: var(--muted); font-size: .9rem; }
+
+  /* ---------- mapa ---------- */
+  .mapbox { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+    box-shadow: 0 30px 60px rgba(0,0,0,.45); background: #0f1630; }
+  .mapbox svg.map { display: block; width: 100%; height: auto; }
+  .fog { animation: drift 46s ease-in-out infinite alternate; }
+  .fog.f2 { animation-duration: 64s; animation-direction: alternate-reverse; }
+  .fog.f3 { animation-duration: 80s; }
+  @keyframes drift { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
+  .station { animation: twinkle 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(.82) rotate(8deg); opacity: .8; } }
+  .beam { transform-origin: 74px 300px; animation: sweep 7s linear infinite; }
+  @keyframes sweep { 0% { opacity: .0; } 10% { opacity: .55; } 40% { opacity: .0; } 100% { opacity: 0; } }
+  .win { animation: flick 6s steps(1) infinite; }
+  .win.w2 { animation-delay: -2s; } .win.w3 { animation-delay: -4s; }
+  @keyframes flick { 0%, 92% { opacity: 1; } 93%, 96% { opacity: .35; } 97% { opacity: 1; } }
+
+  .pin { cursor: pointer; outline: none; }
+  .pin .dot { transition: transform .2s; transform-box: fill-box; transform-origin: center; }
+  .pin .lab { transition: fill .2s; }
+  .pin:hover .dot, .pin:focus-visible .dot { transform: scale(1.25); }
+  .pin:hover .lab-bg, .pin:focus-visible .lab-bg { fill: #f2c46d; }
+  .pin:hover .lab, .pin:focus-visible .lab { fill: #1b1630; }
+  .pin .ring { animation: pulse 2.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes pulse { 0% { transform: scale(.6); opacity: .7; } 100% { transform: scale(2.1); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .fog, .station, .beam, .win, .pin .ring { animation: none !important; } }
+
+  /* ---------- filtros e grade ---------- */
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 38px 0 16px; }
+  .bar h2 { margin: 0; font: 600 1.6rem Georgia, serif; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: .9rem; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--gold); color: #1b1630; border-color: var(--gold); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, border-color .2s; }
+  .card:hover { transform: translateY(-3px); border-color: #4a5390; }
+  .card .art { display: block; width: 100%; height: 132px; }
+  .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1; }
+  .card h3 { margin: 0; font: 600 1.25rem Georgia, serif; }
+  .card .where { color: var(--rose); font-size: .82rem; margin-top: 2px; }
+  .card .genre { color: var(--muted); font-size: .85rem; margin: 4px 0 8px; }
+  .card p { margin: 0 0 12px; font-size: .93rem; color: #d6d2c6; flex: 1; }
+  .card .row { display: flex; gap: 8px; }
+  .btn { display: inline-block; text-decoration: none; background: var(--gold); color: #1b1630; font-weight: 700; padding: 8px 16px; border-radius: 10px; border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+  .tags span { font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+
+  /* ---------- painel do lugar ---------- */
+  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--ink); padding: 0; max-width: 520px; width: calc(100% - 28px); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  dialog::backdrop { background: rgba(5, 8, 20, .6); backdrop-filter: blur(2px); }
+  dialog .art { display: block; width: 100%; height: 170px; }
+  dialog .in { padding: 16px 20px 20px; }
+  dialog h3 { margin: 0; font: 600 1.6rem Georgia, serif; }
+  dialog .where { color: var(--rose); font-size: .88rem; }
+  dialog .story { font-style: italic; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; margin: 10px 0; }
+  dialog .x { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.45); color: #fff; border: 0; width: 34px; height: 34px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
+
+  section.about { margin: 46px 0 10px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 26px; }
+  section.about h2 { font: 600 1.4rem Georgia, serif; margin: 0 0 8px; }
+  section.about p { color: #d6d2c6; margin: 0 0 10px; }
+  footer { color: var(--muted); font-size: .9rem; padding: 26px 0 40px; border-top: 1px solid var(--line); margin-top: 30px; }
+  .mobhint { display: none; color: var(--muted); font-size: .85rem; margin: 8px 2px 0; }
+  @media (max-width: 760px) {
+    section.about { grid-template-columns: 1fr; } .hint.desk { display: none; }
+    .mapbox { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .mapbox svg.map { width: 820px; max-width: none; }
+    .mobhint { display: block; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <svg class="helix" width="180" height="40" viewBox="0 0 180 40" aria-hidden="true">
-      <g stroke-width="3" fill="none" stroke-linecap="round">
-        <path d="M0 20 C 22.5 -5, 22.5 45, 45 20 S 67.5 -5, 90 20 S 112.5 45, 135 20 S 157.5 -5, 180 20" stroke="#ef5350"/>
-        <path d="M0 20 C 22.5 45, 22.5 -5, 45 20 S 67.5 45, 90 20 S 112.5 -5, 135 20 S 157.5 45, 180 20" stroke="#42a5f5"/>
-      </g>
-      <g stroke-width="3" stroke-linecap="round">
-        <line x1="11" y1="10" x2="11" y2="30" stroke="#4caf50"/><line x1="34" y1="10" x2="34" y2="30" stroke="#ffca28"/>
-        <line x1="56" y1="10" x2="56" y2="30" stroke="#4caf50"/><line x1="79" y1="10" x2="79" y2="30" stroke="#ffca28"/>
-        <line x1="101" y1="10" x2="101" y2="30" stroke="#ffca28"/><line x1="124" y1="10" x2="124" y2="30" stroke="#4caf50"/>
-        <line x1="146" y1="10" x2="146" y2="30" stroke="#ffca28"/><line x1="169" y1="10" x2="169" y2="30" stroke="#4caf50"/>
-      </g>
-    </svg>
-    <h1>Pol<span>Game</span></h1>
-    <p>Jogos de genética e biologia. Rodam direto no navegador, no computador ou no celular, sem instalar nada.</p>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Vale do <em>Sereno</em></h1>
+      <p>Jogos de genética, imunologia e biologia que rodam no navegador, no computador ou no celular. Todos se passam no mesmo lugar: um vale de neblina, onde cada família guarda uma história nos genes.</p>
+    </div>
+    <div class="hint desk">Clique num lugar do mapa para conhecer o jogo.</div>
   </header>
 
-  <section class="grid">
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#2a1440"/>
-        <rect x="0" y="118" width="320" height="32" fill="#e9c46a"/>
-        <g fill="#8e5bd6"><circle cx="8" cy="122" r="4"/><circle cx="24" cy="122" r="4"/><circle cx="40" cy="122" r="4"/><circle cx="56" cy="122" r="4"/><circle cx="72" cy="122" r="4"/><circle cx="88" cy="122" r="4"/><circle cx="104" cy="122" r="4"/><circle cx="120" cy="122" r="4"/><circle cx="136" cy="122" r="4"/><circle cx="152" cy="122" r="4"/><circle cx="168" cy="122" r="4"/><circle cx="184" cy="122" r="4"/><circle cx="200" cy="122" r="4"/><circle cx="216" cy="122" r="4"/><circle cx="232" cy="122" r="4"/><circle cx="248" cy="122" r="4"/><circle cx="264" cy="122" r="4"/><circle cx="280" cy="122" r="4"/><circle cx="296" cy="122" r="4"/><circle cx="312" cy="122" r="4"/></g>
-        <rect x="200" y="78" width="80" height="12" rx="6" fill="#e9c46a"/>
-        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle" fill="#1d1230">
-          <circle cx="150" cy="58" r="11" fill="#4caf50"/><text x="150" y="63">A</text>
-          <circle cx="235" cy="50" r="11" fill="#ffca28"/><text x="235" y="55">G</text>
-          <circle cx="290" cy="40" r="11" fill="#42a5f5"/><text x="290" y="45">C</text>
-        </g>
-        <path d="M58 98 L 40 96 L 26 100 L 12 96" stroke="rgba(255,255,255,.4)" stroke-width="2" fill="none"/>
-        <circle cx="40" cy="96" r="5" fill="#ef5350"/><circle cx="26" cy="100" r="5" fill="#4caf50"/><circle cx="12" cy="96" r="5" fill="#ffca28"/>
-        <rect x="58" y="86" width="24" height="32" rx="8" fill="#26c6da"/>
-        <rect x="76" y="100" width="8" height="11" rx="3" fill="#00838f"/>
-        <rect x="71" y="93" width="7" height="7" fill="#fff"/><rect x="75" y="95" width="2" height="4" fill="#102027"/>
-        <g transform="translate(115 104)"><polygon points="0,-9 8,-4 8,4 0,9 -8,4 -8,-4" fill="#b0bec5" stroke="#eceff1"/><rect x="-2" y="8" width="4" height="6" fill="#607d8b"/><path d="M0 14 L-9 14 M0 14 L9 14" stroke="#cfd8dc" stroke-width="2"/></g>
-      </svg>
-      <div class="body">
-        <h2>Fita Molde</h2>
-        <div class="genre">Plataforma · replicação do DNA</div>
-        <p>Você é a DNA polimerase. Colete os nucleotídeos complementares para copiar a fita molde, corrija mutações com a revisão 3'→5' e descubra o efeito de cada erro na proteína.</p>
-        <div class="tags"><span>pareamento de bases</span><span>mutações</span><span>código genético</span></div>
-        <a class="play" href="fita-molde/">Jogar</a>
-      </div>
-    </article>
+  <div class="mapbox" id="mapbox"><svg class="map" viewBox="0 40 1000 480" role="img" aria-label="Mapa do Vale do Sereno com os jogos">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1230"/><stop offset=".45" stop-color="#2a2d5e"/><stop offset=".72" stop-color="#6d4c74"/><stop offset="1" stop-color="#c98a70"/></linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26406e"/><stop offset="1" stop-color="#101d3c"/></linearGradient>
+    <radialGradient id="starGlow"><stop offset="0" stop-color="#fff1c4" stop-opacity=".75"/><stop offset=".35" stop-color="#f2c46d" stop-opacity=".25"/><stop offset="1" stop-color="#f2c46d" stop-opacity="0"/></radialGradient>
+    <radialGradient id="moonGlow"><stop offset="0" stop-color="#fff3cf" stop-opacity=".55"/><stop offset="1" stop-color="#fff3cf" stop-opacity="0"/></radialGradient>
+    <filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <linearGradient id="beamG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff2c0" stop-opacity=".8"/><stop offset="1" stop-color="#fff2c0" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1000" height="520" fill="url(#sky)"/>
+  <g fill="#fff"><circle cx="331" cy="38" r="1.3" opacity="0.9"/><circle cx="49" cy="18" r="0.6" opacity="0.6"/><circle cx="596" cy="14" r="0.8" opacity="0.4"/><circle cx="88" cy="111" r="1.3" opacity="0.4"/><circle cx="246" cy="23" r="1.3" opacity="0.4"/><circle cx="846" cy="144" r="0.6" opacity="0.4"/><circle cx="645" cy="160" r="0.6" opacity="0.9"/><circle cx="599" cy="101" r="0.6" opacity="0.4"/><circle cx="47" cy="142" r="0.8" opacity="0.6"/><circle cx="429" cy="36" r="0.6" opacity="0.9"/><circle cx="315" cy="143" r="0.8" opacity="0.4"/><circle cx="595" cy="146" r="0.8" opacity="0.6"/><circle cx="99" cy="140" r="0.6" opacity="0.9"/><circle cx="61" cy="158" r="0.8" opacity="0.6"/><circle cx="696" cy="136" r="1.3" opacity="0.6"/><circle cx="476" cy="149" r="1.3" opacity="0.6"/><circle cx="306" cy="63" r="0.8" opacity="0.9"/><circle cx="798" cy="62" r="0.6" opacity="0.9"/><circle cx="307" cy="134" r="1.3" opacity="0.6"/><circle cx="746" cy="114" r="1" opacity="0.9"/><circle cx="74" cy="30" r="1.3" opacity="0.4"/><circle cx="775" cy="87" r="0.8" opacity="0.6"/><circle cx="431" cy="10" r="0.6" opacity="0.9"/><circle cx="586" cy="80" r="1" opacity="0.9"/><circle cx="358" cy="152" r="1.3" opacity="0.9"/><circle cx="816" cy="116" r="0.6" opacity="0.4"/><circle cx="967" cy="69" r="1.3" opacity="0.9"/><circle cx="680" cy="16" r="0.6" opacity="0.9"/><circle cx="718" cy="79" r="1.3" opacity="0.6"/><circle cx="733" cy="98" r="1" opacity="0.4"/><circle cx="963" cy="118" r="1" opacity="0.4"/><circle cx="625" cy="29" r="1.3" opacity="0.4"/><circle cx="223" cy="196" r="1" opacity="0.4"/><circle cx="756" cy="63" r="1.3" opacity="0.6"/><circle cx="938" cy="127" r="0.6" opacity="0.4"/><circle cx="459" cy="102" r="1" opacity="0.4"/><circle cx="838" cy="110" r="1" opacity="0.9"/><circle cx="425" cy="91" r="1.3" opacity="0.4"/><circle cx="154" cy="21" r="0.8" opacity="0.4"/><circle cx="237" cy="168" r="0.8" opacity="0.4"/><circle cx="496" cy="150" r="0.8" opacity="0.6"/><circle cx="288" cy="1" r="0.8" opacity="0.6"/><circle cx="547" cy="94" r="1" opacity="0.4"/><circle cx="707" cy="131" r="0.6" opacity="0.6"/><circle cx="921" cy="199" r="1.3" opacity="0.6"/><circle cx="408" cy="100" r="0.6" opacity="0.6"/><circle cx="649" cy="102" r="0.6" opacity="0.4"/><circle cx="68" cy="53" r="1.3" opacity="0.4"/><circle cx="112" cy="87" r="0.6" opacity="0.4"/><circle cx="0" cy="145" r="0.8" opacity="0.9"/><circle cx="103" cy="93" r="0.6" opacity="0.4"/><circle cx="895" cy="53" r="1.3" opacity="0.4"/><circle cx="649" cy="64" r="1" opacity="0.9"/><circle cx="372" cy="121" r="0.6" opacity="0.4"/><circle cx="869" cy="124" r="1.3" opacity="0.6"/><circle cx="495" cy="79" r="0.6" opacity="0.4"/><circle cx="104" cy="191" r="1" opacity="0.9"/><circle cx="271" cy="122" r="0.8" opacity="0.9"/><circle cx="23" cy="52" r="1" opacity="0.4"/><circle cx="706" cy="139" r="0.6" opacity="0.9"/><circle cx="305" cy="164" r="0.6" opacity="0.9"/><circle cx="865" cy="66" r="1" opacity="0.4"/><circle cx="364" cy="197" r="0.8" opacity="0.9"/><circle cx="554" cy="199" r="1" opacity="0.9"/><circle cx="228" cy="156" r="0.8" opacity="0.4"/><circle cx="837" cy="102" r="0.8" opacity="0.4"/><circle cx="530" cy="126" r="1" opacity="0.9"/><circle cx="29" cy="7" r="1" opacity="0.6"/><circle cx="265" cy="49" r="1" opacity="0.6"/><circle cx="827" cy="185" r="1" opacity="0.6"/><circle cx="82" cy="56" r="0.6" opacity="0.4"/><circle cx="481" cy="50" r="1" opacity="0.4"/><circle cx="494" cy="159" r="0.6" opacity="0.6"/><circle cx="931" cy="167" r="1" opacity="0.9"/><circle cx="86" cy="169" r="0.6" opacity="0.6"/><circle cx="801" cy="182" r="0.8" opacity="0.6"/><circle cx="910" cy="45" r="1.3" opacity="0.9"/><circle cx="340" cy="22" r="1.3" opacity="0.6"/><circle cx="411" cy="190" r="0.6" opacity="0.9"/><circle cx="162" cy="43" r="0.8" opacity="0.4"/><circle cx="154" cy="151" r="1.3" opacity="0.9"/><circle cx="149" cy="156" r="1.3" opacity="0.9"/><circle cx="959" cy="89" r="0.8" opacity="0.9"/><circle cx="561" cy="33" r="0.6" opacity="0.4"/><circle cx="818" cy="185" r="0.6" opacity="0.9"/><circle cx="767" cy="35" r="1.3" opacity="0.4"/><circle cx="845" cy="54" r="0.6" opacity="0.6"/><circle cx="217" cy="74" r="0.8" opacity="0.9"/><circle cx="333" cy="66" r="1.3" opacity="0.4"/><circle cx="62" cy="189" r="1" opacity="0.6"/></g>
+  <circle cx="860" cy="78" r="70" fill="url(#moonGlow)"/><circle cx="860" cy="78" r="24" fill="#f6eccb"/><circle cx="851" cy="72" r="4" fill="#e3d7ae"/><circle cx="866" cy="86" r="3" fill="#e3d7ae"/>
+  <g class="station"><g transform="translate(300 96)">
+    <circle r="46" fill="url(#starGlow)"/>
+    <path d="M0 -30 C 2 -6, 6 -2, 30 0 C 6 2, 2 6, 0 30 C -2 6, -6 2, -30 0 C -6 -2, -2 -6, 0 -30 Z" fill="#fff6dc"/>
+    <path d="M0 -14 C 1 -3, 3 -1, 14 0 C 3 1, 1 3, 0 14 C -1 3, -3 1, -14 0 C -3 -1, -1 -3, 0 -14 Z" fill="#fff" transform="rotate(45)" opacity=".85"/>
+    <circle r="5" fill="#fff"/></g></g>
+  <!-- serra da bruma -->
+  <path d="M330 300 L410 232 L470 262 L560 196 L640 248 L700 210 L780 168 L860 214 L930 186 L1000 222 L1000 330 L330 330 Z" fill="#2b2b55"/>
+  <path d="M500 310 L590 252 L660 280 L740 236 L820 262 L900 230 L1000 268 L1000 340 L500 340 Z" fill="#24264a"/>
+  <g transform="translate(905 262)"><path d="M-14 16 L-14 0 A14 12 0 0 1 14 0 L14 16 Z" fill="#0b0d1c"/><rect x="-17" y="-2" width="4" height="18" fill="#6b4a2e"/><rect x="13" y="-2" width="4" height="18" fill="#6b4a2e"/><rect x="-17" y="-5" width="34" height="4" fill="#6b4a2e"/></g>
+  <text x="905" y="296" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="11" fill="#9a97c0">Mina Velha</text>
+  <text x="640" y="236" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="12" fill="#8f8cb8">Serra da Bruma</text>
+  <rect x="0" y="332" width="1000" height="190" fill="#1c3534"/><path d="M220 296 L340 300 L330 340 L220 340 Z" fill="#1c3534"/>
+  <!-- mar e ilha -->
+  <path d="M0 290 L250 290 C 236 330, 214 360, 226 400 C 236 440, 196 470, 160 520 L0 520 Z" fill="url(#sea)"/>
+  <path d="M250 290 C 236 330, 214 360, 226 400 C 236 440, 196 470, 160 520" stroke="#b9a37a" stroke-width="5" fill="none" opacity=".55"/>
+  <g stroke="#f6eccb" stroke-opacity=".25" stroke-width="2"><line x1="40" y1="300" x2="70" y2="300"/><line x1="68" y1="312" x2="98" y2="312"/><line x1="96" y1="324" x2="126" y2="324"/><line x1="124" y1="336" x2="154" y2="336"/><line x1="152" y1="348" x2="182" y2="348"/><line x1="180" y1="360" x2="210" y2="360"/></g>
+  <path d="M48 368 C 60 340, 150 334, 180 360 C 170 380, 70 386, 48 368 Z" fill="#2c4637"/><path d="M60 362 C 80 350, 140 348, 168 360" stroke="#3d5f49" stroke-width="3" fill="none"/>
+  <rect x="70" y="316" width="8" height="34" fill="#e9e4d6"/><rect x="70" y="326" width="8" height="5" fill="#c0504a"/><rect x="68" y="312" width="12" height="6" fill="#3a3550"/><circle cx="74" cy="309" r="3.5" fill="#fff2c0"/>
+  <path class="beam" d="M74 309 L250 280 L250 330 Z" fill="url(#beamG)"/>
+  <text x="114" y="400" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="11" fill="#9fb3d6">Ilha da Bruma</text>
+  <!-- vale -->
+  <path d="M232 330 C 380 300, 600 310, 1000 326 L1000 520 L180 520 C 206 470, 246 446, 236 404 C 226 370, 240 346, 232 330 Z" fill="#1f3a39"/>
+  <path d="M240 420 C 420 390, 700 400, 1000 420 L1000 520 L190 520 C 210 480, 236 450, 240 420 Z" fill="#1a3230"/>
+  <!-- rio sereno -->
+  <path d="M790 262 C 760 300, 700 300, 640 330 C 590 352, 560 350, 520 360 C 470 372, 420 362, 360 352 C 300 342, 270 360, 236 380" stroke="#3e6aa0" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M790 262 C 760 300, 700 300, 640 330 C 590 352, 560 350, 520 360 C 470 372, 420 362, 360 352 C 300 342, 270 360, 236 380" stroke="#7fb0e0" stroke-width="2" fill="none" stroke-dasharray="10 18" opacity=".6"/>
+  <g><rect x="430" y="318" width="22" height="18" fill="#2a2742"/><path d="M427 318 L441.0 308.1 L455 318 Z" fill="#3a2f4a"/><rect class="win w1" x="434.84" y="323.4" width="3.96" height="4.68" fill="#f6cf7c"/><rect x="443.2" y="323.4" width="3.96" height="4.68" fill="#c9a35c" opacity=".7"/><rect x="456" y="322" width="18" height="15" fill="#2a2742"/><path d="M453 322 L465.0 313.75 L477 322 Z" fill="#3a2f4a"/><rect class="win w2" x="459.96" y="326.5" width="3.2399999999999998" height="3.9000000000000004" fill="#f6cf7c"/><rect x="478" y="316" width="24" height="20" fill="#2a2742"/><path d="M475 316 L490.0 305.0 L505 316 Z" fill="#3a2f4a"/><rect class="win w3" x="483.28" y="322.0" width="4.32" height="5.2" fill="#f6cf7c"/><rect x="492.4" y="322.0" width="4.32" height="5.2" fill="#c9a35c" opacity=".7"/><rect x="446" y="340" width="20" height="16" fill="#2a2742"/><path d="M443 340 L456.0 331.2 L469 340 Z" fill="#3a2f4a"/><rect class="win w1" x="450.4" y="344.8" width="3.5999999999999996" height="4.16" fill="#f6cf7c"/><rect x="458.0" y="344.8" width="3.5999999999999996" height="4.16" fill="#c9a35c" opacity=".7"/><rect x="470" y="344" width="22" height="17" fill="#2a2742"/><path d="M467 344 L481.0 334.65 L495 344 Z" fill="#3a2f4a"/><rect class="win w2" x="474.84" y="349.1" width="3.96" height="4.42" fill="#f6cf7c"/><rect x="483.2" y="349.1" width="3.96" height="4.42" fill="#c9a35c" opacity=".7"/><rect x="500" y="338" width="18" height="15" fill="#2a2742"/><path d="M497 338 L509.0 329.75 L521 338 Z" fill="#3a2f4a"/><rect class="win w3" x="503.96" y="342.5" width="3.2399999999999998" height="3.9000000000000004" fill="#f6cf7c"/><rect x="340" y="368" width="62" height="34" fill="#2f2945"/><path d="M334 368 L371 346 L408 368 Z" fill="#43365a"/><rect class="win w1" x="346" y="376" width="7" height="9" fill="#f6cf7c"/><rect class="win w2" x="359" y="376" width="7" height="9" fill="#f6cf7c"/><rect class="win w3" x="372" y="376" width="7" height="9" fill="#f6cf7c"/><rect class="win w1" x="385" y="376" width="7" height="9" fill="#f6cf7c"/><rect x="366" y="388" width="10" height="14" fill="#1a1530"/><rect x="520" y="292" width="34" height="40" fill="#34304f"/><path d="M516 292 L537 270 L558 292 Z" fill="#463c63"/><rect x="530" y="250" width="14" height="24" fill="#34304f"/><path d="M528 250 L537 236 L546 250 Z" fill="#463c63"/><rect x="535" y="226" width="4" height="10" fill="#cfc6a8"/><rect x="532" y="229" width="10" height="3" fill="#cfc6a8"/><circle class="win w2" cx="537" cy="306" r="6" fill="#f6cf7c"/><rect x="620" y="300" width="58" height="34" fill="#cfd3e6"/><rect x="620" y="296" width="58" height="5" fill="#a9aec8"/><rect class="win w1" x="626" y="308" width="7" height="6" fill="#f6e3a8"/><rect class="win w1" x="626" y="320" width="7" height="6" fill="#f6e3a8"/><rect class="win w2" x="638" y="308" width="7" height="6" fill="#f6e3a8"/><rect class="win w2" x="638" y="320" width="7" height="6" fill="#f6e3a8"/><rect class="win w3" x="650" y="308" width="7" height="6" fill="#f6e3a8"/><rect class="win w3" x="650" y="320" width="7" height="6" fill="#f6e3a8"/><rect class="win w1" x="662" y="308" width="7" height="6" fill="#f6e3a8"/><rect class="win w1" x="662" y="320" width="7" height="6" fill="#f6e3a8"/><rect x="642" y="282" width="14" height="14" fill="#fff"/><rect x="647" y="284" width="4" height="10" fill="#e05a4a"/><rect x="644" y="287" width="10" height="4" fill="#e05a4a"/><rect x="700" y="356" width="90" height="34" fill="#3b3a63"/><path d="M732 356 A14 14 0 0 1 760 356 Z" fill="#5d5b8f"/><rect x="744" y="336" width="4" height="8" fill="#5d5b8f"/><rect x="706" y="364" width="4" height="22" fill="#8c89b8"/><rect x="722" y="364" width="4" height="22" fill="#8c89b8"/><rect x="738" y="364" width="4" height="22" fill="#8c89b8"/><rect x="754" y="364" width="4" height="22" fill="#8c89b8"/><rect x="770" y="364" width="4" height="22" fill="#8c89b8"/><rect x="786" y="364" width="4" height="22" fill="#8c89b8"/><rect class="win w3" x="740" y="372" width="12" height="10" fill="#f6cf7c"/><rect x="528" y="418" width="20" height="12" fill="#2a2440"/><path d="M525 418 L538 408 L551 418 Z" fill="#e58a76"/><rect x="552" y="418" width="20" height="12" fill="#2a2440"/><path d="M549 418 L562 408 L575 418 Z" fill="#f2c46d"/><rect x="576" y="418" width="20" height="12" fill="#2a2440"/><path d="M573 418 L586 408 L599 418 Z" fill="#6fb7a8"/><rect x="600" y="418" width="20" height="12" fill="#2a2440"/><path d="M597 418 L610 408 L623 418 Z" fill="#b98ad6"/><circle cx="610" cy="424" r="2" fill="#f6cf7c"/><circle cx="616" cy="420" r="2" fill="#f6cf7c"/><circle cx="604" cy="420" r="2" fill="#f6cf7c"/><path d="M520 406 Q 566 396 616 406" stroke="#f6cf7c" stroke-dasharray="1 5" stroke-width="2" fill="none"/><rect x="816" y="398" width="58" height="32" fill="#2e3a4f"/><rect x="816" y="394" width="58" height="5" fill="#3f4d66"/><rect x="858" y="368" width="2" height="26" fill="#9aa3b8"/><circle cx="859" cy="366" r="3" fill="#e05a4a"/><rect class="win w1" x="822" y="406" width="7" height="8" fill="#f6cf7c"/><rect class="win w2" x="834" y="406" width="7" height="8" fill="#7fd6ff"/><rect class="win w3" x="846" y="406" width="7" height="8" fill="#f6cf7c"/><rect class="win w1" x="858" y="406" width="7" height="8" fill="#f6cf7c"/><rect x="590" y="300" width="16" height="13" fill="#2a2742"/><path d="M587 300 L598.0 292.85 L609 300 Z" fill="#3a2f4a"/><rect class="win w1" x="593.52" y="303.9" width="3" height="3.38" fill="#f6cf7c"/><rect x="606" y="380" width="16" height="13" fill="#2a2742"/><path d="M603 380 L614.0 372.85 L625 380 Z" fill="#3a2f4a"/><rect x="676" y="404" width="16" height="13" fill="#2a2742"/><path d="M673 404 L684.0 396.85 L695 404 Z" fill="#3a2f4a"/><rect class="win w3" x="679.52" y="407.9" width="3" height="3.38" fill="#f6cf7c"/><rect x="790" y="312" width="16" height="13" fill="#2a2742"/><path d="M787 312 L798.0 304.85 L809 312 Z" fill="#3a2f4a"/><rect x="410" y="420" width="16" height="13" fill="#2a2742"/><path d="M407 420 L418.0 412.85 L429 420 Z" fill="#3a2f4a"/><rect class="win w2" x="413.52" y="423.9" width="3" height="3.38" fill="#f6cf7c"/><rect x="450" y="404" width="16" height="13" fill="#2a2742"/><path d="M447 404 L458.0 396.85 L469 404 Z" fill="#3a2f4a"/><rect x="700" y="418" width="16" height="13" fill="#2a2742"/><path d="M697 418 L708.0 410.85 L719 418 Z" fill="#3a2f4a"/><rect class="win w1" x="703.52" y="421.9" width="3" height="3.38" fill="#f6cf7c"/><rect x="780" y="420" width="16" height="13" fill="#2a2742"/><path d="M777 420 L788.0 412.85 L799 420 Z" fill="#3a2f4a"/></g>
+  <g><path d="M240 470 l7 -18 l7 18 Z" fill="#14271f"/><path d="M262 476 l7 -18 l7 18 Z" fill="#14271f"/><path d="M284 468 l7 -18 l7 18 Z" fill="#14271f"/><path d="M900 470 l7 -18 l7 18 Z" fill="#14271f"/><path d="M922 476 l7 -18 l7 18 Z" fill="#14271f"/><path d="M944 468 l7 -18 l7 18 Z" fill="#14271f"/><path d="M966 474 l7 -18 l7 18 Z" fill="#14271f"/><path d="M180 488 l7 -18 l7 18 Z" fill="#14271f"/><path d="M820 486 l7 -18 l7 18 Z" fill="#14271f"/><path d="M330 490 l7 -18 l7 18 Z" fill="#14271f"/><path d="M360 486 l7 -18 l7 18 Z" fill="#14271f"/></g>
+  <!-- neblina (o sereno) -->
+  <g filter="url(#blur)" opacity=".9">
+    <ellipse class="fog" cx="420" cy="350" rx="260" ry="26" fill="rgba(220,228,255,.16)"/>
+    <ellipse class="fog f2" cx="760" cy="390" rx="300" ry="30" fill="rgba(220,228,255,.12)"/>
+    <ellipse class="fog f3" cx="560" cy="300" rx="380" ry="22" fill="rgba(220,228,255,.10)"/>
+  </g>
+  <a class="pin" href="fundadores/" data-g="fundadores" tabindex="0" role="button" aria-label="Fundadores: Ilha da Bruma">
+      <circle class="ring" cx="118" cy="352" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="118" cy="352" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="132" y="341" width="90.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="177.0" y="356.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Fundadores</text></a><a class="pin" href="linhagem/" data-g="linhagem" tabindex="0" role="button" aria-label="Linhagem: O casarão da família">
+      <circle class="ring" cx="372" cy="382" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="372" cy="382" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="386" y="371" width="75.2" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="423.6" y="386.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Linhagem</text></a><a class="pin" href="surto/" data-g="surto" tabindex="0" role="button" aria-label="Surto: Bairro Sereno">
+      <circle class="ring" cx="470" cy="318" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="470" cy="318" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="484" y="307" width="53.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="510.5" y="322.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Surto</text></a><a class="pin" href="heranca/" data-g="heranca" tabindex="0" role="button" aria-label="Herança: A feira de domingo">
+      <circle class="ring" cx="566" cy="412" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="566" cy="412" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="580" y="401" width="67.80000000000001" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="613.9" y="416.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Herança</text></a><a class="pin" href="gulp/" data-g="gulp" tabindex="0" role="button" aria-label="GULP!: Hospital Regional">
+      <circle class="ring" cx="648" cy="318" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="648" cy="318" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="662" y="307" width="53.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="688.5" y="322.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">GULP!</text></a><a class="pin" href="operon/" data-g="operon" tabindex="0" role="button" aria-label="Operon: Rio Sereno">
+      <circle class="ring" cx="588" cy="352" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="588" cy="352" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="602" y="341" width="60.400000000000006" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="632.2" y="356.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Operon</text></a><a class="pin" href="fita-molde/" data-g="fita" tabindex="0" role="button" aria-label="Fita Molde: Universidade do Sereno">
+      <circle class="ring" cx="716" cy="350" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="716" cy="350" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="730" y="339" width="90.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="775.0" y="354.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Fita Molde</text></a><a class="pin" href="genoblocos/" data-g="geno" tabindex="0" role="button" aria-label="GenoBlocos: Universidade do Sereno">
+      <circle class="ring" cx="772" cy="372" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="772" cy="372" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="786" y="361" width="90.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="831.0" y="376.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">GenoBlocos</text></a><a class="pin" href="laudo/" data-g="laudo" tabindex="0" role="button" aria-label="Laudo: Instituto de Criminalística">
+      <circle class="ring" cx="846" cy="412" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="846" cy="412" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="779.0" y="401" width="53.0" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="805.5" y="416.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Laudo</text></a><a class="pin" href="locus-astra/" data-g="astra" tabindex="0" role="button" aria-label="Locus Astra: A estrela de Kepler-Rubra">
+      <circle class="ring" cx="300" cy="144" r="9" fill="none" stroke="#f2c46d" stroke-width="2"/>
+      <circle class="dot" cx="300" cy="144" r="7" fill="#f2c46d" stroke="#1b1630" stroke-width="2.5"/>
+      <rect class="lab-bg" x="314" y="133" width="97.4" height="22" rx="11" fill="rgba(13,18,38,.82)" stroke="#f2c46d" stroke-width="1"/>
+      <text class="lab" x="362.7" y="148.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700" fill="#f2e8cf">Locus Astra</text></a>
+</svg></div>
+  <p class="mobhint">Arraste o mapa para os lados e toque num lugar.</p>
 
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#140a24"/>
-        <g font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle">
-          <g fill="#4caf50"><rect x="88" y="120" width="26" height="26" rx="5"/><rect x="114" y="120" width="26" height="26" rx="5"/><rect x="140" y="120" width="26" height="26" rx="5"/><rect x="140" y="94" width="26" height="26" rx="5"/></g>
-          <g fill="#ef5350"><rect x="166" y="120" width="26" height="26" rx="5"/><rect x="192" y="120" width="26" height="26" rx="5"/><rect x="166" y="94" width="26" height="26" rx="5"/><rect x="192" y="94" width="26" height="26" rx="5"/></g>
-          <g fill="#42a5f5"><rect x="218" y="120" width="26" height="26" rx="5"/><rect x="218" y="94" width="26" height="26" rx="5"/><rect x="218" y="68" width="26" height="26" rx="5"/><rect x="244" y="120" width="26" height="26" rx="5"/></g>
-          <g fill="#ffca28"><rect x="140" y="14" width="26" height="26" rx="5"/><rect x="166" y="14" width="26" height="26" rx="5"/><rect x="166" y="40" width="26" height="26" rx="5"/><rect x="192" y="40" width="26" height="26" rx="5"/></g>
-          <g fill="#1d1230"><text x="101" y="138">A</text><text x="127" y="138">A</text><text x="153" y="138">A</text><text x="153" y="112">A</text><text x="179" y="138">T</text><text x="205" y="138">T</text><text x="179" y="112">T</text><text x="205" y="112">T</text><text x="231" y="138">C</text><text x="231" y="112">C</text><text x="231" y="86">C</text><text x="257" y="138">C</text><text x="153" y="32">G</text><text x="179" y="32">G</text><text x="179" y="58">G</text><text x="205" y="58">G</text></g>
-        </g>
-        <g stroke="#fff" stroke-width="1.6" opacity=".8"><line x1="162" y1="128" x2="170" y2="128"/><line x1="162" y1="134" x2="170" y2="134"/><line x1="162" y1="102" x2="170" y2="102"/><line x1="162" y1="108" x2="170" y2="108"/></g>
-      </svg>
-      <div class="body">
-        <h2>GenoBlocos</h2>
-        <div class="genre">Quebra-cabeça de blocos · pareamento e mutagênese</div>
-        <p>Cada peça é um nucleotídeo. Encaixe bases complementares lado a lado para ganhar pontes de hidrogênio, use enzimas como power-ups e sobreviva à radiação UV, ao cigarro, aos vírus e ao raio-X.</p>
-        <div class="tags"><span>A–T e C–G</span><span>CRISPR</span><span>reparo do DNA</span></div>
-        <a class="play" href="genoblocos/">Jogar</a>
-      </div>
-    </article>
+  <div class="bar">
+    <h2>Todos os jogos</h2>
+    <div class="chips" role="group" aria-label="Filtrar por área"><button class="chip" data-f="todos" aria-pressed="true">Todos</button><button class="chip" data-f="mol" aria-pressed="false">Moléculas</button><button class="chip" data-f="cel" aria-pressed="false">Células e corpo</button><button class="chip" data-f="fam" aria-pressed="false">Pessoas e famílias</button><button class="chip" data-f="pop" aria-pressed="false">Populações</button><button class="chip" data-f="for" aria-pressed="false">Forense</button></div>
+  </div>
+  <div class="grid" id="grid"></div>
 
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#3b1f27"/>
-        <g fill="#c98b7a"><rect x="0" y="0" width="320" height="22"/><rect x="0" y="128" width="320" height="22"/></g>
-        <g fill="#a86e60"><circle cx="20" cy="11" r="4"/><circle cx="70" cy="9" r="4"/><circle cx="130" cy="12" r="4"/><circle cx="200" cy="10" r="4"/><circle cx="270" cy="12" r="4"/><circle cx="40" cy="139" r="4"/><circle cx="110" cy="137" r="4"/><circle cx="180" cy="140" r="4"/><circle cx="250" cy="138" r="4"/><circle cx="305" cy="139" r="4"/></g>
-        <circle cx="120" cy="75" r="44" fill="rgba(129,212,250,.18)"/>
-        <path d="M120 47 C 140 45, 150 58, 172 66 C 182 70, 182 82, 170 86 C 150 92, 142 104, 120 103 C 98 104, 90 92, 92 75 C 90 58, 100 49, 120 47 Z" fill="#b3e5fc" stroke="#e1f5fe" stroke-width="2"/>
-        <ellipse cx="116" cy="77" rx="12" ry="9" fill="#4fc3f7" transform="rotate(20 116 77)"/>
-        <g fill="#ffd54f"><circle cx="198" cy="72" r="7"/><circle cx="211" cy="72" r="7"/><circle cx="204" cy="84" r="7"/><circle cx="192" cy="84" r="7"/><circle cx="216" cy="84" r="7"/></g>
-        <g transform="translate(262 52) rotate(25)"><rect x="-18" y="-6" width="36" height="12" rx="6" fill="#81c784"/><path d="M-18 0 q -8 -6 -16 0 t -14 0" stroke="#a5d6a7" fill="none" stroke-width="1.5"/></g>
-        <g transform="translate(270 104)"><g stroke="#ef9a9a" stroke-width="2"><line x1="-12" y1="0" x2="12" y2="0"/><line x1="0" y1="-12" x2="0" y2="12"/><line x1="-8" y1="-8" x2="8" y2="8"/><line x1="-8" y1="8" x2="8" y2="-8"/></g><circle r="7" fill="#ef5350"/></g>
-      </svg>
-      <div class="body">
-        <h2>GULP!</h2>
-        <div class="genre">Sobrevivência · imunologia</div>
-        <p>Você é um macrófago cercado por ondas de bactérias, vírus e fungos. As defesas disparam sozinhas: fagocitose, explosão respiratória, lisozima, complemento, anticorpos, neutrófilos, interferon, febre e linfócitos T. Suba de nível, combine mecanismos e vença cinco chefes: da superbactéria que fica resistente até uma tênia gigante que só os eosinófilos conseguem enfrentar.</p>
-        <div class="tags"><span>fagocitose</span><span>opsonização</span><span>resistência</span><span>resposta Th2</span></div>
-        <a class="play" href="gulp/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <radialGradient id="laSky" cx="70%" cy="20%" r="90%"><stop offset="0" stop-color="#2a1b5c"/><stop offset="1" stop-color="#070b18"/></radialGradient>
-          <radialGradient id="laBody" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#b57bea"/><stop offset="1" stop-color="#5e2a9e"/></radialGradient>
-          <radialGradient id="laBody2" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#ffe082"/><stop offset="1" stop-color="#d48806"/></radialGradient>
-        </defs>
-        <rect width="320" height="150" fill="url(#laSky)"/>
-        <g fill="#fff"><circle cx="20" cy="18" r="1"/><circle cx="64" cy="40" r=".8"/><circle cx="110" cy="14" r="1.2"/><circle cx="170" cy="30" r=".8"/><circle cx="214" cy="12" r="1"/><circle cx="300" cy="44" r="1"/><circle cx="36" cy="110" r=".8"/><circle cx="150" cy="128" r="1"/><circle cx="288" cy="120" r=".8"/></g>
-        <circle cx="272" cy="30" r="20" fill="#4fc3f7" opacity=".85"/><ellipse cx="272" cy="30" rx="32" ry="7" fill="none" stroke="#ffd54f" stroke-width="2" transform="rotate(-20 272 30)"/>
-        <g transform="translate(92 86)">
-          <path d="M-12 -22 C -16 -36, -24 -38, -26 -44" stroke="#5e2a9e" stroke-width="2.4" fill="none"/><circle cx="-26" cy="-45" r="3.6" fill="#ccff90"/>
-          <path d="M12 -22 C 16 -36, 24 -38, 26 -44" stroke="#5e2a9e" stroke-width="2.4" fill="none"/><circle cx="26" cy="-45" r="3.6" fill="#ccff90"/>
-          <ellipse cx="0" cy="0" rx="34" ry="29" fill="url(#laBody)"/>
-          <circle cx="-14" cy="-2" r="5" fill="#5e2a9e" opacity=".55"/><circle cx="12" cy="6" r="6" fill="#5e2a9e" opacity=".55"/>
-          <circle cx="-11" cy="-8" r="6.5" fill="#fff"/><circle cx="11" cy="-8" r="6.5" fill="#fff"/><circle cx="-10" cy="-7" r="3.3" fill="#101420"/><circle cx="12" cy="-7" r="3.3" fill="#101420"/>
-          <path d="M-7 8 Q 0 13, 7 8" stroke="#1b1b2a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </g>
-        <text x="160" y="92" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#93a0c8">×</text>
-        <g transform="translate(228 90) scale(.85)">
-          <g fill="#9ff0ff" stroke="#fff" stroke-width="1"><polygon points="-18,-20 -12,-40 -6,-21"/><polygon points="-4,-26 2,-50 8,-26"/><polygon points="10,-22 17,-40 22,-18"/></g>
-          <ellipse cx="0" cy="0" rx="34" ry="29" fill="url(#laBody2)"/>
-          <circle cx="0" cy="-8" r="10" fill="#fff"/><circle cx="2" cy="-7" r="5" fill="#101420"/>
-          <path d="M-7 8 Q 0 13, 7 8" stroke="#1b1b2a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </g>
-      </svg>
-      <div class="body">
-        <h2>Locus Astra</h2>
-        <div class="genre">Criação e cruzamento · genética mendeliana</div>
-        <p>Você é geneticista numa estação espacial. Capture astrídeos em outros planetas, sequencie genomas, preveja filhotes com quadros de Punnett, cumpra contratos e dispute a arena com criaturas cujos atributos vêm dos genes.</p>
-        <div class="tags"><span>Punnett</span><span>epistasia</span><span>ligada ao X</span><span>poligênica</span></div>
-        <a class="play" href="locus-astra/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#f4efe4"/>
-        <g stroke="#22303a" stroke-width="2.2" fill="none">
-          <path d="M130 36H190M160 36V64M70 64H250M70 64V84M130 64V84M190 64V84M250 64V84"/>
-          <path d="M82 96H118M100 96V112M80 112H120M80 112V122M120 112V122"/>
-        </g>
-        <g stroke="#22303a" stroke-width="2.2">
-          <rect x="110" y="26" width="20" height="20" fill="#22303a"/><circle cx="200" cy="36" r="10" fill="#fff"/>
-          <circle cx="70" cy="96" r="10" fill="#fff"/><circle cx="70" cy="96" r="3.5" fill="#22303a"/>
-          <rect x="120" y="86" width="20" height="20" fill="#22303a"/><circle cx="190" cy="96" r="10" fill="#fff"/><rect x="240" y="86" width="20" height="20" fill="#fff"/>
-          <rect x="70" y="122" width="20" height="20" fill="#fff"/><circle cx="120" cy="132" r="10" fill="#22303a"/>
-          <path d="M60 106L80 86M232 108L268 84" fill="none"/>
-        </g>
-        <path d="M152 142L163 128" stroke="#e07a1f" stroke-width="2.5"/><path d="M163 128l-9 1l5 7z" fill="#e07a1f"/>
-        <circle cx="262" cy="124" r="15" fill="none" stroke="#4dd0b1" stroke-width="4"/><path d="M273 135L288 150" stroke="#4dd0b1" stroke-width="5" stroke-linecap="round"/>
-      </svg>
-      <div class="body">
-        <h2>Surto</h2>
-        <div class="genre">RPG investigativo · genética humana</div>
-        <p>Você assume o serviço de genética do Vale do Sereno. Entreviste parentes, consulte prontuários, sequencie amostras e monte o heredograma até descobrir como cada doença passa de uma geração para outra.</p>
-        <div class="tags"><span>heredogramas</span><span>modos de herança</span><span>penetrância</span><span>risco de recorrência</span></div>
-        <a class="play" href="surto/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#2a1f17"/>
-        <rect x="18" y="12" width="284" height="126" rx="10" fill="#f3e9d2"/>
-        <g stroke="#2b2018" stroke-width="2" fill="none">
-          <path d="M138 34H182M160 34V52M100 52H220M100 52V64M160 52V64M220 52V64"/>
-          <path d="M172 76H204M188 76V92M150 92H226M150 92V104M188 92V104M226 92V104"/>
-          <path d="M152 76h4M152 80h4" />
-        </g>
-        <g stroke="#2b2018" stroke-width="2">
-          <circle cx="128" cy="34" r="9" fill="#c4501c"/><rect x="183" y="25" width="18" height="18" fill="#fffaf0"/>
-          <rect x="91" y="64" width="18" height="18" fill="#fffaf0"/><circle cx="160" cy="76" r="9" fill="#fffaf0"/><rect x="211" y="64" width="18" height="18" fill="#fffaf0"/>
-          <rect x="141" y="104" width="18" height="18" fill="#2b2018"/><circle cx="188" cy="113" r="9" fill="#c4501c"/><rect x="217" y="104" width="18" height="18" fill="#fffaf0"/>
-        </g>
-        <circle cx="160" cy="76" r="3.5" fill="#2b2018"/><circle cx="220" cy="73" r="3.5" fill="#2b2018"/>
-        <circle cx="128" cy="34" r="14" fill="none" stroke="#d9a520" stroke-width="2.5"/><circle cx="160" cy="76" r="14" fill="none" stroke="#d9a520" stroke-width="2.5"/>
-        <text x="36" y="40" font-family="Georgia, serif" font-size="13" font-weight="700" fill="#a8402a">1780</text>
-        <text x="36" y="124" font-family="Georgia, serif" font-size="13" font-weight="700" fill="#a8402a">2020</text>
-      </svg>
-      <div class="body">
-        <h2>Linhagem</h2>
-        <div class="genre">RPG de gerações · herança e endogamia</div>
-        <p>Guie uma família do Vale do Sereno por nove gerações, de 1780 até hoje. Cada herdeiro vive seus feitos, escolhe com quem casar e decide quem herda a casa. Casar com primos fortalece a linhagem, mas desperta doenças escondidas.</p>
-        <div class="tags"><span>poligenia</span><span>endogamia</span><span>heterozigoto</span><span>história da genética</span></div>
-        <a class="play" href="linhagem/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#3f9a62"/>
-        <path d="M20 40 H300 V110 H20" stroke="#f4f1de" stroke-width="9" fill="none" stroke-linecap="round"/>
-        <g stroke="#1d1d1d" stroke-width="2"><circle cx="40" cy="40" r="11" fill="#ffd23f"/><circle cx="85" cy="40" r="11" fill="#7bd389"/><circle cx="130" cy="40" r="11" fill="#ff9f43"/><circle cx="175" cy="40" r="11" fill="#74b9ff"/><circle cx="220" cy="40" r="11" fill="#ff6b81"/><circle cx="265" cy="40" r="11" fill="#b388eb"/><circle cx="300" cy="75" r="11" fill="#ffd23f"/><circle cx="265" cy="110" r="11" fill="#7bd389"/><circle cx="220" cy="110" r="11" fill="#ff9f43"/></g>
-        <g transform="translate(130 92)"><circle r="34" fill="#fff" stroke="#222" stroke-width="2"/><g stroke="#222" stroke-width="1"><path d="M0 0L0 -34" /><path d="M0 0L29 -17"/><path d="M0 0L29 17"/><path d="M0 0L0 34"/><path d="M0 0L-29 17"/><path d="M0 0L-29 -17"/></g><path d="M0 0L0 -34A34 34 0 0 1 29 -17Z" fill="#e63946"/><path d="M0 0L29 17A34 34 0 0 1 0 34Z" fill="#2a9df4"/><path d="M0 0L-29 -17A34 34 0 0 1 0 -34Z" fill="#ffd23f"/><circle r="5" fill="#222"/></g>
-        <g transform="translate(202 34)"><rect x="-15" y="-9" width="30" height="18" rx="6" fill="#e63946" stroke="#222" stroke-width="1.5"/><circle cx="-5" cy="0" r="2.6" fill="#fff"/><circle cx="2" cy="0" r="2.6" fill="#fff"/><circle cx="8" cy="-3" r="1.6" fill="#ff6fa8"/><circle cx="8" cy="3" r="1.6" fill="#4aa3ff"/></g>
-        <text x="182" y="88" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#fff">Aa × Aa</text>
-      </svg>
-      <div class="body">
-        <h2>Herança</h2>
-        <div class="genre">Jogo de tabuleiro · genética humana</div>
-        <p>Escolha seu peão (pipeta, DNA, drosófila…) e viva uma vida inteira num tabuleiro, do teste do pezinho aos 90 anos: escola, ENEM, quartel ou faculdade, casamento, filhos (e gêmeos), concurso, aposentadoria. Cada jogador recebe cartas viradas (traço falciforme, falso O, APOE ε4, sedentarismo, vícios) que só se revelam com exames e com a vida. Pandemias, desinformação e o mar subindo mudam o jogo.</p>
-        <div class="tags"><span>doenças multifatoriais</span><span>ABO e HLA</span><span>transplantes</span><span>longevidade</span></div>
-        <a class="play" href="heranca/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#0b2530"/>
-        <circle cx="70" cy="45" r="55" fill="#ffc43c" opacity=".35"/><circle cx="250" cy="40" r="60" fill="#f2f7ff" opacity=".22"/><circle cx="240" cy="125" r="45" fill="#d07bff" opacity=".3"/>
-        <g transform="translate(150 58) rotate(-12)"><g stroke="#cfe" stroke-width="2" fill="none" opacity=".7"><path d="M-40 0 q-8 -6 -16 0 t-16 0"/><path d="M-40 -5 q-8 -9 -16 -4 t-16 -5"/><path d="M-40 5 q-8 9 -16 4 t-16 5"/></g><rect x="-42" y="-17" width="84" height="34" rx="17" fill="#c8f7a0" stroke="#0d2a33" stroke-width="3"/><circle cx="-16" cy="-4" r="4" fill="#ff9a1f"/><circle cx="-4" cy="5" r="4" fill="#ff9a1f"/><circle cx="20" cy="2" r="3.5" fill="#c04bff"/><rect x="-28" y="-20" width="6" height="6" fill="#2f80ff"/><rect x="8" y="14" width="6" height="6" fill="#2f80ff"/></g>
-        <line x1="20" y1="122" x2="300" y2="122" stroke="#9ccdd6" stroke-width="4" opacity=".6"/>
-        <rect x="40" y="112" width="32" height="20" rx="4" fill="#7bd389"/><rect x="72" y="112" width="26" height="20" rx="4" fill="#ff8a8a"/><rect x="98" y="112" width="90" height="20" rx="4" fill="#6fb7ff"/><rect x="188" y="112" width="56" height="20" rx="4" fill="#5ad1c3"/><rect x="244" y="112" width="40" height="20" rx="4" fill="#a7b5bb"/>
-        <g transform="translate(85 104)"><rect x="-15" y="-9" width="14" height="16" rx="5" fill="#9b6dff" stroke="#2c0f6b"/><rect x="1" y="-9" width="14" height="16" rx="5" fill="#9b6dff" stroke="#2c0f6b"/></g>
-        <text x="143" y="126" font-family="system-ui" font-weight="800" font-size="11" fill="#0a1d24" text-anchor="middle">lacZ</text>
-      </svg>
-      <div class="body">
-        <h2>Operon</h2>
-        <div class="genre">Simulação · regulação gênica</div>
-        <p>Seja uma E. coli no intestino: nade atrás de glicose, lactose e triptofano e cresça mais rápido que as rivais. Ligue os óperons lac e trp na mão, depois veja o repressor, a CAP e a atenuação fazerem o trabalho, e diagnostique mutantes com IPTG e merodiploides F′.</p>
-        <div class="tags"><span>óperon lac</span><span>óperon trp</span><span>Jacob e Monod</span><span>regulação</span></div>
-        <a class="play" href="operon/">Jogar</a>
-      </div>
-    </article>
-    <article class="card">
-      <svg class="art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="320" height="150" fill="#1d5f86"/>
-        <path d="M150 120 C 165 60, 230 40, 275 55 C 310 68, 318 100, 312 126 Z" fill="#e9d79c"/><path d="M178 112 C 190 75, 232 64, 262 70 C 292 78, 300 100, 296 116 Z" fill="#7cb85c"/>
-        <path d="M228 76 l 12 -22 l 12 22 z" fill="#9e9384"/><text x="200" y="104" font-size="16">🏠</text><text x="252" y="104" font-size="16">🌾</text>
-        <g transform="translate(70 92)"><path d="M-34 14 L 34 14 L 26 26 L -26 26 Z" fill="#6b4226"/><rect x="-2" y="-34" width="4" height="48" fill="#5a3a20"/><path d="M2 -30 L 28 8 L 2 8 Z" fill="#f4ecd8"/><path d="M-2 -25 L -24 8 L -2 8 Z" fill="#e8dcc0"/></g>
-        <g transform="translate(18 18)"><rect width="104" height="40" rx="6" fill="#0c1d26" opacity=".85"/><polyline points="8,30 22,28 34,20 46,24 58,12 70,16 82,8 96,10" fill="none" stroke="#ef6c6c" stroke-width="2.5"/><line x1="8" y1="26" x2="96" y2="26" stroke="#fff" stroke-dasharray="4 3" opacity=".6"/></g>
-      </svg>
-      <div class="body">
-        <h2>Fundadores</h2>
-        <div class="genre">Estratégia · genética de populações</div>
-        <p>Leve uma pequena amostra de um continente para uma ilha deserta e faça a colônia durar 150 anos: explore, plante, construa, enfrente epidemias, malária e um tufão. Os colonos se casam, têm filhos e morrem, e os alelos que trouxeram, inclusive os de doenças, derivam geração após geração.</p>
-        <div class="tags"><span>efeito fundador</span><span>gargalo</span><span>deriva</span><span>endogamia</span></div>
-        <a class="play" href="fundadores/">Jogar</a>
-      </div>
-    </article>
+  <section class="about">
+    <div>
+      <h2>O vale</h2>
+      <p>O Vale do Sereno foi fundado por descendentes de um punhado de colonos que chegaram de navio à Ilha da Bruma. Por isso algumas doenças hereditárias são muito mais comuns ali do que no resto do país, e cada família tem uma lenda para explicá-las.</p>
+      <p>Os jogos sobem e descem essa escada: a população que chegou na ilha, as famílias que se casaram entre si, as pessoas, as células e as moléculas de quem vive no vale. E, um dia, uma descendente do vale numa estação espacial.</p>
+    </div>
+    <div>
+      <h2>Para professores</h2>
+      <p>Cada jogo cobre um tema do currículo de genética e biologia, do ensino médio à graduação. Não há cadastro nem anúncio, e o progresso fica salvo no próprio navegador.</p>
+      <p>O código é aberto: <a href="https://github.com/Piergiorge/PolGame">github.com/Piergiorge/PolGame</a>.</p>
+    </div>
   </section>
 
-  <footer>
-    Feito por Rafael Piergiorge · <a href="https://github.com/Piergiorge/PolGame">código no GitHub</a><br>
-    Todos os jogos têm som (tecla <b>M</b> liga e desliga) e funcionam no celular.
-  </footer>
-</main>
+  <footer>Feito por Rafael Piergiorge. Todos os jogos têm som e funcionam no celular.</footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgT">
+  <button class="x" aria-label="Fechar" onclick="dlg.close()">×</button>
+  <div id="dlgArt"></div>
+  <div class="in">
+    <div class="where" id="dlgW"></div>
+    <h3 id="dlgT"></h3>
+    <div class="story" id="dlgS"></div>
+    <p id="dlgD"></p>
+    <div class="tags" id="dlgTags"></div>
+    <a class="btn" id="dlgGo" href="#">Jogar</a>
+  </div>
+</dialog>
+
+<script>
+const GAMES = [{"id": "fundadores", "n": "Fundadores", "href": "fundadores/", "area": ["pop"], "place": "Ilha da Bruma", "genre": "Estratégia · genética de populações", "story": "Antes do vale, a ilha. Um navio, um punhado de colonos e os alelos que eles trouxeram sem saber.", "desc": "Leve uma pequena amostra de um continente para uma ilha deserta e faça a colônia durar 150 anos: explore, plante, construa, enfrente epidemias, malária e um tufão. Os colonos se casam, têm filhos e morrem, e os alelos que trouxeram derivam geração após geração.", "tags": ["efeito fundador", "gargalo", "deriva", "endogamia"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#1d5f86\"/>\n        <path d=\"M150 120 C 165 60, 230 40, 275 55 C 310 68, 318 100, 312 126 Z\" fill=\"#e9d79c\"/><path d=\"M178 112 C 190 75, 232 64, 262 70 C 292 78, 300 100, 296 116 Z\" fill=\"#7cb85c\"/>\n        <path d=\"M228 76 l 12 -22 l 12 22 z\" fill=\"#9e9384\"/><text x=\"200\" y=\"104\" font-size=\"16\">🏠</text><text x=\"252\" y=\"104\" font-size=\"16\">🌾</text>\n        <g transform=\"translate(70 92)\"><path d=\"M-34 14 L 34 14 L 26 26 L -26 26 Z\" fill=\"#6b4226\"/><rect x=\"-2\" y=\"-34\" width=\"4\" height=\"48\" fill=\"#5a3a20\"/><path d=\"M2 -30 L 28 8 L 2 8 Z\" fill=\"#f4ecd8\"/><path d=\"M-2 -25 L -24 8 L -2 8 Z\" fill=\"#e8dcc0\"/></g>\n        <g transform=\"translate(18 18)\"><rect width=\"104\" height=\"40\" rx=\"6\" fill=\"#0c1d26\" opacity=\".85\"/><polyline points=\"8,30 22,28 34,20 46,24 58,12 70,16 82,8 96,10\" fill=\"none\" stroke=\"#ef6c6c\" stroke-width=\"2.5\"/><line x1=\"8\" y1=\"26\" x2=\"96\" y2=\"26\" stroke=\"#fff\" stroke-dasharray=\"4 3\" opacity=\".6\"/></g>\n      </svg>"}, {"id": "linhagem", "n": "Linhagem", "href": "linhagem/", "area": ["fam", "pop"], "place": "O casarão da família", "genre": "RPG de gerações · herança e endogamia", "story": "Nove gerações sob o mesmo telhado, e uma pergunta em cada casamento: casar com a prima?", "desc": "Guie uma família do Vale do Sereno por nove gerações, de 1780 até hoje. Cada herdeiro vive seus feitos, escolhe com quem casar e decide quem herda a casa. Casar com primos fortalece a linhagem, mas desperta doenças escondidas.", "tags": ["poligenia", "endogamia", "heterozigoto"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#2a1f17\"/>\n        <rect x=\"18\" y=\"12\" width=\"284\" height=\"126\" rx=\"10\" fill=\"#f3e9d2\"/>\n        <g stroke=\"#2b2018\" stroke-width=\"2\" fill=\"none\">\n          <path d=\"M138 34H182M160 34V52M100 52H220M100 52V64M160 52V64M220 52V64\"/>\n          <path d=\"M172 76H204M188 76V92M150 92H226M150 92V104M188 92V104M226 92V104\"/>\n          <path d=\"M152 76h4M152 80h4\" />\n        </g>\n        <g stroke=\"#2b2018\" stroke-width=\"2\">\n          <circle cx=\"128\" cy=\"34\" r=\"9\" fill=\"#c4501c\"/><rect x=\"183\" y=\"25\" width=\"18\" height=\"18\" fill=\"#fffaf0\"/>\n          <rect x=\"91\" y=\"64\" width=\"18\" height=\"18\" fill=\"#fffaf0\"/><circle cx=\"160\" cy=\"76\" r=\"9\" fill=\"#fffaf0\"/><rect x=\"211\" y=\"64\" width=\"18\" height=\"18\" fill=\"#fffaf0\"/>\n          <rect x=\"141\" y=\"104\" width=\"18\" height=\"18\" fill=\"#2b2018\"/><circle cx=\"188\" cy=\"113\" r=\"9\" fill=\"#c4501c\"/><rect x=\"217\" y=\"104\" width=\"18\" height=\"18\" fill=\"#fffaf0\"/>\n        </g>\n        <circle cx=\"160\" cy=\"76\" r=\"3.5\" fill=\"#2b2018\"/><circle cx=\"220\" cy=\"73\" r=\"3.5\" fill=\"#2b2018\"/>\n        <circle cx=\"128\" cy=\"34\" r=\"14\" fill=\"none\" stroke=\"#d9a520\" stroke-width=\"2.5\"/><circle cx=\"160\" cy=\"76\" r=\"14\" fill=\"none\" stroke=\"#d9a520\" stroke-width=\"2.5\"/>\n        <text x=\"36\" y=\"40\" font-family=\"Georgia, serif\" font-size=\"13\" font-weight=\"700\" fill=\"#a8402a\">1780</text>\n        <text x=\"36\" y=\"124\" font-family=\"Georgia, serif\" font-size=\"13\" font-weight=\"700\" fill=\"#a8402a\">2020</text>\n      </svg>"}, {"id": "surto", "n": "Surto", "href": "surto/", "area": ["fam"], "place": "Bairro Sereno", "genre": "RPG investigativo · genética humana", "story": "As famílias mais antigas moram aqui, porta com porta. Cada uma tem uma doença e uma lenda.", "desc": "Você assume o serviço de genética do Vale do Sereno. Entreviste parentes, consulte prontuários, sequencie amostras e monte o heredograma até descobrir como cada doença passa de uma geração para outra.", "tags": ["heredogramas", "modos de herança", "penetrância"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#f4efe4\"/>\n        <g stroke=\"#22303a\" stroke-width=\"2.2\" fill=\"none\">\n          <path d=\"M130 36H190M160 36V64M70 64H250M70 64V84M130 64V84M190 64V84M250 64V84\"/>\n          <path d=\"M82 96H118M100 96V112M80 112H120M80 112V122M120 112V122\"/>\n        </g>\n        <g stroke=\"#22303a\" stroke-width=\"2.2\">\n          <rect x=\"110\" y=\"26\" width=\"20\" height=\"20\" fill=\"#22303a\"/><circle cx=\"200\" cy=\"36\" r=\"10\" fill=\"#fff\"/>\n          <circle cx=\"70\" cy=\"96\" r=\"10\" fill=\"#fff\"/><circle cx=\"70\" cy=\"96\" r=\"3.5\" fill=\"#22303a\"/>\n          <rect x=\"120\" y=\"86\" width=\"20\" height=\"20\" fill=\"#22303a\"/><circle cx=\"190\" cy=\"96\" r=\"10\" fill=\"#fff\"/><rect x=\"240\" y=\"86\" width=\"20\" height=\"20\" fill=\"#fff\"/>\n          <rect x=\"70\" y=\"122\" width=\"20\" height=\"20\" fill=\"#fff\"/><circle cx=\"120\" cy=\"132\" r=\"10\" fill=\"#22303a\"/>\n          <path d=\"M60 106L80 86M232 108L268 84\" fill=\"none\"/>\n        </g>\n        <path d=\"M152 142L163 128\" stroke=\"#e07a1f\" stroke-width=\"2.5\"/><path d=\"M163 128l-9 1l5 7z\" fill=\"#e07a1f\"/>\n        <circle cx=\"262\" cy=\"124\" r=\"15\" fill=\"none\" stroke=\"#4dd0b1\" stroke-width=\"4\"/><path d=\"M273 135L288 150\" stroke=\"#4dd0b1\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n      </svg>"}, {"id": "heranca", "n": "Herança", "href": "heranca/", "area": ["fam"], "place": "A feira de domingo", "genre": "Jogo de tabuleiro · genética humana", "story": "Nas mesas do bar da praça, todo domingo, alguém tira a carta do traço falciforme.", "desc": "Escolha seu peão e viva uma vida inteira num tabuleiro, do teste do pezinho aos 90 anos. Cada jogador recebe cartas viradas (traço falciforme, falso O, APOE ε4) que só se revelam com exames e com a vida.", "tags": ["multifatoriais", "ABO e HLA", "longevidade"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#3f9a62\"/>\n        <path d=\"M20 40 H300 V110 H20\" stroke=\"#f4f1de\" stroke-width=\"9\" fill=\"none\" stroke-linecap=\"round\"/>\n        <g stroke=\"#1d1d1d\" stroke-width=\"2\"><circle cx=\"40\" cy=\"40\" r=\"11\" fill=\"#ffd23f\"/><circle cx=\"85\" cy=\"40\" r=\"11\" fill=\"#7bd389\"/><circle cx=\"130\" cy=\"40\" r=\"11\" fill=\"#ff9f43\"/><circle cx=\"175\" cy=\"40\" r=\"11\" fill=\"#74b9ff\"/><circle cx=\"220\" cy=\"40\" r=\"11\" fill=\"#ff6b81\"/><circle cx=\"265\" cy=\"40\" r=\"11\" fill=\"#b388eb\"/><circle cx=\"300\" cy=\"75\" r=\"11\" fill=\"#ffd23f\"/><circle cx=\"265\" cy=\"110\" r=\"11\" fill=\"#7bd389\"/><circle cx=\"220\" cy=\"110\" r=\"11\" fill=\"#ff9f43\"/></g>\n        <g transform=\"translate(130 92)\"><circle r=\"34\" fill=\"#fff\" stroke=\"#222\" stroke-width=\"2\"/><g stroke=\"#222\" stroke-width=\"1\"><path d=\"M0 0L0 -34\" /><path d=\"M0 0L29 -17\"/><path d=\"M0 0L29 17\"/><path d=\"M0 0L0 34\"/><path d=\"M0 0L-29 17\"/><path d=\"M0 0L-29 -17\"/></g><path d=\"M0 0L0 -34A34 34 0 0 1 29 -17Z\" fill=\"#e63946\"/><path d=\"M0 0L29 17A34 34 0 0 1 0 34Z\" fill=\"#2a9df4\"/><path d=\"M0 0L-29 -17A34 34 0 0 1 0 -34Z\" fill=\"#ffd23f\"/><circle r=\"5\" fill=\"#222\"/></g>\n        <g transform=\"translate(202 34)\"><rect x=\"-15\" y=\"-9\" width=\"30\" height=\"18\" rx=\"6\" fill=\"#e63946\" stroke=\"#222\" stroke-width=\"1.5\"/><circle cx=\"-5\" cy=\"0\" r=\"2.6\" fill=\"#fff\"/><circle cx=\"2\" cy=\"0\" r=\"2.6\" fill=\"#fff\"/><circle cx=\"8\" cy=\"-3\" r=\"1.6\" fill=\"#ff6fa8\"/><circle cx=\"8\" cy=\"3\" r=\"1.6\" fill=\"#4aa3ff\"/></g>\n        <text x=\"182\" y=\"88\" font-family=\"ui-monospace, monospace\" font-size=\"14\" font-weight=\"700\" fill=\"#fff\">Aa × Aa</text>\n      </svg>"}, {"id": "gulp", "n": "GULP!", "href": "gulp/", "area": ["cel"], "place": "Hospital Regional", "genre": "Sobrevivência · imunologia", "story": "Dentro de cada paciente do hospital, uma guerra que ninguém vê.", "desc": "Você é um macrófago cercado por ondas de bactérias, vírus e fungos. As defesas disparam sozinhas: fagocitose, complemento, anticorpos, interferon, febre. Combine mecanismos e vença cinco chefes, até uma tênia gigante.", "tags": ["fagocitose", "opsonização", "resistência", "Th2"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#3b1f27\"/>\n        <g fill=\"#c98b7a\"><rect x=\"0\" y=\"0\" width=\"320\" height=\"22\"/><rect x=\"0\" y=\"128\" width=\"320\" height=\"22\"/></g>\n        <g fill=\"#a86e60\"><circle cx=\"20\" cy=\"11\" r=\"4\"/><circle cx=\"70\" cy=\"9\" r=\"4\"/><circle cx=\"130\" cy=\"12\" r=\"4\"/><circle cx=\"200\" cy=\"10\" r=\"4\"/><circle cx=\"270\" cy=\"12\" r=\"4\"/><circle cx=\"40\" cy=\"139\" r=\"4\"/><circle cx=\"110\" cy=\"137\" r=\"4\"/><circle cx=\"180\" cy=\"140\" r=\"4\"/><circle cx=\"250\" cy=\"138\" r=\"4\"/><circle cx=\"305\" cy=\"139\" r=\"4\"/></g>\n        <circle cx=\"120\" cy=\"75\" r=\"44\" fill=\"rgba(129,212,250,.18)\"/>\n        <path d=\"M120 47 C 140 45, 150 58, 172 66 C 182 70, 182 82, 170 86 C 150 92, 142 104, 120 103 C 98 104, 90 92, 92 75 C 90 58, 100 49, 120 47 Z\" fill=\"#b3e5fc\" stroke=\"#e1f5fe\" stroke-width=\"2\"/>\n        <ellipse cx=\"116\" cy=\"77\" rx=\"12\" ry=\"9\" fill=\"#4fc3f7\" transform=\"rotate(20 116 77)\"/>\n        <g fill=\"#ffd54f\"><circle cx=\"198\" cy=\"72\" r=\"7\"/><circle cx=\"211\" cy=\"72\" r=\"7\"/><circle cx=\"204\" cy=\"84\" r=\"7\"/><circle cx=\"192\" cy=\"84\" r=\"7\"/><circle cx=\"216\" cy=\"84\" r=\"7\"/></g>\n        <g transform=\"translate(262 52) rotate(25)\"><rect x=\"-18\" y=\"-6\" width=\"36\" height=\"12\" rx=\"6\" fill=\"#81c784\"/><path d=\"M-18 0 q -8 -6 -16 0 t -14 0\" stroke=\"#a5d6a7\" fill=\"none\" stroke-width=\"1.5\"/></g>\n        <g transform=\"translate(270 104)\"><g stroke=\"#ef9a9a\" stroke-width=\"2\"><line x1=\"-12\" y1=\"0\" x2=\"12\" y2=\"0\"/><line x1=\"0\" y1=\"-12\" x2=\"0\" y2=\"12\"/><line x1=\"-8\" y1=\"-8\" x2=\"8\" y2=\"8\"/><line x1=\"-8\" y1=\"8\" x2=\"8\" y2=\"-8\"/></g><circle r=\"7\" fill=\"#ef5350\"/></g>\n      </svg>"}, {"id": "operon", "n": "Operon", "href": "operon/", "area": ["mol", "cel"], "place": "Rio Sereno", "genre": "Simulação · regulação gênica", "story": "A vigilância sanitária mede as bactérias do rio. Uma delas é você.", "desc": "Seja uma E. coli: nade atrás de glicose, lactose e triptofano e cresça mais rápido que as rivais. Ligue os óperons lac e trp na mão, depois veja o repressor, a CAP e a atenuação fazerem o trabalho.", "tags": ["óperon lac", "óperon trp", "Jacob e Monod"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#0b2530\"/>\n        <circle cx=\"70\" cy=\"45\" r=\"55\" fill=\"#ffc43c\" opacity=\".35\"/><circle cx=\"250\" cy=\"40\" r=\"60\" fill=\"#f2f7ff\" opacity=\".22\"/><circle cx=\"240\" cy=\"125\" r=\"45\" fill=\"#d07bff\" opacity=\".3\"/>\n        <g transform=\"translate(150 58) rotate(-12)\"><g stroke=\"#cfe\" stroke-width=\"2\" fill=\"none\" opacity=\".7\"><path d=\"M-40 0 q-8 -6 -16 0 t-16 0\"/><path d=\"M-40 -5 q-8 -9 -16 -4 t-16 -5\"/><path d=\"M-40 5 q-8 9 -16 4 t-16 5\"/></g><rect x=\"-42\" y=\"-17\" width=\"84\" height=\"34\" rx=\"17\" fill=\"#c8f7a0\" stroke=\"#0d2a33\" stroke-width=\"3\"/><circle cx=\"-16\" cy=\"-4\" r=\"4\" fill=\"#ff9a1f\"/><circle cx=\"-4\" cy=\"5\" r=\"4\" fill=\"#ff9a1f\"/><circle cx=\"20\" cy=\"2\" r=\"3.5\" fill=\"#c04bff\"/><rect x=\"-28\" y=\"-20\" width=\"6\" height=\"6\" fill=\"#2f80ff\"/><rect x=\"8\" y=\"14\" width=\"6\" height=\"6\" fill=\"#2f80ff\"/></g>\n        <line x1=\"20\" y1=\"122\" x2=\"300\" y2=\"122\" stroke=\"#9ccdd6\" stroke-width=\"4\" opacity=\".6\"/>\n        <rect x=\"40\" y=\"112\" width=\"32\" height=\"20\" rx=\"4\" fill=\"#7bd389\"/><rect x=\"72\" y=\"112\" width=\"26\" height=\"20\" rx=\"4\" fill=\"#ff8a8a\"/><rect x=\"98\" y=\"112\" width=\"90\" height=\"20\" rx=\"4\" fill=\"#6fb7ff\"/><rect x=\"188\" y=\"112\" width=\"56\" height=\"20\" rx=\"4\" fill=\"#5ad1c3\"/><rect x=\"244\" y=\"112\" width=\"40\" height=\"20\" rx=\"4\" fill=\"#a7b5bb\"/>\n        <g transform=\"translate(85 104)\"><rect x=\"-15\" y=\"-9\" width=\"14\" height=\"16\" rx=\"5\" fill=\"#9b6dff\" stroke=\"#2c0f6b\"/><rect x=\"1\" y=\"-9\" width=\"14\" height=\"16\" rx=\"5\" fill=\"#9b6dff\" stroke=\"#2c0f6b\"/></g>\n        <text x=\"143\" y=\"126\" font-family=\"system-ui\" font-weight=\"800\" font-size=\"11\" fill=\"#0a1d24\" text-anchor=\"middle\">lacZ</text>\n      </svg>"}, {"id": "fita", "n": "Fita Molde", "href": "fita-molde/", "area": ["mol"], "place": "Universidade do Sereno", "genre": "Plataforma · replicação do DNA", "story": "No laboratório novo da universidade, a fita de DNA é copiada base por base.", "desc": "Você é a DNA polimerase. Colete os nucleotídeos complementares para copiar a fita molde, corrija mutações com a revisão 3'→5' e descubra o efeito de cada erro na proteína.", "tags": ["pareamento", "mutações", "código genético"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#2a1440\"/>\n        <rect x=\"0\" y=\"118\" width=\"320\" height=\"32\" fill=\"#e9c46a\"/>\n        <g fill=\"#8e5bd6\"><circle cx=\"8\" cy=\"122\" r=\"4\"/><circle cx=\"24\" cy=\"122\" r=\"4\"/><circle cx=\"40\" cy=\"122\" r=\"4\"/><circle cx=\"56\" cy=\"122\" r=\"4\"/><circle cx=\"72\" cy=\"122\" r=\"4\"/><circle cx=\"88\" cy=\"122\" r=\"4\"/><circle cx=\"104\" cy=\"122\" r=\"4\"/><circle cx=\"120\" cy=\"122\" r=\"4\"/><circle cx=\"136\" cy=\"122\" r=\"4\"/><circle cx=\"152\" cy=\"122\" r=\"4\"/><circle cx=\"168\" cy=\"122\" r=\"4\"/><circle cx=\"184\" cy=\"122\" r=\"4\"/><circle cx=\"200\" cy=\"122\" r=\"4\"/><circle cx=\"216\" cy=\"122\" r=\"4\"/><circle cx=\"232\" cy=\"122\" r=\"4\"/><circle cx=\"248\" cy=\"122\" r=\"4\"/><circle cx=\"264\" cy=\"122\" r=\"4\"/><circle cx=\"280\" cy=\"122\" r=\"4\"/><circle cx=\"296\" cy=\"122\" r=\"4\"/><circle cx=\"312\" cy=\"122\" r=\"4\"/></g>\n        <rect x=\"200\" y=\"78\" width=\"80\" height=\"12\" rx=\"6\" fill=\"#e9c46a\"/>\n        <g font-family=\"system-ui, sans-serif\" font-weight=\"700\" font-size=\"13\" text-anchor=\"middle\" fill=\"#1d1230\">\n          <circle cx=\"150\" cy=\"58\" r=\"11\" fill=\"#4caf50\"/><text x=\"150\" y=\"63\">A</text>\n          <circle cx=\"235\" cy=\"50\" r=\"11\" fill=\"#ffca28\"/><text x=\"235\" y=\"55\">G</text>\n          <circle cx=\"290\" cy=\"40\" r=\"11\" fill=\"#42a5f5\"/><text x=\"290\" y=\"45\">C</text>\n        </g>\n        <path d=\"M58 98 L 40 96 L 26 100 L 12 96\" stroke=\"rgba(255,255,255,.4)\" stroke-width=\"2\" fill=\"none\"/>\n        <circle cx=\"40\" cy=\"96\" r=\"5\" fill=\"#ef5350\"/><circle cx=\"26\" cy=\"100\" r=\"5\" fill=\"#4caf50\"/><circle cx=\"12\" cy=\"96\" r=\"5\" fill=\"#ffca28\"/>\n        <rect x=\"58\" y=\"86\" width=\"24\" height=\"32\" rx=\"8\" fill=\"#26c6da\"/>\n        <rect x=\"76\" y=\"100\" width=\"8\" height=\"11\" rx=\"3\" fill=\"#00838f\"/>\n        <rect x=\"71\" y=\"93\" width=\"7\" height=\"7\" fill=\"#fff\"/><rect x=\"75\" y=\"95\" width=\"2\" height=\"4\" fill=\"#102027\"/>\n        <g transform=\"translate(115 104)\"><polygon points=\"0,-9 8,-4 8,4 0,9 -8,4 -8,-4\" fill=\"#b0bec5\" stroke=\"#eceff1\"/><rect x=\"-2\" y=\"8\" width=\"4\" height=\"6\" fill=\"#607d8b\"/><path d=\"M0 14 L-9 14 M0 14 L9 14\" stroke=\"#cfd8dc\" stroke-width=\"2\"/></g>\n      </svg>"}, {"id": "geno", "n": "GenoBlocos", "href": "genoblocos/", "area": ["mol"], "place": "Universidade do Sereno", "genre": "Quebra-cabeça · pareamento e mutagênese", "story": "O jogo que os alunos do laboratório jogam no intervalo.", "desc": "Cada peça é um nucleotídeo. Encaixe bases complementares para ganhar pontes de hidrogênio, use enzimas como power-ups e sobreviva à radiação UV, ao cigarro, aos vírus e ao raio-X.", "tags": ["A–T e C–G", "CRISPR", "reparo do DNA"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <rect width=\"320\" height=\"150\" fill=\"#140a24\"/>\n        <g font-family=\"system-ui, sans-serif\" font-weight=\"700\" font-size=\"13\" text-anchor=\"middle\">\n          <g fill=\"#4caf50\"><rect x=\"88\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"114\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"140\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"140\" y=\"94\" width=\"26\" height=\"26\" rx=\"5\"/></g>\n          <g fill=\"#ef5350\"><rect x=\"166\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"192\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"166\" y=\"94\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"192\" y=\"94\" width=\"26\" height=\"26\" rx=\"5\"/></g>\n          <g fill=\"#42a5f5\"><rect x=\"218\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"218\" y=\"94\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"218\" y=\"68\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"244\" y=\"120\" width=\"26\" height=\"26\" rx=\"5\"/></g>\n          <g fill=\"#ffca28\"><rect x=\"140\" y=\"14\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"166\" y=\"14\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"166\" y=\"40\" width=\"26\" height=\"26\" rx=\"5\"/><rect x=\"192\" y=\"40\" width=\"26\" height=\"26\" rx=\"5\"/></g>\n          <g fill=\"#1d1230\"><text x=\"101\" y=\"138\">A</text><text x=\"127\" y=\"138\">A</text><text x=\"153\" y=\"138\">A</text><text x=\"153\" y=\"112\">A</text><text x=\"179\" y=\"138\">T</text><text x=\"205\" y=\"138\">T</text><text x=\"179\" y=\"112\">T</text><text x=\"205\" y=\"112\">T</text><text x=\"231\" y=\"138\">C</text><text x=\"231\" y=\"112\">C</text><text x=\"231\" y=\"86\">C</text><text x=\"257\" y=\"138\">C</text><text x=\"153\" y=\"32\">G</text><text x=\"179\" y=\"32\">G</text><text x=\"179\" y=\"58\">G</text><text x=\"205\" y=\"58\">G</text></g>\n        </g>\n        <g stroke=\"#fff\" stroke-width=\"1.6\" opacity=\".8\"><line x1=\"162\" y1=\"128\" x2=\"170\" y2=\"128\"/><line x1=\"162\" y1=\"134\" x2=\"170\" y2=\"134\"/><line x1=\"162\" y1=\"102\" x2=\"170\" y2=\"102\"/><line x1=\"162\" y1=\"108\" x2=\"170\" y2=\"108\"/></g>\n      </svg>"}, {"id": "laudo", "n": "Laudo", "href": "laudo/", "area": ["for", "fam"], "place": "Instituto de Criminalística", "genre": "Investigação · genética forense", "story": "1997. Um computador de tubo, um orçamento curto e dez casos que levam até a Mina Velha.", "desc": "Seja perita criminal numa tela de computador de 8 bits. Colete vestígios, peça exames, leia eletroferogramas, calcule paternidade e frequências e assine o laudo. Dez casos de temporada e plantões sem fim.", "tags": ["STR", "misturas", "paternidade", "espécie por DNA"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n  <rect width=\"320\" height=\"150\" fill=\"#16120d\"/>\n  <rect x=\"62\" y=\"12\" width=\"196\" height=\"126\" rx=\"16\" fill=\"#d9d2bf\"/><rect x=\"62\" y=\"128\" width=\"196\" height=\"10\" rx=\"5\" fill=\"#b3aa92\"/>\n  <rect x=\"78\" y=\"24\" width=\"164\" height=\"98\" rx=\"10\" fill=\"#0a0f24\"/>\n  <rect x=\"86\" y=\"32\" width=\"148\" height=\"10\" fill=\"#bcbcbc\"/><rect x=\"88\" y=\"34\" width=\"60\" height=\"6\" fill=\"#0000bc\"/>\n  <rect x=\"86\" y=\"44\" width=\"148\" height=\"70\" fill=\"#000\"/>\n  <path d=\"M90 104 L104 104 L108 74 L112 104 L126 104 L130 58 L134 104 L150 104 L154 82 L158 104 L176 104 L180 90 L184 104 L230 104\" stroke=\"#0058f8\" stroke-width=\"2\" fill=\"none\"/>\n  <path d=\"M90 108 L196 108 L200 98 L204 108 L230 108\" stroke=\"#00a800\" stroke-width=\"2\" fill=\"none\"/>\n  <line x1=\"90\" y1=\"100\" x2=\"230\" y2=\"100\" stroke=\"#f83800\" stroke-dasharray=\"2 3\"/>\n  <rect x=\"104\" y=\"47\" width=\"14\" height=\"8\" fill=\"#fce0a8\"/><rect x=\"126\" y=\"47\" width=\"14\" height=\"8\" fill=\"#fce0a8\"/>\n  <g fill=\"rgba(0,0,0,.25)\"><rect x=\"78\" y=\"26\" width=\"164\" height=\"1\"/><rect x=\"78\" y=\"30\" width=\"164\" height=\"1\"/><rect x=\"78\" y=\"34\" width=\"164\" height=\"1\"/></g>\n  <circle cx=\"246\" cy=\"132\" r=\"3\" fill=\"#3cf05a\"/>\n  <rect x=\"268\" y=\"96\" width=\"36\" height=\"44\" rx=\"4\" fill=\"#efe6c8\"/><rect x=\"274\" y=\"104\" width=\"24\" height=\"3\" fill=\"#7c7c7c\"/><rect x=\"274\" y=\"112\" width=\"20\" height=\"3\" fill=\"#7c7c7c\"/><circle cx=\"292\" cy=\"128\" r=\"7\" fill=\"none\" stroke=\"#a81000\" stroke-width=\"2\"/>\n</svg>"}, {"id": "astra", "n": "Locus Astra", "href": "locus-astra/", "area": ["fam"], "place": "A estrela de Kepler-Rubra", "genre": "Criação e cruzamento · genética mendeliana", "story": "Muitos anos depois, uma filha do vale trabalha numa estação espacial, cruzando criaturas de outros mundos.", "desc": "Você é geneticista numa estação espacial. Capture astrídeos em outros planetas, preveja filhotes com quadros de Punnett, cumpra contratos e dispute a arena com criaturas cujos atributos vêm dos genes.", "tags": ["Punnett", "epistasia", "ligada ao X", "poligênica"], "art": "<svg class=\"art\" viewBox=\"0 0 320 150\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\">\n        <defs>\n          <radialGradient id=\"laSky\" cx=\"70%\" cy=\"20%\" r=\"90%\"><stop offset=\"0\" stop-color=\"#2a1b5c\"/><stop offset=\"1\" stop-color=\"#070b18\"/></radialGradient>\n          <radialGradient id=\"laBody\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#b57bea\"/><stop offset=\"1\" stop-color=\"#5e2a9e\"/></radialGradient>\n          <radialGradient id=\"laBody2\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#ffe082\"/><stop offset=\"1\" stop-color=\"#d48806\"/></radialGradient>\n        </defs>\n        <rect width=\"320\" height=\"150\" fill=\"url(#laSky)\"/>\n        <g fill=\"#fff\"><circle cx=\"20\" cy=\"18\" r=\"1\"/><circle cx=\"64\" cy=\"40\" r=\".8\"/><circle cx=\"110\" cy=\"14\" r=\"1.2\"/><circle cx=\"170\" cy=\"30\" r=\".8\"/><circle cx=\"214\" cy=\"12\" r=\"1\"/><circle cx=\"300\" cy=\"44\" r=\"1\"/><circle cx=\"36\" cy=\"110\" r=\".8\"/><circle cx=\"150\" cy=\"128\" r=\"1\"/><circle cx=\"288\" cy=\"120\" r=\".8\"/></g>\n        <circle cx=\"272\" cy=\"30\" r=\"20\" fill=\"#4fc3f7\" opacity=\".85\"/><ellipse cx=\"272\" cy=\"30\" rx=\"32\" ry=\"7\" fill=\"none\" stroke=\"#ffd54f\" stroke-width=\"2\" transform=\"rotate(-20 272 30)\"/>\n        <g transform=\"translate(92 86)\">\n          <path d=\"M-12 -22 C -16 -36, -24 -38, -26 -44\" stroke=\"#5e2a9e\" stroke-width=\"2.4\" fill=\"none\"/><circle cx=\"-26\" cy=\"-45\" r=\"3.6\" fill=\"#ccff90\"/>\n          <path d=\"M12 -22 C 16 -36, 24 -38, 26 -44\" stroke=\"#5e2a9e\" stroke-width=\"2.4\" fill=\"none\"/><circle cx=\"26\" cy=\"-45\" r=\"3.6\" fill=\"#ccff90\"/>\n          <ellipse cx=\"0\" cy=\"0\" rx=\"34\" ry=\"29\" fill=\"url(#laBody)\"/>\n          <circle cx=\"-14\" cy=\"-2\" r=\"5\" fill=\"#5e2a9e\" opacity=\".55\"/><circle cx=\"12\" cy=\"6\" r=\"6\" fill=\"#5e2a9e\" opacity=\".55\"/>\n          <circle cx=\"-11\" cy=\"-8\" r=\"6.5\" fill=\"#fff\"/><circle cx=\"11\" cy=\"-8\" r=\"6.5\" fill=\"#fff\"/><circle cx=\"-10\" cy=\"-7\" r=\"3.3\" fill=\"#101420\"/><circle cx=\"12\" cy=\"-7\" r=\"3.3\" fill=\"#101420\"/>\n          <path d=\"M-7 8 Q 0 13, 7 8\" stroke=\"#1b1b2a\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/>\n        </g>\n        <text x=\"160\" y=\"92\" text-anchor=\"middle\" font-family=\"system-ui, sans-serif\" font-size=\"26\" font-weight=\"700\" fill=\"#93a0c8\">×</text>\n        <g transform=\"translate(228 90) scale(.85)\">\n          <g fill=\"#9ff0ff\" stroke=\"#fff\" stroke-width=\"1\"><polygon points=\"-18,-20 -12,-40 -6,-21\"/><polygon points=\"-4,-26 2,-50 8,-26\"/><polygon points=\"10,-22 17,-40 22,-18\"/></g>\n          <ellipse cx=\"0\" cy=\"0\" rx=\"34\" ry=\"29\" fill=\"url(#laBody2)\"/>\n          <circle cx=\"0\" cy=\"-8\" r=\"10\" fill=\"#fff\"/><circle cx=\"2\" cy=\"-7\" r=\"5\" fill=\"#101420\"/>\n          <path d=\"M-7 8 Q 0 13, 7 8\" stroke=\"#1b1b2a\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/>\n        </g>\n      </svg>"}];
+const AREAS = [["todos", "Todos"], ["mol", "Moléculas"], ["cel", "Células e corpo"], ["fam", "Pessoas e famílias"], ["pop", "Populações"], ["for", "Forense"]];
+const grid = document.getElementById('grid'), dlg = document.getElementById('dlg');
+let filter = 'todos';
+function cards() {
+  grid.innerHTML = GAMES.filter(g => filter === 'todos' || g.area.includes(filter)).map(g => `
+    <article class="card">
+      ${g.art}
+      <div class="body">
+        <h3>${g.n}</h3>
+        <div class="where">${g.place}</div>
+        <div class="genre">${g.genre}</div>
+        <p>${g.desc}</p>
+        <div class="tags">${g.tags.map(t => `<span>${t}</span>`).join('')}</div>
+        <div class="row"><a class="btn" href="${g.href}">Jogar</a><button class="btn ghost" data-g="${g.id}">Saiba mais</button></div>
+      </div>
+    </article>`).join('');
+}
+function openGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  document.getElementById('dlgArt').innerHTML = g.art;
+  document.getElementById('dlgW').textContent = g.place;
+  document.getElementById('dlgT').textContent = g.n;
+  document.getElementById('dlgS').textContent = g.story;
+  document.getElementById('dlgD').textContent = g.desc.replace(/<[^>]+>/g, '');
+  document.getElementById('dlgTags').innerHTML = g.tags.map(t => `<span>${t}</span>`).join('');
+  document.getElementById('dlgGo').href = g.href;
+  dlg.showModal();
+}
+document.addEventListener('click', e => {
+  const pin = e.target.closest('.pin');
+  if (pin) { e.preventDefault(); openGame(pin.dataset.g); return; }
+  const b = e.target.closest('button[data-g]');
+  if (b) { openGame(b.dataset.g); return; }
+  const c = e.target.closest('.chip');
+  if (c) { filter = c.dataset.f; document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === c))); cards(); }
+});
+document.addEventListener('keydown', e => { const pin = e.target.closest && e.target.closest('.pin'); if (pin && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openGame(pin.dataset.g); } });
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+cards();
+const mb = document.getElementById('mapbox'); if (mb.scrollWidth > mb.clientWidth) mb.scrollLeft = (mb.scrollWidth - mb.clientWidth) * .45;
+</script>
 </body>
 </html>
