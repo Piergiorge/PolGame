@@ -1,22 +1,43 @@
-# PolGame — jogos de genética e imunologia
+# Vale do Sereno: jogos de genética e biologia
 
-Jogos que rodam direto no navegador, no computador ou no celular. Não precisa instalar nada.
+Jogos de genética, imunologia e biologia que rodam direto no navegador, no computador ou no celular. Não precisa instalar nada.
 
-### ▶️ [Abrir o menu de jogos](https://piergiorge.github.io/PolGame/)
+Todos se passam no mesmo lugar: o **Vale do Sereno**, uma cidade fictícia fundada por descendentes de um punhado de colonos. Por isso algumas doenças hereditárias são muito mais comuns ali, e cada família tem uma lenda para explicá-las. Os jogos sobem e descem essa escada: a população que chegou à ilha, as famílias, as pessoas, as células e as moléculas de quem vive no vale.
+
+### ▶️ [Abrir o mapa do Vale do Sereno](https://piergiorge.github.io/Vale-do-Sereno/)
+
+> Este projeto se chamava **PolGame**. O endereço antigo (`piergiorge.github.io/PolGame`) não funciona mais: use o link acima.
 
 | Jogo | Gênero | Tema | Link |
 |---|---|---|---|
-| 🧬 **Fita Molde** | Plataforma | Replicação do DNA, pareamento de bases, mutações e código genético | [▶️ Jogar](https://piergiorge.github.io/PolGame/fita-molde/) |
-| 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/PolGame/genoblocos/) |
-| 🦠 **GULP!** | Sobrevivência | Imunidade inata e o início da adaptativa: fagocitose, opsonização, complemento, interferon, linfócitos T, febre e resistência | [▶️ Jogar](https://piergiorge.github.io/PolGame/gulp/) |
-| 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/PolGame/locus-astra/) |
-| 🩺 **Surto** | RPG investigativo | Heredogramas humanos: modos de herança, consanguinidade, penetrância incompleta, início tardio e fenocópias | [▶️ Jogar](https://piergiorge.github.io/PolGame/surto/) |
-| 🌳 **Linhagem** | RPG de gerações | Herança poligênica, endogamia, vantagem do heterozigoto, herança ligada ao X e história da genética | [▶️ Jogar](https://piergiorge.github.io/PolGame/linhagem/) |
-| 🎡 **Herança** | Jogo de tabuleiro (1 a 4 jogadores) | Genética humana: ABO e Rh, lactase, daltonismo, ACTN3, portadores, vantagem do heterozigoto, teste do pezinho | [▶️ Jogar](https://piergiorge.github.io/PolGame/heranca/) |
-| 🦠 **Operon** | Simulação em tempo real | Regulação gênica em bactérias: óperons lac e trp, repressor, indutor, CAP-AMPc, diauxia, atenuação e diagnóstico de mutantes (IPTG, merodiploides F′) | [▶️ Jogar](https://piergiorge.github.io/PolGame/operon/) |
-| 🏝️ **Fundadores** | Estratégia por turnos (anos) | Genética de populações: efeito fundador, gargalo, deriva, endogamia, fluxo gênico, seleção balanceadora | [▶️ Jogar](https://piergiorge.github.io/PolGame/fundadores/) |
+| 🧬 **Fita Molde** | Plataforma | Replicação do DNA, pareamento de bases, mutações e código genético | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/fita-molde/) |
+| 🧱 **GenoBlocos** | Quebra-cabeça de blocos | Pareamento A–T / C–G, agentes mutagênicos, CRISPR e reparo do DNA | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/genoblocos/) |
+| 🦠 **GULP!** | Sobrevivência | Imunidade inata e o início da adaptativa: fagocitose, opsonização, complemento, interferon, linfócitos T, febre e resistência | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/gulp/) |
+| 🪐 **Locus Astra** | Criação e cruzamento | Genética mendeliana: Punnett, cruzamento-teste, epistasia, alelo letal, herança ligada ao X e poligênica | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/locus-astra/) |
+| 🩺 **Surto** | RPG investigativo | Heredogramas humanos: modos de herança, consanguinidade, penetrância incompleta, início tardio e fenocópias | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/surto/) |
+| 🌳 **Linhagem** | RPG de gerações | Herança poligênica, endogamia, vantagem do heterozigoto, herança ligada ao X e história da genética | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/linhagem/) |
+| 🎡 **Herança** | Jogo de tabuleiro (1 a 4 jogadores) | Genética humana: ABO e Rh, lactase, daltonismo, ACTN3, portadores, vantagem do heterozigoto, teste do pezinho | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/heranca/) |
+| 🦠 **Operon** | Simulação em tempo real | Regulação gênica em bactérias: óperons lac e trp, repressor, indutor, CAP-AMPc, diauxia, atenuação e diagnóstico de mutantes (IPTG, merodiploides F′) | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/operon/) |
+| 🏝️ **Fundadores** | Estratégia por turnos (anos) | Genética de populações: efeito fundador, gargalo, deriva, endogamia, fluxo gênico, seleção balanceadora | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/fundadores/) |
+| 🖥️ **Laudo** | Investigação (tela de computador de 8 bits) | Genética forense: STR, DNA degradado, misturas, Y-STR, mtDNA, paternidade, espécie por DNA, toxicologia e entomologia | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/Laudo/) |
 
-Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** liga e desliga) e funcionam no celular.
+Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** ou o botão de som liga e desliga) e funcionam no celular.
+
+### O mapa
+
+O menu é um mapa ilustrado do vale ao anoitecer. Cada jogo é um lugar:
+
+| Lugar | Jogo |
+|---|---|
+| Ilha da Bruma | Fundadores |
+| Casarão da família | Linhagem |
+| Bairro Sereno | Surto |
+| Feira de domingo | Herança |
+| Hospital Regional | GULP! |
+| Rio Sereno | Operon |
+| Universidade do Sereno | Fita Molde e GenoBlocos |
+| Instituto de Criminalística | Laudo |
+| A estrela de Kepler-Rubra | Locus Astra |
 
 ---
 
@@ -24,7 +45,7 @@ Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M**
 
 **Um platformer 2D sobre replicação do DNA.** Você é a DNA polimerase: atravesse a célula coletando nucleotídeos complementares para copiar a fita molde, corrija seus erros com a revisão 3'→5' e chegue ao telômero.
 
-### ▶️ [Jogar o Fita Molde](https://piergiorge.github.io/PolGame/fita-molde/)
+### ▶️ [Jogar o Fita Molde](https://piergiorge.github.io/Vale-do-Sereno/fita-molde/)
 
 ## Como jogar
 
@@ -95,7 +116,7 @@ O jogo também mostra a **fidelidade** da cópia, quantos erros foram incorporad
 
 Cada peça é um nucleotídeo. Complete linhas para eliminá-las e encaixe **bases complementares lado a lado**: cada par vale pontes de hidrogênio extras (A–T = 2, C–G = 3). Quatro linhas de uma vez formam uma **Tétrade**. Use enzimas como power-ups (helicase, CRISPR-Cas9, DNA ligase, telomerase e reparo NER) e sobreviva à radiação UV, à fumaça de cigarro, aos retrovírus e ao raio-X.
 
-### ▶️ [Jogar o GenoBlocos](https://piergiorge.github.io/PolGame/genoblocos/)
+### ▶️ [Jogar o GenoBlocos](https://piergiorge.github.io/Vale-do-Sereno/genoblocos/)
 
 ---
 
@@ -113,7 +134,7 @@ Em grego, *macrófago* quer dizer "grande comedor". Você é um macrófago cerca
 
 Armas: fagocitose, explosão respiratória, lisozima, complemento (MAC), neutrófilos (com NETs), anticorpos IgG, interferon, linfócitos T CD8, febre e, na fase final, eosinófilos. Passivas: receptores Toll-like, lisossomos, receptor de manose, integrinas, glicólise, ativação por IFN-γ e apresentação de antígeno (MHC II). No fim de cada partida, um gráfico mostra quanto cada mecanismo contribuiu, e os pontos de **memória imunológica** compram melhorias permanentes (inclusive uma "vacina" que revive uma vez). Uma Imunopédia registra os patógenos encontrados.
 
-### ▶️ [Jogar o GULP!](https://piergiorge.github.io/PolGame/gulp/)
+### ▶️ [Jogar o GULP!](https://piergiorge.github.io/Vale-do-Sereno/gulp/)
 
 ---
 
@@ -133,7 +154,7 @@ Ano 2187. Você é geneticista na estação **Locus Astra** e cuida dos **astrí
 
 O genótipo aparece com **?** onde ainda é desconhecido: dá para **sequenciar** (custa pesquisa) ou **deduzir por cruzamento-teste**, e o laboratório faz as deduções automaticamente a partir dos filhotes.
 
-### ▶️ [Jogar o Locus Astra](https://piergiorge.github.io/PolGame/locus-astra/)
+### ▶️ [Jogar o Locus Astra](https://piergiorge.github.io/Vale-do-Sereno/locus-astra/)
 
 ---
 
@@ -155,7 +176,7 @@ Você acaba de assumir o Serviço de Genética do **Vale do Sereno**, uma regiã
 
 As famílias são geradas aleatoriamente a cada partida, sempre com um heredograma que permite chegar à resposta. As doenças têm nomes fictícios, e o laudo revela o equivalente real (albinismo, Marfan, hemofilia A, fenilcetonúria, raquitismo hipofosfatêmico, MELAS, Huntington, polidactilia e intoxicação por chumbo). Depois da campanha, os **plantões** trazem famílias aleatórias com todos os modos de herança possíveis. Você sobe de nível e escolhe habilidades (mais horas, sequenciamento mais barato, consultas extras…).
 
-### ▶️ [Jogar o Surto](https://piergiorge.github.io/PolGame/surto/)
+### ▶️ [Jogar o Surto](https://piergiorge.github.io/Vale-do-Sereno/surto/)
 
 ---
 
@@ -177,7 +198,7 @@ As famílias são geradas aleatoriamente a cada partida, sempre com um heredogra
 
 A árvore da família é um heredograma de verdade, colorido pela característica escolhida, com portadores obrigatórios marcados e casais aparentados em linha dupla. Cada partida sorteia três ambições para a casa.
 
-### ▶️ [Jogar o Linhagem](https://piergiorge.github.io/PolGame/linhagem/)
+### ▶️ [Jogar o Linhagem](https://piergiorge.github.io/Vale-do-Sereno/linhagem/)
 
 ---
 
@@ -202,7 +223,7 @@ Cada jogador recebe **6 cartas viradas para baixo**: genes (traço falciforme, f
 
 Vence quem chegar ao fim com o maior legado: dinheiro + casa + investimentos + filhos + anos vividos acima da média + doações − dívidas com juros. No fim, todas as cartas e genótipos da família são revelados.
 
-### ▶️ [Jogar o Herança](https://piergiorge.github.io/PolGame/heranca/)
+### ▶️ [Jogar o Herança](https://piergiorge.github.io/Vale-do-Sereno/heranca/)
 
 ---
 
@@ -225,7 +246,7 @@ O painel mostra os óperons por dentro, em tempo real: RNA polimerase, repressor
 
 Quando surge uma **mutação** (lacI⁻, lacOᶜ, lacIˢ, lacZ⁻, lacY⁻, crp⁻, cya⁻, trpR⁻, trpL∆, trpE⁻), você abre o laboratório e faz os testes clássicos de Jacob e Monod: indução com lactose ou IPTG, merodiploide F′ lac⁺ (teste cis-trans), adição de AMPc, crescimento com e sem Trp. Cada palpite errado mostra qual teste contradiz a hipótese. Os conceitos ficam guardados num caderno, e o progresso é salvo no navegador.
 
-### ▶️ [Jogar o Operon](https://piergiorge.github.io/PolGame/operon/)
+### ▶️ [Jogar o Operon](https://piergiorge.github.io/Vale-do-Sereno/operon/)
 
 ---
 
@@ -248,7 +269,34 @@ Cada colono é simulado individualmente: casa, tem filhos com genes sorteados do
 
 O modo professor mostra os genótipos escondidos de todos os colonos. O jogo é salvo automaticamente no navegador.
 
-### ▶️ [Jogar o Fundadores](https://piergiorge.github.io/PolGame/fundadores/)
+### ▶️ [Jogar o Fundadores](https://piergiorge.github.io/Vale-do-Sereno/fundadores/)
+
+---
+
+# 🖥️ Laudo
+
+**Perícia criminal numa tela de computador de tubo.** É 1997 e você é a perita Lia Moura, do Instituto de Criminalística do Vale do Sereno. O jogo inteiro acontece no SIPEC, um sistema em pixel art de 8 bits: ofícios do delegado, fotos da cena para examinar, requisição de exames com orçamento e prazo, resultados (eletroferogramas de verdade para ler), cálculos de frequência e de paternidade, contatos e o laudo, que vai para o juiz. Afirmar o que não foi examinado derruba o laudo no tribunal.
+
+**Temporada (1997–1998).** Dez casos ligados entre si, que terminam na Mina Velha:
+
+| Caso | O que ensina |
+|---|---|
+| 001. Arrombamento na Farmácia Sereno | DNA degradado, irmãos com o mesmo perfil parcial, banco de frequências local |
+| 002. Carne de boi? | Identificação de espécie pelo DNA (código de barras COI), fauna silvestre |
+| 003. A herança dos Rezende | Paternidade post-mortem, mutação de um passo, Y-STR |
+| 004. O corpo na trilha | Entomologia forense e intervalo pós-morte |
+| 005. Unhas | Misturas de DNA; o Y-STR isola o homem numa mistura com mulher |
+| 006. O Mal da Vila Nova | Toxicologia: contaminação por chumbo, não envenenamento |
+| 007. A ossada do rio | Pessoa desaparecida: mtDNA, Y-STR e comparação com os pais |
+| 008. Feira de domingo | Tráfico de aves: espécie ameaçada e filhotes que não são do casal registrado |
+| 009. Chumbinho na festa | Toxicologia e mistura; DNA num objeto mostra contato, não autoria |
+| 010. Os ossos da Mina Velha | Antropologia forense, trauma perimortem, linhagens comuns numa população fundadora |
+
+**Plantão.** Casos gerados a cada partida, sorteados entre identificação, misturas, paternidade (inclusive com o tio no lugar do pai), espécie, pessoas desaparecidas, toxicologia e entomologia. Cada plantão tem um código e pode ser repetido.
+
+A reviravolta que atravessa o jogo é a genética forense numa **população fundadora**: no Vale, um perfil de DNA compatível pesa bem menos do que no resto do país, e um Y-STR aponta uma família inteira. Os casos se liberam em sequência; um botão na lista de processos libera todos de uma vez, para uso em aula. O progresso fica salvo no navegador. Perfis, famílias e frequências alélicas são fictícios.
+
+### ▶️ [Jogar o Laudo](https://piergiorge.github.io/Vale-do-Sereno/Laudo/)
 
 ---
 
@@ -257,7 +305,7 @@ O modo professor mostra os genótipos escondidos de todos os colonos. O jogo é 
 Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API). Os gráficos do Locus Astra são SVG gerados a partir do fenótipo de cada criatura.
 
 ```
-index.html             menu com os jogos
+index.html             menu (mapa do Vale do Sereno)
 fita-molde/index.html
 genoblocos/index.html
 gulp/index.html
@@ -267,6 +315,7 @@ linhagem/index.html
 heranca/index.html
 operon/index.html
 fundadores/index.html
+Laudo/index.html
 ```
 
 No Fita Molde:
@@ -276,9 +325,9 @@ No Fita Molde:
 
 Para jogar sem internet, baixe o `index.html` do jogo e abra no navegador.
 
-## Licença
+## Uso
 
-Veja o arquivo [LICENSE](LICENSE).
+Jogar e usar os jogos em sala de aula é livre e gratuito. Para reutilizar ou modificar o código, consulte os termos do repositório ou fale com o autor.
 
 ## Autor
 
