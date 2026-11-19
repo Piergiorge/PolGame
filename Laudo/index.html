@@ -2230,7 +2230,7 @@
     });
     const fy = hy + 18 + rowsDef.length * 13;
     let note = ref ? 'Verde: igual. Verde-limão: alelos contidos na mistura. Laranja: diferente. —: sem resultado.' : '';
-    if (mode === 'str' && cols.some(c => c.mix)) note += (note ? ' ' : '') + 'Em misturas, a célula mostra quantos alelos há (al.); veja o resultado para a lista completa.';
+    if (mode === 'str' && cols.some(c => c.mix)) note += (note ? ' ' : '') + '"3 al." = 3 alelos diferentes no loco. Uma pessoa tem no máximo 2, então isso indica mistura de DNA. A lista completa está no resultado do exame.';
     if (note) lines(note, BX + 2, fy, 48, P.g);
   }
 
