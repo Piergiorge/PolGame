@@ -20,6 +20,7 @@ Todos se passam no mesmo lugar: o **Vale do Sereno**, uma cidade fictícia funda
 | 🦠 **Operon** | Simulação em tempo real | Regulação gênica em bactérias: óperons lac e trp, repressor, indutor, CAP-AMPc, diauxia, atenuação e diagnóstico de mutantes (IPTG, merodiploides F′) | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/operon/) |
 | 🏝️ **Fundadores** | Estratégia por turnos (anos) | Genética de populações: efeito fundador, gargalo, deriva, endogamia, fluxo gênico, seleção balanceadora | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/fundadores/) |
 | 🖥️ **Laudo** | Investigação (tela de computador de 8 bits) | Genética forense: STR, DNA degradado, misturas, Y-STR, mtDNA, paternidade, espécie por DNA, toxicologia e entomologia | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/Laudo/) |
+| 🗼 **Torre 3** | Vigilância em tempo real (uma tela, câmeras e rádio) | Ecologia e saúde: incêndio x neblina, fauna ferida ou saudável, caça e garimpo, febre amarela em bugios, lendas e suas explicações | [▶️ Jogar](https://piergiorge.github.io/Vale-do-Sereno/torre-3/) |
 
 Todos os jogos têm efeitos sonoros e música gerados por código (a tecla **M** ou o botão de som liga e desliga) e funcionam no celular.
 
@@ -37,6 +38,7 @@ O menu é um mapa ilustrado do vale ao anoitecer. Cada jogo é um lugar:
 | Rio Sereno | Operon |
 | Universidade do Sereno | Fita Molde e GenoBlocos |
 | Instituto de Criminalística | Laudo |
+| Torre de vigia, na encosta da Serra da Bruma | Torre 3 |
 | A estrela de Kepler-Rubra | Locus Astra |
 
 ---
@@ -300,6 +302,26 @@ A reviravolta que atravessa o jogo é a genética forense numa **população fun
 
 ---
 
+# 🗼 Torre 3
+
+**Guarda-parque numa torre de vigia, numa tela só.** No estilo de *Do Not Feed the Monkeys*: seis câmeras da Reserva do Sereno, um mapa, sensores de temperatura, umidade, som e movimento, e um rádio que não para. O relógio corre das 18:00 às 06:00 (dá para pausar e acelerar). Quando algo aparece numa câmera, você decide quem sai: brigada de incêndio, patrulha de guarda-parques, polícia ambiental, resgate de fauna, coleta de amostra para o laboratório, Vigilância em Saúde ou ninguém (só registrar). As equipes são poucas e levam tempo para ir e voltar.
+
+| O que aparece | O que ensina |
+|---|---|
+| Fumaça, neblina, fogueira de quintal | Ler sensores: fogo é quente e seco e sobe em coluna; neblina é fria, com umidade perto de 100%. O fogo cresce e pula de área |
+| Luzes azuis no brejo ("Boitatá") | Fogo-fátuo: gases da decomposição em áreas alagadas |
+| Pegadas "viradas" ("Curupira") | O rastro do tamanduá-bandeira, que anda com as garras dobradas |
+| Bugios mortos | Primatas como sentinelas da febre amarela silvestre; quem transmite é o mosquito |
+| Tamanduá atropelado, lobo-guará com arame | Quando resgatar fauna |
+| Onça com filhotes, filhote de ave no chão | Quando **não** intervir |
+| Caçador armado, laço com ceva, motosserra, balsa de garimpo | Crimes ambientais, segurança da equipe, mercúrio e biomagnificação |
+
+**Temporada.** Cinco turnos roteirizados (Primeira noite, Tiros no escuro, Luzes no brejo, Rio barrento, Noite seca) e **plantão livre**, sorteado a cada partida. No fim de cada turno, um relatório mostra o que aconteceu em cada ocorrência e explica a biologia por trás. As amostras vão para o Laboratório de Perícia do Vale, o mesmo do Laudo: a carne apreendida é identificada pelo gene COI, e a água do garimpo, testada para mercúrio. Barra de espaço pausa; teclas 1 a 6 trocam de câmera.
+
+### ▶️ [Jogar o Torre 3](https://piergiorge.github.io/Vale-do-Sereno/torre-3/)
+
+---
+
 ## Detalhes técnicos
 
 Cada jogo é um único arquivo HTML com JavaScript puro, sem bibliotecas nem dependências externas. Os sons e a música são gerados por código (Web Audio API). Os gráficos do Locus Astra são SVG gerados a partir do fenótipo de cada criatura.
@@ -316,6 +338,7 @@ heranca/index.html
 operon/index.html
 fundadores/index.html
 Laudo/index.html
+torre-3/index.html
 ```
 
 No Fita Molde:
